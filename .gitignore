@@ -1,0 +1,13 @@
+*.pyc
+*.sqlite3
+/static/
+/media/
+build/
+nohup.out
+pip-log.txt
+virtualenv/
+.bundle/
+tmp/
+.sublime-*
+node_modules/
+__pycache__
