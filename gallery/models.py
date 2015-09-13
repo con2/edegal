@@ -4,7 +4,7 @@ from django.db.models import Q
 
 from mptt.models import MPTTModel, TreeForeignKey
 
-from .utils import slugify
+from .utils import slugify, pick_attrs
 
 
 validate_slug = RegexValidator(
@@ -66,14 +66,40 @@ class Album(MPTTModel):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
+    def as_dict(self):
+        return pick_attrs(self,
+            'slug',
+            'path',
+            'title',
+            'description',
+
+            breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
+            subalbums=[subalbum._make_subalbum() for subalbum in self.subalbums.all()],
+            pictures=[picture.as_dict() for picture in self.pictures.all()],
+        )
+
+    def _make_breadcrumb(self):
+        return pick_attrs(self,
+            'path',
+            'title',
+        )
+
+    def _make_subalbum(self):
+        return pick_attrs(self,
+            'path',
+            'title',
+            # TODO thumbnail
+        )
+
     def _make_path(self):
-        # XXX ugly
         if self.parent is None:
-            return ''
-        elif self.parent.parent is None:
-            return self.slug
+            return '/'
         else:
-            return self.parent.path + '/' + self.slug
+            # XX ugly
+            pth = self.parent.path + '/' + self.slug
+            if pth.startswith('//'):
+                pth = pth[1:]
+            return pth
 
     def save(self, *args, **kwargs):
         if self.title and not self.slug:
@@ -96,17 +122,12 @@ class Album(MPTTModel):
 
     @classmethod
     def get_album_by_path(cls, path, **extra_criteria):
-        if path.startswith('/'):
-            path = path[1:]
-
-        print('get_album_by_path', path)
-
         q = Q(path=path) | Q(pictures__path=path)
 
         if extra_criteria:
             q = q.filter(extra_criteria)
 
-        return cls.objects.get(q)
+        return cls.objects.distinct().prefetch_related('pictures').get(q)
 
     def __str__ (self):
         return self.title
@@ -124,6 +145,15 @@ class Picture(models.Model):
 
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
+
+    def as_dict(self):
+        return pick_attrs(self,
+            'path',
+            'title',
+            'description',
+            media=[medium.as_dict() for medium in self.media.all()],
+            # TODO thumbnail
+        )
 
     def _make_path(self):
         assert self.album
@@ -158,7 +188,7 @@ class MediaSpec(models.Model):
 
 
 class Media(models.Model):
-    picture = models.ForeignKey(Picture)
+    picture = models.ForeignKey(Picture, related_name='media')
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
     image = models.ImageField(
@@ -167,4 +197,11 @@ class Media(models.Model):
         height_field='height',
     )
     spec = models.ForeignKey(MediaSpec, null=True, blank=True)
+
+    def as_dict(self):
+        return pick_attrs(self,
+            'width',
+            'height',
+            src=self.image.url,
+        )
 

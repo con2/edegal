@@ -12,9 +12,6 @@ class AlbumTestCase(TestCase):
             ),
         )
 
-        print('root', root.path)
-
-
         album1, unused = Album.objects.get_or_create(
             path='album1',
             defaults=dict(
@@ -23,8 +20,6 @@ class AlbumTestCase(TestCase):
                 parent=root,
             )
         )
-
-        print('album1', album1.path)
 
         album2, unused = Album.objects.get_or_create(
             path='album-2',
@@ -50,11 +45,14 @@ class AlbumTestCase(TestCase):
             )
         )
 
-        print(Album.objects.all())
-
     def test_get_album_by_path(self):
         album = Album.get_album_by_path('/album-1')
-        assert album.path == 'album-1'
+        self.assertEqual(album.path, '/album-1')
 
-        album = Album.get_album_by_path('album-2/picture-2')
-        assert album.path == 'album-2'
+        album = Album.get_album_by_path('/album-2/picture-2')
+        self.assertEqual(album.path, '/album-2')
+
+    def test_as_dict(self):
+        album = Album.get_album_by_path('/album-2')
+        print(album.as_dict())
+        assert False
