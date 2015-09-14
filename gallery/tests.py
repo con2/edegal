@@ -13,7 +13,7 @@ class AlbumTestCase(TestCase):
         )
 
         album1, unused = Album.objects.get_or_create(
-            path='album1',
+            path='/album-1',
             defaults=dict(
                 title='Album, the First of his Name',
                 slug='album-1',
@@ -22,7 +22,7 @@ class AlbumTestCase(TestCase):
         )
 
         album2, unused = Album.objects.get_or_create(
-            path='album-2',
+            path='/album-2',
             defaults=dict(
                 title='Album 2',
                 parent=root,
@@ -30,7 +30,7 @@ class AlbumTestCase(TestCase):
         )
 
         picture1, unused = Picture.objects.get_or_create(
-            path='album-1/picture-1',
+            path='/album-1/picture-1',
             defaults=dict(
                 title='Picture 1',
                 album=album2,
@@ -38,7 +38,7 @@ class AlbumTestCase(TestCase):
         )
 
         picture2, unused = Picture.objects.get_or_create(
-            path='album-1/picture-2',
+            path='/album-1/picture-2',
             defaults=dict(
                 title='Picture 2',
                 album=album2,
