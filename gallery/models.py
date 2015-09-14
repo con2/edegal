@@ -159,6 +159,9 @@ class Picture(models.Model):
         assert self.album
         return self.album.path + '/' + self.slug
 
+    def get_original(self):
+        return self.media.get(spec=None)
+
     def save(self, *args, **kwargs):
         if self.title and not self.slug:
             self.slug = slugify(self.title)
@@ -178,20 +181,24 @@ class Picture(models.Model):
 
 
 class MediaSpec(models.Model):
-    format = models.CharField(max_length=4, choices=[('jpeg', 'JPEG')], default='jpeg')
     max_width = models.PositiveIntegerField()
     max_height = models.PositiveIntegerField()
     quality = models.PositiveIntegerField()
 
-    create_by_default = models.BooleanField(default=True)
-    is_original = models.BooleanField(default=False)
+    def __str__(self):
+        return "{width}x{height}q{quality}".format(
+            width=self.max_width,
+            height=self.max_height,
+            quality=self.quality,
+        )
 
 
 class Media(models.Model):
     picture = models.ForeignKey(Picture, related_name='media')
-    width = models.PositiveIntegerField()
-    height = models.PositiveIntegerField()
-    image = models.ImageField(
+    width = models.PositiveIntegerField(default=0)
+    height = models.PositiveIntegerField(default=0)
+    src = models.ImageField(
+        null=True,
         max_length=255,
         width_field='width',
         height_field='height',
@@ -202,6 +209,32 @@ class Media(models.Model):
         return pick_attrs(self,
             'width',
             'height',
-            src=self.image.url,
+            src=self.src.url,
         )
 
+    @property
+    def is_original(self):
+        return self.spec is None
+
+    def get_canonical_path(self):
+        """
+        Returns the canonical path of this medium. For originals, this is where the file would be stored
+        unless in-place mode was used.
+
+        Originals: /pictures/path/to/album/mypicture.jpg
+        Previews: /pictures/path/to/album/mypicture/640x480q60.jpg
+        """
+
+        if self.is_original:
+            base_dir = 'pictures'
+            postfix = ''
+        else:
+            base_dir = 'previews'
+            postfix = '/' + str(self.spec)
+
+        # TODO hardcoded jpeg
+        return "{base_dir}{path}{postfix}.jpg".format(
+            base_dir=base_dir,
+            path=self.picture.path,
+            postfix=postfix,
+        )

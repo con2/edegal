@@ -21,6 +21,7 @@ class PictureInline(admin.StackedInline):
 class AlbumAdmin(admin.ModelAdmin):
     model = Album
     readonly_fields = ('path',)
+    list_display = ('path', 'title')
     inlines = (PictureInline,)
 
 
