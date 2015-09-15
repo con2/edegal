@@ -1,4 +1,5 @@
 from django.core.validators import RegexValidator
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
@@ -216,15 +217,18 @@ class Media(models.Model):
     def is_original(self):
         return self.spec is None
 
-    def get_canonical_path(self):
+    @property
+    def path(self):
+        return self.src
+
+    def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
         """
         Returns the canonical path of this medium. For originals, this is where the file would be stored
         unless in-place mode was used.
 
-        Originals: /pictures/path/to/album/mypicture.jpg
-        Previews: /pictures/path/to/album/mypicture/640x480q60.jpg
+        Originals: /media/pictures/path/to/album/mypicture.jpg
+        Previews: /media/previews/path/to/album/mypicture/640x480q60.jpg
         """
-
         if self.is_original:
             base_dir = 'pictures'
             postfix = ''
@@ -233,7 +237,8 @@ class Media(models.Model):
             postfix = '/' + str(self.spec)
 
         # TODO hardcoded jpeg
-        return "{base_dir}{path}{postfix}.jpg".format(
+        return "{prefix}{base_dir}{path}{postfix}.jpg".format(
+            prefix=prefix,
             base_dir=base_dir,
             path=self.picture.path,
             postfix=postfix,

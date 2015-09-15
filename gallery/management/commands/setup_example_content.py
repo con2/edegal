@@ -37,5 +37,6 @@ class Command(BaseCommand):
 
         FilesystemImporter(
             path=album1.path,
-            input_files=[open(filename, 'rb') for filename in glob('example_content/*.jpg')],
+            input_filenames=glob('example_content/*.jpg'),
+            mode='copy',
         ).run()
