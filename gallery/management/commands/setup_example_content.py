@@ -5,7 +5,7 @@ from django.core.management import BaseCommand
 
 from ...models import Album
 from ...importers import FilesystemImporter
-from ...helpers import log_get_or_create
+from ...utils import log_get_or_create
 
 
 logger = logging.getLogger(__name__)

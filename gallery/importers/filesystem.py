@@ -5,11 +5,9 @@ from os.path import basename, dirname, splitext, abspath
 
 from django.conf import settings
 
-from ..models import Album, Media, Picture
+from ..models import Album, Media, MediaSpec, Picture
 
-from ..utils import slugify
-from ..helpers import log_get_or_create
-
+from ..utils import slugify, log_get_or_create
 
 logger = logging.getLogger(__name__)
 
@@ -72,13 +70,40 @@ class FilesystemImporter(object):
             spec=None,
         )
 
-        if not media.src:
+        log_get_or_create(logger, media, created)
+
+        src_missing = not media.src
+        if src_missing:
             media.src = self.process_file_location(media, input_filename)
             media.save()
 
-        log_get_or_create(logger, media, created)
+        log_get_or_create(logger, media.src, src_missing)
 
         return media, created
+
+    def get_or_create_scaled_media(self, original_media, spec):
+        assert original_media.is_original
+
+        scaled_media, created = Media.objects.get_or_create(
+            picture=original_media.picture,
+            spec=spec,
+        )
+
+        log_get_or_create(logger, scaled_media, created)
+
+        src_missing = not scaled_media.src
+        if src_missing:
+            makedirs(dirname(scaled_media.get_canonical_path()), exist_ok=True)
+            with original_media.as_image() as image:
+                image.thumbnail(spec.size)
+                image.save(scaled_media.get_canonical_path(), 'JPEG', quality=scaled_media.spec.quality)
+
+            scaled_media.src = scaled_media.get_canonical_path('')
+            scaled_media.save()
+
+        log_get_or_create(logger, scaled_media.src, src_missing)
+
+        return scaled_media, created
 
     def run(self):
         album = Album.objects.get(path=self.path)
@@ -88,6 +113,11 @@ class FilesystemImporter(object):
             path=self.path,
         ))
 
+        media_specs = MediaSpec.objects.all()
+
         for input_filename in self.input_filenames:
             picture, unused = self.get_or_create_picture(album, input_filename)
             original_media, unused = self.get_or_create_original_media(picture, input_filename)
+
+            for spec in media_specs:
+                self.get_or_create_scaled_media(original_media, spec)

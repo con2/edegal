@@ -1,9 +1,12 @@
+from contextlib import contextmanager
+
 from django.core.validators import RegexValidator
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
 from mptt.models import MPTTModel, TreeForeignKey
+from PIL import Image
 
 from .utils import slugify, pick_attrs
 
@@ -131,7 +134,7 @@ class Album(MPTTModel):
         return cls.objects.distinct().prefetch_related('pictures').get(q)
 
     def __str__ (self):
-        return self.title
+        return self.path
 
     class Meta:
         verbose_name = 'Albumi'
@@ -173,7 +176,7 @@ class Picture(models.Model):
         return super(Picture, self).save(*args, **kwargs)
 
     def __str__ (self):
-        return self.title
+        return self.path
 
     class Meta:
         verbose_name = 'Kuva'
@@ -185,6 +188,10 @@ class MediaSpec(models.Model):
     max_width = models.PositiveIntegerField()
     max_height = models.PositiveIntegerField()
     quality = models.PositiveIntegerField()
+
+    @property
+    def size(self):
+        return self.max_width, self.max_height
 
     def __str__(self):
         return "{width}x{height}q{quality}".format(
@@ -249,3 +256,14 @@ class Media(models.Model):
 
     def get_absolute_fs_path(self):
         return self.src.path
+
+    @contextmanager
+    def as_image(self):
+        image = Image.open(self.src.path)
+        try:
+            yield image
+        finally:
+            image.close()
+
+    def __str__(self):
+        return self.src.url if self.src else self.get_canonical_path('')

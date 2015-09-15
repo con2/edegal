@@ -27,3 +27,11 @@ def pick_attrs(obj, *attr_names, **extra_attrs):
         ((attr_name, getattr(obj, attr_name)) for attr_name in attr_names),
         **extra_attrs
     )
+
+
+def log_get_or_create(logger, obj, created):
+    logger.info('{kind} {name} {what_done}'.format(
+        kind=obj.__class__.__name__,
+        name=str(obj),
+        what_done='created' if created else 'already exists',
+    ))

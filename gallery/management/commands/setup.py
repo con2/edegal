@@ -18,6 +18,7 @@ class Command(BaseCommand):
         management_commands = [
             (('collectstatic',), dict(interactive=False)),
             (('migrate',), dict()),
+            (('setup_default_media_specs',), dict()),
         ]
 
         if 'kompassi_oauth2' in settings.INSTALLED_APPS:
