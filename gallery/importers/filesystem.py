@@ -1,7 +1,9 @@
 import logging
 import shutil
 from os import makedirs
-from os.path import basename, dirname, splitext
+from os.path import basename, dirname, splitext, abspath
+
+from django.conf import settings
 
 from ..models import Album, Media, Picture
 
@@ -36,7 +38,7 @@ class FilesystemImporter(object):
 
     def process_file_location(self, original_media, input_filename):
         if self.mode == 'inplace':
-            original_path = input_filename
+            original_path = abspath(input_filename)
         elif self.mode in ('copy', 'move'):
             original_path = original_media.get_canonical_path()
             makedirs(dirname(original_path), exist_ok=True)
@@ -49,6 +51,18 @@ class FilesystemImporter(object):
                 raise NotImplementedError(self.mode)
         else:
             raise NotImplementedError(self.mode)
+
+        return self.make_absolute_path_media_relative(original_path)
+
+    def make_absolute_path_media_relative(self, original_path):
+        assert original_path.startswith(settings.MEDIA_ROOT)
+
+        # make path relative to /media/
+        original_path = original_path[len(settings.MEDIA_ROOT):]
+
+        # remove leading slash
+        if original_path.startswith('/'):
+            original_path = original_path[1:]
 
         return original_path
 

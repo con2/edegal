@@ -223,7 +223,7 @@ class Media(models.Model):
 
     def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
         """
-        Returns the canonical path of this medium. For originals, this is where the file would be stored
+        Returns the canonical path of this medium. This is where the file would be stored
         unless in-place mode was used.
 
         Originals: /media/pictures/path/to/album/mypicture.jpg
@@ -243,3 +243,9 @@ class Media(models.Model):
             path=self.picture.path,
             postfix=postfix,
         )
+
+    def get_absolute_uri(self):
+        return self.src.url
+
+    def get_absolute_fs_path(self):
+        return self.src.path
