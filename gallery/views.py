@@ -1,10 +1,15 @@
-from django.shortcuts import render
 from django.views.generic.base import View
+from django.http import JsonResponse
+
+from .models import Album
 
 
-class EdegalV2ApiView(View):
+class ApiV2View(View):
     http_method_names = ['get', 'head']
 
     def get(self, request, path):
+        if path == '':
+            path = '/'
+
         album = Album.get_album_by_path(path)
-        return JSONResponse(album.as_dict())
+        return JsonResponse(album.as_dict())
