@@ -8,14 +8,16 @@ from .models import (
 )
 
 
-class MediaInline(admin.StackedInline):
-    model = Media
-
-
-class PictureInline(admin.StackedInline):
+class PictureInline(admin.TabularInline):
     model = Picture
-    inlines = (MediaInline,)
     extra = 0
+    max_num = 0
+    fields = ('order',)
+    readonly_fields = ('path', 'title')
+    can_delete = True
+    show_change_link = True
+    verbose_name = 'kuvien järjestys'
+    verbose_name_plural = 'kuvien järjestys'
 
 
 class AlbumAdmin(admin.ModelAdmin):
@@ -25,4 +27,29 @@ class AlbumAdmin(admin.ModelAdmin):
     inlines = (PictureInline,)
 
 
+class MediaInline(admin.TabularInline):
+    model = Media
+    extra = 0
+    max_num = 0
+    fields = ()
+    readonly_fields = ('spec', 'width', 'height', 'src')
+    can_delete = False
+    show_change_link = False
+
+
+class PictureAdmin(admin.ModelAdmin):
+    model = Picture
+    readonly_fields = ('path',)
+    list_display = ('album', 'path', 'title')
+    inlines = (MediaInline,)
+
+
+class MediaSpecAdmin(admin.ModelAdmin):
+    model = MediaSpec
+    list_display = ('max_width', 'max_height', 'quality')
+    fields = ()
+    readonly_fields = ('max_width', 'max_height', 'quality')
+
 admin.site.register(Album, AlbumAdmin)
+admin.site.register(Picture, PictureAdmin)
+admin.site.register(MediaSpec, MediaSpecAdmin)

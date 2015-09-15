@@ -17,6 +17,11 @@ class FilesystemImporter(object):
         self.path = path
         self.input_filenames = input_filenames
         self.mode = mode
+        self.counter = 0
+
+    def get_ordering_number(self):
+        self.counter += 10
+        return self.counter
 
     def get_or_create_picture(self, album, input_filename):
         title = splitext(basename(input_filename))[0]
@@ -27,6 +32,7 @@ class FilesystemImporter(object):
             slug=slug,
             defaults=dict(
                 title=title,
+                order=self.get_ordering_number(),
             )
         )
 

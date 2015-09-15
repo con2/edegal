@@ -54,6 +54,13 @@ class CommonFields(object):
         default='',
     )
 
+    order = dict(
+        default=0,
+        verbose_name=u'Järjestys',
+        help_text=u'Saman yläsivun alaiset sivut järjestetään valikossa tämän luvun mukaan nousevaan '
+            u'järjestykseen (pienin ensin).'
+    )
+
 
 class Album(MPTTModel):
     slug = models.CharField(**CommonFields.slug)
@@ -145,6 +152,7 @@ class Album(MPTTModel):
 class Picture(models.Model):
     slug = models.CharField(**CommonFields.slug)
     album = models.ForeignKey(Album, related_name='pictures')
+    order = models.IntegerField(**CommonFields.order)
     path = models.CharField(db_index=True, **CommonFields.path)
 
     title = models.CharField(**CommonFields.title)
@@ -182,6 +190,7 @@ class Picture(models.Model):
         verbose_name = 'Kuva'
         verbose_name_plural = 'Kuvat'
         unique_together = [('album', 'slug')]
+        ordering = ('album', 'order')
 
 
 class MediaSpec(models.Model):
@@ -218,6 +227,7 @@ class Media(models.Model):
             'width',
             'height',
             src=self.src.url,
+            original=self.is_original,
         )
 
     @property
@@ -267,3 +277,7 @@ class Media(models.Model):
 
     def __str__(self):
         return self.src.url if self.src else self.get_canonical_path('')
+
+    class Meta:
+        verbose_name = 'Media'
+        verbose_name_plural = 'Media'
