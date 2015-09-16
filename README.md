@@ -1,4 +1,10 @@
-# Edegal - A web picture gallery
+# Work in progress
+
+Please hold tight as we rewrite the backend in Python 3 and the frontend in ECMAScript 6.
+
+The "legacy" branch, with a Node.js backend and MongoDB as the database, can still be found at [japsu/edegal-legacy](https://github.com/japsu/edegal-legacy).
+
+# Edegal – A web picture gallery
 
 Edegal is a web picture gallery written in Python 3 and ECMAScript 6 and designed with performance and scalability in mind.
 
