@@ -19,6 +19,7 @@ var streamify = require('gulp-streamify');
 var stylus = require('gulp-stylus');
 var uglify = require('gulp-uglify');
 var watchify = require('watchify');
+var childProcess = require('child_process');
 
 /*eslint "no-process-env":0 */
 var production = process.env.NODE_ENV === 'production';
@@ -136,15 +137,22 @@ gulp.task('assets', function() {
     .pipe(gulp.dest(config.assets.destination));
 });
 
-gulp.task('server', function() {
+gulp.task('browsersync-server', function() {
   return browserSync({
     open: false,
     port: 9001,
-    server: {
-      baseDir: config.destination
+    proxy: {
+      target: 'http://localhost:9002',
+      ws: true
     }
   });
 });
+
+gulp.task('django-server', function() {
+  return childProcess.spawn('/usr/bin/env', ['python', 'manage.py', 'runserver', '127.0.0.1:9002'], {
+    stdio: [null, process.stdout, process.stderr]
+  });
+})
 
 gulp.task('watch', function() {
   gulp.watch(config.templates.watch, ['templates']);
@@ -191,4 +199,4 @@ gulp.task('build', function() {
   gulp.start(buildTasks.concat(['scripts', 'revision', 'replace-revision-references']));
 });
 
-gulp.task('default', buildTasks.concat(['watch', 'server']));
+gulp.task('default', buildTasks.concat(['watch', 'browsersync-server', 'django-server']));
