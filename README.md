@@ -59,7 +59,7 @@ Do a minified production build:
 * Backend
   * Python 3.4
   * Django 1.8
-  * PostgreSQ 9.4
+  * PostgreSQL 9.4
   * Redis
   * [nginx](https://github.com/nginx/nginx)
 * Frontend development tools
