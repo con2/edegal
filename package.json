@@ -5,6 +5,10 @@
   "author": "Santtu Pajukanta <santtu@pajukanta.fi>",
   "license": "MIT",
   "main": "gulpfile.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/conikuvat/edegal.git"
+  },
   "scripts": {
     "start": "gulp",
     "build": "gulp build",
