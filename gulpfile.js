@@ -7,6 +7,7 @@ var duration = require('gulp-duration');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var jade = require('gulp-jade');
+var nib = require('nib');
 var notifier = require('node-notifier');
 var path = require('path');
 var prefix = require('gulp-autoprefixer');
@@ -112,7 +113,8 @@ gulp.task('styles', function() {
 
   pipeline = pipeline.pipe(stylus({
     'include css': true,
-    compress: production
+    compress: production,
+    use: nib(),
   }))
   .on('error', handleError)
   .pipe(prefix('last 2 versions', 'Chrome 34', 'Firefox 28', 'iOS 7'));

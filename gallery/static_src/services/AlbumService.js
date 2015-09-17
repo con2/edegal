@@ -28,7 +28,7 @@ export function getContent(path) {
     for (let picture of album.pictures) {
       cache[picture.path] = album;
 
-      mediaHelper.setPictureThumbnail(picture);
+      setPictureThumbnail(picture);
 
       if (previous) {
         previous.next = picture.path;

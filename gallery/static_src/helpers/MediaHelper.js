@@ -44,11 +44,13 @@ export function getOriginal(picture) {
   return _.find(picture.media, medium => { return medium.original; });
 };
 
+
 export function selectPictureThumbnail(picture) {
   return _.min(picture.media, medium => {
     return Math.abs(medium.height - THUMBNAIL_HEIGHT);
   });
 };
+
 
 export function setPictureThumbnail(picture) {
   return picture.thumbnail = selectPictureThumbnail(picture);

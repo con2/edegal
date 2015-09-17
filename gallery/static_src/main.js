@@ -8,4 +8,4 @@ import MainViewModel from './viewmodels/MainViewModel';
 
 
 ko.applyBindings(new MainViewModel());
-page()
+page();

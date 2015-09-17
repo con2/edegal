@@ -9,6 +9,7 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns.append(
+    urlpatterns.extend((
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
-    )
+        url(r'', 'django.contrib.staticfiles.views.serve', dict(path='gallery/index.html')),
+    ))
