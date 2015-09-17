@@ -31,6 +31,7 @@ class CommonFields(object):
         validators=[validate_path],
         verbose_name='Polku',
         help_text='Polku määritetään automaattisesti teknisen nimen perusteella.',
+        unique=True,
     )
 
     slug = dict(
@@ -172,10 +173,16 @@ class Album(MPTTModel):
         if extra_criteria:
             q = q.filter(extra_criteria)
 
+        # FIXME In SQLite, this does a full table scan on gallery_album when the WHERE over the JOIN gallery_picture
+        # is present. Need to check if this is the case on PostgreSQL, too.
         return (cls.objects.distinct()
+            .select_related('cover_picture')
+            .prefetch_related('cover_picture__media')
             .prefetch_related('pictures')
             .prefetch_related('pictures__media')
             .prefetch_related('pictures__media__spec')
+            .prefetch_related('subalbums')
+            .prefetch_related('subalbums__cover_picture')
             .get(q)
         )
 
@@ -192,7 +199,7 @@ class Picture(models.Model):
     slug = models.CharField(**CommonFields.slug)
     album = models.ForeignKey(Album, related_name='pictures')
     order = models.IntegerField(**CommonFields.order)
-    path = models.CharField(db_index=True, **CommonFields.path)
+    path = models.CharField(**CommonFields.path)
 
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)

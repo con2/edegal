@@ -14,4 +14,14 @@ DATABASES = {
     }
 }
 
-LOGGING['loggers']['gallery']['level'] = 'DEBUG' if DEBUG else 'INFO'
+if DEBUG:
+  LOGGING['loggers'].update({
+      'django.db': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+      },
+      'gallery': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+      },
+  })
