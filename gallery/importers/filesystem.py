@@ -127,3 +127,6 @@ class FilesystemImporter(object):
 
             for spec in media_specs:
                 self.get_or_create_scaled_media(original_media, spec)
+
+        # Update thumbnails
+        album.save()

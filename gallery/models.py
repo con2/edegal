@@ -1,7 +1,8 @@
+import logging
 from contextlib import contextmanager
 
-from django.core.validators import RegexValidator
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 
@@ -10,6 +11,8 @@ from PIL import Image
 
 from .utils import slugify, pick_attrs
 
+
+logger = logging.getLogger(__name__)
 
 validate_slug = RegexValidator(
     regex=r'[a-z0-9-]+',
@@ -77,6 +80,8 @@ class Album(MPTTModel):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
+    cover_picture = models.ForeignKey('Picture', null=True, blank=True, related_name='+')
+
     def as_dict(self):
         return pick_attrs(self,
             'slug',
@@ -87,7 +92,14 @@ class Album(MPTTModel):
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
             subalbums=[subalbum._make_subalbum() for subalbum in self.subalbums.all()],
             pictures=[picture.as_dict() for picture in self.pictures.all()],
+            thumbnail=self._make_thumbnail(),
         )
+
+    def _make_thumbnail(self):
+        if self.cover_picture:
+            return self.cover_picture.get_thumbnail().as_dict()
+        else:
+            return None
 
     def _make_breadcrumb(self):
         return pick_attrs(self,
@@ -99,7 +111,7 @@ class Album(MPTTModel):
         return pick_attrs(self,
             'path',
             'title',
-            # TODO thumbnail
+            thumbnail=self._make_thumbnail(),
         )
 
     def _make_path(self):
@@ -112,7 +124,20 @@ class Album(MPTTModel):
                 pth = pth[1:]
             return pth
 
+    def _select_cover_picture(self):
+        first_subalbum = self.subalbums.filter(cover_picture__isnull=False).first()
+        if first_subalbum is not None:
+            return first_subalbum.cover_picture
+
+        first_picture = self.pictures.first()
+        if first_picture is not None:
+            return first_picture
+
+        return None
+
     def save(self, *args, **kwargs):
+        traverse = kwargs.pop('traverse', True)
+
         if self.title and not self.slug:
             if self.parent:
                 self.slug = slugify(self.title)
@@ -122,14 +147,23 @@ class Album(MPTTModel):
         if self.slug:
             self.path = self._make_path()
 
+        if self.cover_picture is None:
+            self.cover_picture = self._select_cover_picture()
+
         return_value = super(Album, self).save(*args, **kwargs)
 
-        # In case path changed, update child pages' paths.
-        # TODO prevent parent loop somewhere else
-        for subalbum in self.subalbums.all():
-            subalbum.save()
+        # In case path changed, update child pictures' paths.
         for picture in self.pictures.all():
             picture.save()
+
+        # In case thumbnails or path changed, update whole family with updated information.
+        if traverse:
+            for album in self.get_family():
+
+                # Cannot use identity or id because self might not be saved yet!
+                if album.path != self.path:
+                    logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
+                    album.save(traverse=False)
 
     @classmethod
     def get_album_by_path(cls, path, **extra_criteria):
@@ -138,7 +172,12 @@ class Album(MPTTModel):
         if extra_criteria:
             q = q.filter(extra_criteria)
 
-        return cls.objects.distinct().prefetch_related('pictures').get(q)
+        return (cls.objects.distinct()
+            .prefetch_related('pictures')
+            .prefetch_related('pictures__media')
+            .prefetch_related('pictures__media__spec')
+            .get(q)
+        )
 
     def __str__ (self):
         return self.path
@@ -164,7 +203,7 @@ class Picture(models.Model):
             'title',
             'description',
             media=[medium.as_dict() for medium in self.media.all()],
-            # TODO thumbnail
+            thumbnail=self.get_thumbnail().as_dict(),
         )
 
     def _make_path(self):
@@ -173,6 +212,9 @@ class Picture(models.Model):
 
     def get_original(self):
         return self.media.get(spec=None)
+
+    def get_thumbnail(self):
+        return self.media.get(spec__is_default_thumbnail=True)
 
     def save(self, *args, **kwargs):
         if self.title and not self.slug:
@@ -197,6 +239,8 @@ class MediaSpec(models.Model):
     max_width = models.PositiveIntegerField()
     max_height = models.PositiveIntegerField()
     quality = models.PositiveIntegerField()
+
+    is_default_thumbnail = models.BooleanField(default=False)
 
     @property
     def size(self):

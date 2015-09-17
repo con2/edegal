@@ -14,7 +14,7 @@ export default class MainViewModel {
     this.i = translate;
 
     this.albumViewModel = new AlbumViewModel();
-    this.PictureViewModel = new PictureViewModel();
+    this.pictureViewModel = new PictureViewModel();
 
     this.breadcrumb = ko.observable(null);
     this.activeView = ko.observable(null);

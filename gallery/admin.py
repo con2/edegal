@@ -24,6 +24,7 @@ class AlbumAdmin(admin.ModelAdmin):
     model = Album
     readonly_fields = ('path',)
     list_display = ('path', 'title')
+    raw_id_fields = ('cover_picture',)
     inlines = (PictureInline,)
 
 
@@ -47,7 +48,7 @@ class PictureAdmin(admin.ModelAdmin):
 class MediaSpecAdmin(admin.ModelAdmin):
     model = MediaSpec
     list_display = ('max_width', 'max_height', 'quality')
-    fields = ()
+    fields = ('is_default_thumbnail',)
     readonly_fields = ('max_width', 'max_height', 'quality')
 
 admin.site.register(Album, AlbumAdmin)

@@ -90,7 +90,8 @@ gulp.task('scripts', function() {
 gulp.task('templates', function() {
   var pipeline = gulp.src(config.templates.source)
   .pipe(jade({
-    pretty: !production
+    // Always minify HTML in order to get rid of whitespace between elements
+    pretty: false
   }))
   .on('error', handleError)
   .pipe(gulp.dest(config.templates.destination));
