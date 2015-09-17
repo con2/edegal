@@ -23,12 +23,12 @@ export default class MainViewModel {
 
     page(/^([\/a-zA-Z0-9-\/]*)$/, (ctx, next) => {
       getContent(ctx.params[0]).then(({album, picture}) => {
-        this.breadcrumb(makeBreadcrumb(album));
-
         if (picture) {
+          this.breadcrumb(makeBreadcrumb(album, picture));
           this.pictureViewModel.picture(picture);
           this.activeView('picture');
         } else {
+          this.breadcrumb(makeBreadcrumb(album));
           this.albumViewModel.album(album);
           this.activeView('album');
         }
