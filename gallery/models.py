@@ -62,7 +62,7 @@ class CommonFields(object):
         default=0,
         verbose_name='Järjestys',
         help_text='Saman yläsivun alaiset sivut järjestetään valikossa tämän luvun mukaan nousevaan '
-            u'järjestykseen (pienin ensin).'
+            'järjestykseen (pienin ensin).'
     )
 
 
