@@ -14,7 +14,6 @@ export default class PictureViewModel {
     this.original = ko.pureComputed(() => {
       return getOriginal(this.picture());
     });
-    this.original = ko.observable(null);
 
     this.picture.subscribe(this.preloadPrevNext, this);
   }
