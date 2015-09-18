@@ -53,8 +53,8 @@ export default class PictureViewModel {
     var picture = document.getElementById('picture'),
         hammer = new Hammer(picture);
 
-    hammer.on('swiperight', () => this.goTo('next'));
-    hammer.on('swipeleft', () => this.goTo('previous'));
+    hammer.on('swipeleft', () => this.goTo('next'));
+    hammer.on('swiperight', () => this.goTo('previous'));
   }
 
   onKeyDown(event) {

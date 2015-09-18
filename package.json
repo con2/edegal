@@ -45,6 +45,7 @@
     "page": "^1.6.3",
     "rimraf": "^2.4.3",
     "vinyl-source-stream": "^1.1.0",
+    "whatwg-fetch": "^0.9.0",
     "watchify": "^3.4.0"
   },
   "browserify": {
