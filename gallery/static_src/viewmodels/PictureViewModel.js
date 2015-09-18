@@ -29,6 +29,7 @@ export default class PictureViewModel {
     this.picture.subscribe(this.preloadPrevNext, this);
 
     this.setupKeyBindings();
+    this.setupGestures();
   }
 
   goTo(prevNext) {
@@ -46,6 +47,14 @@ export default class PictureViewModel {
 
   setupKeyBindings() {
     document.addEventListener('keydown', this.onKeyDown.bind(this), false);
+  }
+
+  setupGestures() {
+    var picture = document.getElementById('picture'),
+        hammer = new Hammer(picture);
+
+    hammer.on('swiperight', () => this.goTo('next'));
+    hammer.on('swipeleft', () => this.goTo('previous'));
   }
 
   onKeyDown(event) {
