@@ -60,8 +60,8 @@ class CommonFields(object):
 
     order = dict(
         default=0,
-        verbose_name=u'Järjestys',
-        help_text=u'Saman yläsivun alaiset sivut järjestetään valikossa tämän luvun mukaan nousevaan '
+        verbose_name='Järjestys',
+        help_text='Saman yläsivun alaiset sivut järjestetään valikossa tämän luvun mukaan nousevaan '
             u'järjestykseen (pienin ensin).'
     )
 
