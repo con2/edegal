@@ -20,7 +20,7 @@
   ],
   "devDependencies": {
     "babel": "^5.8.23",
-    "babelify": "^6.3.0",
+    "babelify": "^7.0.1",
     "browser-sync": "^2.9.3",
     "browserify": "^11.1.0",
     "chai": "^3.2.0",
