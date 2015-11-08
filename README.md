@@ -31,13 +31,18 @@ Edegal is a work in progress. See a demo at [uusi.kuvat.aniki.fi](http://uusi.ku
 What is assumed:
 
 * An UNIX-like operating system such as Ubuntu, CentOS or Mac OS X
-* ImageMagick
-* Python 3.4
+* Python 3.4 and a working `virtualenv` tool
+  * HINT: Debian/Ubuntu have broken the standard library `venv` due to brain damage. Install `python3-virtualenv` and use `python3 -m virtualenv` instead
+  * On OS X, go on using the standard `venv`
+
+Cheats for Debian/Ubuntu:
+
+    sudo apt-get install python3 python3-dev python3-virtualenv libjpeg-dev libpq-dev
 
 Set up backend development environment
 
     git clone https://github.com/japsu/edegal2
-    python3.4 -m venv venv3-edegal2
+    python3.4 -m venv venv3-edegal2 # or python3.4 -m virtualenv
     source venv3-edegal2/bin/activate
     cd edegal2
     pip install -r requirements.txt
