@@ -42,7 +42,7 @@
     "mocha": "^2.3.2",
     "nib": "^1.1.0",
     "node-notifier": "^4.2.3",
-    "page": "^1.6.3",
+    "page": "^1.6.4",
     "rimraf": "^2.4.3",
     "vinyl-source-stream": "^1.1.0",
     "whatwg-fetch": "^0.10.1",
