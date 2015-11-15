@@ -86,6 +86,12 @@ class Album(MPTTModel):
 
     cover_picture = models.ForeignKey('Picture', null=True, blank=True, related_name='+')
 
+    is_public = models.BooleanField(
+        default=True,
+        verbose_name=u'Julkinen',
+        help_text=u'Ei-julkiset albumit näkyvät vain ylläpitokäyttäjille.',
+    )
+
     def as_dict(self):
         return pick_attrs(self,
             'slug',
