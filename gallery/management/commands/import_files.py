@@ -2,7 +2,7 @@ import argparse
 
 from django.core.management import BaseCommand
 
-from ...importers import FilesystemImporter
+from ...importers.filesystem import FilesystemImporter
 
 
 class Command(BaseCommand):

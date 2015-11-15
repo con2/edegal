@@ -4,7 +4,7 @@ from glob import glob
 from django.core.management import BaseCommand
 
 from ...models import Album
-from ...importers import FilesystemImporter
+from ...importers.filesystem import FilesystemImporter
 from ...utils import log_get_or_create
 
 
