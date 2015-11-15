@@ -16,10 +16,10 @@ DATABASES = {
 
 if DEBUG:
   LOGGING['loggers'].update({
-      'django.db': {
-          'handlers': ['console'],
-          'level': 'DEBUG',
-      },
+      # 'django.db': {
+      #     'handlers': ['console'],
+      #     'level': 'DEBUG',
+      # },
       'gallery': {
           'handlers': ['console'],
           'level': 'DEBUG',
