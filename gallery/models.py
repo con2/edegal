@@ -180,7 +180,9 @@ class Album(MPTTModel):
         q = Q(path=path) | Q(pictures__path=path)
 
         if extra_criteria:
-            q = q.filter(extra_criteria)
+            q &= Q(**extra_criteria)
+
+        print(q)
 
         # FIXME In SQLite, this does a full table scan on gallery_album when the WHERE over the JOIN gallery_picture
         # is present. Need to check if this is the case on PostgreSQL, too.
