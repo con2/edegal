@@ -9,12 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    def add_arguments(self, parser):
-        parser.add_argument('--test', action='store_true', default=False)
-
     def handle(self, *args, **options):
-        test = options['test']
-
         management_commands = [
             (('collectstatic',), dict(interactive=False)),
             (('migrate',), dict()),
@@ -24,13 +19,13 @@ class Command(BaseCommand):
         if 'kompassi_oauth2' in settings.INSTALLED_APPS:
             management_commands.append((('setup_kompassi_oauth2',), dict()))
 
-        if 'test':
+        if settings.DEBUG:
             management_commands.append((('setup_example_content',), dict()))
 
         for pargs, opts in management_commands:
             call_command(*pargs, **opts)
 
-        if test:
+        if settings.DEBUG:
             user, created = get_user_model().objects.get_or_create(
                 username='mahti',
                 first_name='Markku',
