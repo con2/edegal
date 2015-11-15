@@ -1,5 +1,8 @@
 import logging
+import shutil
 from contextlib import contextmanager
+from os import makedirs
+from os.path import dirname
 
 from django.conf import settings
 from django.core.validators import RegexValidator
@@ -9,7 +12,7 @@ from django.db.models import Q
 from mptt.models import MPTTModel, TreeForeignKey
 from PIL import Image
 
-from .utils import slugify, pick_attrs
+from .utils import slugify, pick_attrs, log_get_or_create
 
 
 logger = logging.getLogger(__name__)
@@ -325,6 +328,91 @@ class Media(models.Model):
             yield image
         finally:
             image.close()
+
+    @classmethod
+    def import_local_media(cls, picture, input_filename, mode='inplace', media_specs=None):
+        if media_specs is None:
+            media_specs = MediaSpec.objects.all()
+
+        original_media, unused = cls.get_or_create_original_media(picture, input_filename, mode)
+
+        for spec in media_specs:
+            cls.get_or_create_scaled_media(original_media, spec)
+
+    @classmethod
+    def make_absolute_path_media_relative(cls, original_path):
+        assert original_path.startswith(settings.MEDIA_ROOT)
+
+        # make path relative to /media/
+        original_path = original_path[len(settings.MEDIA_ROOT):]
+
+        # remove leading slash
+        if original_path.startswith('/'):
+            original_path = original_path[1:]
+
+        return original_path
+
+    @classmethod
+    def process_file_location(cls, original_media, input_filename, mode='inplace'):
+        if mode == 'inplace':
+            original_path = abspath(input_filename)
+        elif mode in ('copy', 'move'):
+            original_path = original_media.get_canonical_path()
+            makedirs(dirname(original_path), exist_ok=True)
+
+            if mode == 'copy':
+                shutil.copyfile(input_filename, original_path)
+            elif mode == 'move':
+                shutil.move(input_filename, original_path)
+            else:
+                raise NotImplementedError(mode)
+        else:
+            raise NotImplementedError(mode)
+
+        return cls.make_absolute_path_media_relative(original_path)
+
+    @classmethod
+    def get_or_create_original_media(cls, picture, input_filename, mode='inplace'):
+        media, created = Media.objects.get_or_create(
+            picture=picture,
+            spec=None,
+        )
+
+        log_get_or_create(logger, media, created)
+
+        src_missing = not media.src
+        if src_missing:
+            media.src = cls.process_file_location(media, input_filename, mode)
+            media.save()
+
+        log_get_or_create(logger, media.src, src_missing)
+
+        return media, created
+
+    @classmethod
+    def get_or_create_scaled_media(cls, original_media, spec):
+        assert original_media.is_original
+
+        scaled_media, created = Media.objects.get_or_create(
+            picture=original_media.picture,
+            spec=spec,
+        )
+
+        log_get_or_create(logger, scaled_media, created)
+
+        src_missing = not scaled_media.src
+        if src_missing:
+            makedirs(dirname(scaled_media.get_canonical_path()), exist_ok=True)
+            with original_media.as_image() as image:
+                image.thumbnail(spec.size)
+                image.save(scaled_media.get_canonical_path(), 'JPEG', quality=scaled_media.spec.quality)
+
+            scaled_media.src = scaled_media.get_canonical_path('')
+            scaled_media.save()
+
+        log_get_or_create(logger, scaled_media.src, src_missing)
+
+        return scaled_media, created
 
     def __str__(self):
         return self.src.url if self.src else self.get_canonical_path('')
