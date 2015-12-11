@@ -20,7 +20,8 @@ var streamify = require('gulp-streamify');
 var stylus = require('gulp-stylus');
 var uglify = require('gulp-uglify');
 var watchify = require('watchify');
-var childProcess = require('child_process');
+
+var runServer = require('./run-server.js');
 
 /*eslint "no-process-env":0 */
 var production = process.env.NODE_ENV === 'production';
@@ -152,9 +153,7 @@ gulp.task('browsersync-server', function() {
 });
 
 gulp.task('django-server', function() {
-  return childProcess.spawn('/usr/bin/env', ['python', 'manage.py', 'runserver', '127.0.0.1:9002'], {
-    stdio: [null, process.stdout, process.stderr]
-  });
+  return runServer();
 })
 
 gulp.task('watch', function() {

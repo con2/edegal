@@ -1,7 +1,7 @@
 'use strict';
 
 // polyfills
-import 'whatwg-fetch';
+import 'isomorphic-fetch';
 
 import ko from 'knockout';
 import page from 'page';
