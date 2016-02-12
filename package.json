@@ -33,7 +33,7 @@
     "gulp-duration": "^0.0.0",
     "gulp-jade": "^1.1.0",
     "gulp-replace": "^0.5.4",
-    "gulp-rev": "^6.0.1",
+    "gulp-rev": "^7.0.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-streamify": "^1.0.2",
     "gulp-stylus": "^2.1.0",
