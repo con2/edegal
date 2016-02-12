@@ -19,7 +19,7 @@
     "template"
   ],
   "devDependencies": {
-    "babel": "^6.1.18",
+    "babel": "^6.5.2",
     "babel-polyfill": "^6.1.19",
     "babel-preset-es2015": "^6.1.18",
     "babel-register": "^6.3.13",
