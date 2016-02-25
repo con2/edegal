@@ -1,13 +1,28 @@
 'use strict';
 
-// polyfills
-import 'isomorphic-fetch';
+import React from 'react';
+import { render } from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import injectTapEventPlugin from 'react-tap-event-plugin';
 
-import ko from 'knockout';
-import page from 'page';
+import galleryApp from './reducers';
+import Gallery from './components/Gallery';
+import styles from './styles/index.css';
 
-import MainViewModel from './viewmodels/MainViewModel';
+// Needed for onTouchTap
+// Can go away when react 1.0 release
+// Check this repo:
+// https://github.com/zilverline/react-tap-event-plugin
+injectTapEventPlugin();
 
 
-ko.applyBindings(new MainViewModel());
-page();
+const
+    store = createStore(galleryApp);
+
+render(
+  <Provider store={store}>
+    <Gallery />
+  </Provider>,
+  document.getElementById('root')
+)
