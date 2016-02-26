@@ -4,8 +4,8 @@ import Album from '../components/Album';
 
 
 const mapStateToProps = (state) => ({
-  subalbums: state.album ? state.album.subalbums : [],
-  pictures: state.album ? state.album.pictures : [],
+  subalbums: state ? state.subalbums : [],
+  pictures: state ? state.pictures : [],
 });
 const mapDispatchToProps = (dispatch) => ({});
 

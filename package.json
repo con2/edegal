@@ -4,7 +4,8 @@
   "description": "Responsive picture gallery",
   "main": "index.js",
   "scripts": {
-    "start": "node_modules/.bin/webpack-dev-server -d --progress"
+    "start": "node_modules/.bin/webpack-dev-server -d --progress",
+    "build": "webpack --progress"
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,8 @@
     "react-tap-event-plugin": "0.2.2",
     "react-transform-hmr": "^1.0.2",
     "redux": "3.3.1",
+    "redux-logger": "2.6.0",
+    "redux-thunk": "1.0.3",
     "sass-loader": "3.1.2",
     "style-loader": "^0.13.0",
     "webdriverio": "^4.0.3",

@@ -10,6 +10,7 @@ export const navigate = (path) => (dispatch) => {
     } else {
       dispatch(loadAlbum(album));
     }
+  });
 };
 
 

@@ -4,7 +4,7 @@ import Header from './Header';
 import AlbumContainer from '../containers/AlbumContainer';
 
 
-const Gallery = () => (
+const Gallery = ({album}) => (
   <div>
     <Header />
     <AlbumContainer />
