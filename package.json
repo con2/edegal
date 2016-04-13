@@ -43,7 +43,7 @@
     "isomorphic-fetch": "^2.2.0",
     "jsdom": "^7.0.2",
     "knockout": "^3.3.0",
-    "lodash": "^4.1.0",
+    "lodash": "^4.11.0",
     "mocha": "^2.3.4",
     "nib": "^1.1.0",
     "node-notifier": "^4.3.1",
