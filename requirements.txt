@@ -1,4 +1,4 @@
-Django>=1.9
-django-mptt>=0.7.4
-ipython>=4.0.0
-Pillow>=2.9.0
+Django~=1.9.10
+django-mptt~=0.8.6
+ipython~=5.1.0
+Pillow~=3.4.1

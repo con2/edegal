@@ -15,4 +15,4 @@ public
 rev-manifest.json
 tmp/
 virtualenv/
-gallery/static/**/*-??????????.*
+gallery/static/**

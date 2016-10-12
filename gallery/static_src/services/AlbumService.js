@@ -2,11 +2,11 @@ import _ from 'lodash';
 import {setPictureThumbnail} from '../helpers/MediaHelper';
 
 
-var cache = {};
+const cache = {};
 
 
-export function getContent(path) {
-  var album, picture;
+function getContent(path) {
+  let album, picture;
 
   if (cache[path]) {
     album = cache[path];
@@ -24,7 +24,7 @@ export function getContent(path) {
   }).then(album => {
     cache[path] = album;
 
-    var previous = null;
+    let previous = null;
     for (let picture of album.pictures) {
       cache[picture.path] = album;
 
@@ -46,3 +46,6 @@ export function getContent(path) {
     };
   });
 }
+
+
+export default getContent;

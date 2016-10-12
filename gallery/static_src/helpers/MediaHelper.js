@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {getContent} from '../services/AlbumService';
+import getContent from '../services/AlbumService';
 
 const WRAP_VERTICAL_UNUSABLE_PX = 50,
       THUMBNAIL_HEIGHT = 240;
