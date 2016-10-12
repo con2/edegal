@@ -1,6 +1,6 @@
 import React, {PropTypes} from 'react';
 
-import GridList from 'material-ui/lib/grid-list/grid-list';
+import GridList from 'material-ui/GridList';
 
 import AlbumTile from './AlbumTile';
 import PictureTile from './PictureTile';
