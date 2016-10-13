@@ -4,9 +4,11 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import Gallery from './components/Gallery';
 import styles from './styles/index.css';
+import muiTheme from './styles/muiTheme';
 import {navigate} from './actions';
 import store from './store';
 
@@ -19,7 +21,9 @@ injectTapEventPlugin();
 
 render(
   <Provider store={store}>
-    <Gallery />
+    <MuiThemeProvider muiTheme={muiTheme}>
+      <Gallery />
+    </MuiThemeProvider>
   </Provider>,
   document.getElementById('root')
 );
