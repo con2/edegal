@@ -1,5 +1,7 @@
 # Work in progress
 
+[![Sponsored by Leonidas](https://img.shields.io/badge/sponsored%20by-leonidas-blue.svg)](https://leonidasoy.fi/opensource)
+
 Please hold tight as we rewrite the backend in Python 3 and the frontend in ECMAScript 6.
 
 The "legacy" branch, with a Node.js backend and MongoDB as the database, can still be found at [japsu/edegal-legacy](https://github.com/japsu/edegal-legacy).
@@ -66,7 +68,6 @@ Do a minified production build:
 
 ## Technology choices
 
-
 * Backend
   * Python 3.4
   * Django 1.8
@@ -97,3 +98,5 @@ Do a minified production build:
 * "Edegal seems exactly what I've been looking for!"
 * "Edegal <3"
 * "This sounds really good from the perspective of our operations team"
+
+The work of Santtu Pajukanta on Edegal has been partially sponsored by [Leonidas Oy](https://leonidasoy.fi/opensource).
