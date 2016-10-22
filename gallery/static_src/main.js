@@ -3,7 +3,7 @@ import 'isomorphic-fetch';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Router, Route, browserHistory} from 'react-router';
+import {IndexRoute, Router, Route, browserHistory} from 'react-router';
 import {Provider} from 'react-redux';
 import {syncHistoryWithStore} from 'react-router-redux';
 import {ReduxAsyncConnect} from 'redux-connect';
@@ -36,6 +36,7 @@ ReactDOM.render(
     <MuiThemeProvider muiTheme={muiTheme}>
       <Router render={(props) => <ReduxAsyncConnect {...props} />} history={history}>
         <Route path="/" component={Gallery}>
+          <IndexRoute component={Album} />
           <Route path="*" component={Album} />
         </Route>
       </Router>
