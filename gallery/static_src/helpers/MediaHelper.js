@@ -16,10 +16,10 @@ function byWidth(medium) {
 
 
 export function selectMedia(picture) {
-  let [maxHeight, maxWidth] = getPictureAreaDimensions();
-  const mediaThatFit = _.filter(picture.media, medium => {
-    return medium.width <= maxWidth && medium.height <= maxHeight;
-  });
+  const [maxHeight, maxWidth] = getPictureAreaDimensions();
+  const mediaThatFit = _.filter(picture.media, medium =>
+    medium.width <= maxWidth && medium.height <= maxHeight
+  );
 
   if (!_.isEmpty(mediaThatFit)) {
     return _.max(mediaThatFit, byWidth);
@@ -29,26 +29,13 @@ export function selectMedia(picture) {
 }
 
 
-export function preloadMedia(path) {
-  return getContent(path).then(content => {
-    let {album, picture} = content,
-      selectedMedia = selectMedia(picture),
-      img = document.createElement('img');
-
-    img.src = selectedMedia.src;
-  });
-}
-
-
 export function getOriginal(picture) {
-  return _.find(picture.media, medium => { return medium.original; });
+  return _.find(picture.media, medium => medium.original);
 }
 
 
 export function selectPictureThumbnail(picture) {
-  return _.min(picture.media, medium => {
-    return Math.abs(medium.height - THUMBNAIL_HEIGHT);
-  });
+  return _.min(picture.media, medium => Math.abs(medium.height - THUMBNAIL_HEIGHT));
 }
 
 

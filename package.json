@@ -48,6 +48,7 @@
     "jasmine-es6": "^0.2.2",
     "js-cookie": "^2.1.2",
     "json-loader": "^0.5.4",
+    "lodash": "^4.16.4",
     "material-ui": "^0.15.4",
     "node-sass": "^3.10.1",
     "node-zopfli": "^2.0.0",

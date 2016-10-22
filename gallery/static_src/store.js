@@ -1,10 +1,29 @@
-import { createStore, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
+import {createStore, applyMiddleware, combineReducers, compose} from 'redux';
+import {reducer as reduxAsyncConnect} from 'redux-connect';
+import {routerReducer as routing} from 'react-router-redux';
+import {reducer as form} from 'redux-form/immutable';
+import thunkMiddleware from 'redux-thunk';
 
-import galleryApp from './reducers';
+import edegal from './modules';
+import promiseMiddleware from './middlewares/promiseMiddleware';
 
 
-const store = createStore(galleryApp, applyMiddleware(thunk));
+const reducers = combineReducers({
+  edegal,
+  reduxAsyncConnect,
+  routing,
+  form,
+});
 
 
-export default store;
+export default () => createStore(
+  reducers,
+  undefined,
+  compose(
+    applyMiddleware(
+      thunkMiddleware,
+      promiseMiddleware()
+    ),
+    window.devToolsExtension ? window.devToolsExtension() : f => f
+  )
+);

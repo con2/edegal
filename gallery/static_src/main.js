@@ -1,16 +1,20 @@
+import 'isomorphic-fetch';
 
-
-import React from 'react';
-import { render } from 'react-dom';
-import { Provider } from 'react-redux';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Router, Route, browserHistory} from 'react-router';
+import {Provider} from 'react-redux';
+import {syncHistoryWithStore} from 'react-router-redux';
+import {ReduxAsyncConnect} from 'redux-connect';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
+import './styles/index.css';
+import Album from './components/Album';
 import Gallery from './components/Gallery';
-import styles from './styles/index.css';
 import muiTheme from './styles/muiTheme';
-import {navigate} from './actions';
-import store from './store';
+import initializeStore from './store';
+
 
 // Needed for onTouchTap
 // Can go away when react 1.0 release
@@ -19,13 +23,23 @@ import store from './store';
 injectTapEventPlugin();
 
 
-render(
+const
+  store = initializeStore(),
+  history = syncHistoryWithStore(browserHistory, store);
+
+
+// store.dispatch(getConfig());
+
+
+ReactDOM.render(
   <Provider store={store}>
     <MuiThemeProvider muiTheme={muiTheme}>
-      <Gallery />
+      <Router render={(props) => <ReduxAsyncConnect {...props} />} history={history}>
+        <Route path="/" component={Gallery}>
+          <Route path="*" component={Album} />
+        </Route>
+      </Router>
     </MuiThemeProvider>
   </Provider>,
   document.getElementById('root')
 );
-
-store.dispatch(navigate('/'));

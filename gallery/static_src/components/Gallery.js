@@ -1,15 +1,21 @@
-import React from 'react';
+import React, {PropTypes} from 'react';
 
-import Header from './Header';
-import AlbumContainer from '../containers/AlbumContainer';
-
-
-const Gallery = ({album}) => (
-  <div>
-    <Header />
-    <AlbumContainer />
-  </div>
-);
+import AppBar from './AppBar';
 
 
-export default Gallery;
+export default class Gallery extends React.Component {
+  static propTypes = {
+    children: PropTypes.element,
+  }
+
+  render() {
+    const {children} = this.props;
+
+    return (
+      <div>
+        <AppBar />
+        {children}
+      </div>
+    );
+  }
+}
