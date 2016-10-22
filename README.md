@@ -1,6 +1,6 @@
 # Work in progress
 
-[![Sponsored by Leonidas](https://img.shields.io/badge/sponsored%20by-leonidas-blue.svg)](https://leonidasoy.fi/opensource)
+[![Sponsored by Leonidas](https://img.shields.io/badge/sponsored%20by-leonidas-389fc1.svg)](https://leonidasoy.fi/opensource)
 
 Please hold tight as we rewrite the backend in Python 3 and the frontend in ECMAScript 6.
 
