@@ -4,7 +4,6 @@ import GridList from 'material-ui/GridList';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import React, {PropTypes} from 'react';
 
-import AlbumTile from './AlbumTile';
 import PictureTile from './PictureTile';
 import {getAlbum} from '../modules/album';
 
@@ -32,10 +31,10 @@ export default class Album extends React.Component {
     return (
       <GridList cellHeight={200}>
         {subalbums.map(subalbum => (
-          <AlbumTile key={subalbum.get('path')} path={subalbum.get('path')} />
+          <PictureTile key={subalbum.get('path')} item={subalbum} />
         ))}
         {pictures.map(picture => (
-          <PictureTile key={picture.get('path')} path={picture.get('path')} />
+          <PictureTile key={picture.get('path')} item={picture} />
         ))}
       </GridList>
     );
