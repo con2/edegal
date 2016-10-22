@@ -2,7 +2,7 @@ import _ from 'lodash';
 import getContent from '../services/AlbumService';
 
 const WRAP_VERTICAL_UNUSABLE_PX = 50,
-      THUMBNAIL_HEIGHT = 240;
+  THUMBNAIL_HEIGHT = 240;
 
 
 export function getPictureAreaDimensions() {
@@ -16,8 +16,8 @@ function byWidth(medium) {
 
 
 export function selectMedia(picture) {
-  var [maxHeight, maxWidth] = getPictureAreaDimensions();
-  var mediaThatFit = _.filter(picture.media, medium => {
+  let [maxHeight, maxWidth] = getPictureAreaDimensions();
+  const mediaThatFit = _.filter(picture.media, medium => {
     return medium.width <= maxWidth && medium.height <= maxHeight;
   });
 
@@ -31,9 +31,9 @@ export function selectMedia(picture) {
 
 export function preloadMedia(path) {
   return getContent(path).then(content => {
-    var {album, picture} = content,
-        selectedMedia = selectMedia(picture),
-        img = document.createElement('img');
+    let {album, picture} = content,
+      selectedMedia = selectMedia(picture),
+      img = document.createElement('img');
 
     img.src = selectedMedia.src;
   });
@@ -42,16 +42,16 @@ export function preloadMedia(path) {
 
 export function getOriginal(picture) {
   return _.find(picture.media, medium => { return medium.original; });
-};
+}
 
 
 export function selectPictureThumbnail(picture) {
   return _.min(picture.media, medium => {
     return Math.abs(medium.height - THUMBNAIL_HEIGHT);
   });
-};
+}
 
 
 export function setPictureThumbnail(picture) {
   return picture.thumbnail = selectPictureThumbnail(picture);
-};
+}

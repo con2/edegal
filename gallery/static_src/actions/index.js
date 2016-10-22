@@ -16,18 +16,18 @@ export const navigate = (path) => (dispatch) => {
 
 export const loading = (path) => ({
   type: 'loading',
-  path: path,
+  path,
 });
 
 
 export const loadAlbum = (album) => ({
   type: 'loadAlbum',
-  album: album,
+  album,
 });
 
 
 export const loadPicture = (album, picture) => ({
   type: 'loadPicture',
-  album: album,
-  picture: picture,
+  album,
+  picture,
 });

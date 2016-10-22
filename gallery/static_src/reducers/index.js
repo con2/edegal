@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux'
+import { combineReducers } from 'redux';
 
 
 const loading = (state, action) => {
@@ -13,7 +13,7 @@ const loading = (state, action) => {
     case 'loadAlbum':
       return false;
   }
-}
+};
 
 
 const albums = (state, action) => {
@@ -30,7 +30,7 @@ const albums = (state, action) => {
     default:
       return state;
   }
-}
+};
 
 
 const selectedAlbum = (state, action) => {
@@ -45,7 +45,7 @@ const selectedAlbum = (state, action) => {
     default:
       return state;
   }
-}
+};
 
 
 const selectedPicture = (state, action) => {
@@ -59,7 +59,7 @@ const selectedPicture = (state, action) => {
     default:
       return state;
   }
-}
+};
 
 
 const galleryApp = combineReducers({albums, selectedAlbum, selectedPicture, loading});

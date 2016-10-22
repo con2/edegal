@@ -10,7 +10,7 @@ const AlbumTile = ({path}) => (
 
 AlbumTile.propTypes = {
   path: PropTypes.string.isRequired,
-}
+};
 
 
 export default AlbumTile;

@@ -16,12 +16,12 @@ const Album = ({pictures, subalbums, onTileClick}) => (
       <PictureTile key={picture.path} path={picture.path} />
     ))}
   </GridList>
-)
+);
 
 Album.propTypes = {
   pictures: PropTypes.arrayOf(PictureShape),
   subalbums: PropTypes.arrayOf(SubAlbumShape),
   onTileClick: PropTypes.func,
-}
+};
 
 export default Album;

@@ -6,26 +6,27 @@ const cache = {};
 
 
 function getContent(path) {
-  let album, picture;
+  let album,
+    picture;
 
   if (cache[path]) {
     album = cache[path];
     picture = _.find(album.pictures, {
-      path: path
+      path,
     });
     return Promise.resolve({
-      album: album,
-      picture: picture
+      album,
+      picture,
     });
   }
 
-  return fetch('/api/v2' + path).then(function(response) {
+  return fetch(`/api/v2${path}`).then((response) => {
     return response.json();
   }).then(album => {
     cache[path] = album;
 
     let previous = null;
-    for (let picture of album.pictures) {
+    for (const picture of album.pictures) {
       cache[picture.path] = album;
 
       setPictureThumbnail(picture);
@@ -38,11 +39,11 @@ function getContent(path) {
     }
 
     // found if path points to picture, undefined if album
-    picture = _.find(album.pictures, {path: path});
+    picture = _.find(album.pictures, {path});
 
     return {
-      album: album,
-      picture: picture
+      album,
+      picture,
     };
   });
 }
