@@ -32,17 +32,20 @@ export default class AppBar extends React.Component {
   render() {
     const {path, title, breadcrumb} = this.props;
     const fullBreadcrumb = breadcrumb.push(Immutable.fromJS({path, title}));
+    const lastIndex = fullBreadcrumb.count() - 1;
 
     return (
       <MuiAppBar
-        title={fullBreadcrumb.map(item => (
-          <Link
-            key={item.get('path')}
-            to={item.get('path')}
-            style={linkStyle}
-          >
-            {item.get('title')}
-          </Link>
+        title={fullBreadcrumb.map((item, index) => (
+          <span key={item.get('path')}>
+            <Link
+              to={item.get('path')}
+              style={linkStyle}
+            >
+              {item.get('title')}
+            </Link>
+            {index !== lastIndex ? ' » ' : null}
+          </span>
         ))}
         iconElementRight={<Link to="/user"><UserAvatar /></Link>}
       />
