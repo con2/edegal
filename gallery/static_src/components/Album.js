@@ -14,7 +14,7 @@ import {getAlbum} from '../modules/album';
 }])
 @connect(
   state => ({
-    album: state.tallessa.get('album'),
+    album: state.edegal.get('album'),
   }),
   {}
 )

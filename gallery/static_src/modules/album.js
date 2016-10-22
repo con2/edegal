@@ -5,9 +5,9 @@ import {get} from '../helpers/http';
 
 
 const
-  GET_ALBUM_REQUEST = 'tallessa/stuff/GET_ALBUM_REQUEST',
-  GET_ALBUM_SUCCESS = 'tallessa/stuff/GET_ALBUM_SUCCESS',
-  GET_ALBUM_FAILURE = 'tallessa/stuff/GET_ALBUM_FAILURE';
+  GET_ALBUM_REQUEST = 'edegal/stuff/GET_ALBUM_REQUEST',
+  GET_ALBUM_SUCCESS = 'edegal/stuff/GET_ALBUM_SUCCESS',
+  GET_ALBUM_FAILURE = 'edegal/stuff/GET_ALBUM_FAILURE';
 
 const initialState = Immutable.fromJS([]);
 
