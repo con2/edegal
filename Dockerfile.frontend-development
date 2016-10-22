@@ -1,0 +1,6 @@
+FROM node:6
+WORKDIR /usr/src/app
+EXPOSE 8080
+VOLUME /usr/src/app/node_modules
+RUN npm -g install yarn
+CMD ["bash", "-c", "yarn install && node_modules/.bin/webpack-dev-server -d --progress --port 8080 --host 0.0.0.0"]

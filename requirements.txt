@@ -2,3 +2,4 @@ Django~=1.9.10
 django-mptt~=0.8.6
 ipython~=5.1.0
 Pillow~=3.4.1
+django-environ~=0.4.0

@@ -16,3 +16,4 @@ rev-manifest.json
 tmp/
 virtualenv/
 gallery/static/**
+*.log

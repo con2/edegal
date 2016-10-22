@@ -1,5 +1,11 @@
-var webpack = require('webpack');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+'use strict';
+
+
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const backendUrl = process.env.EDEGAL_BACKEND_URL || 'http://localhost:8000';
+
 
 module.exports = {
   devtool: 'eval-source-map',
@@ -48,7 +54,7 @@ module.exports = {
     hot: true,
     proxy: {
       '/api/*': {
-        target: 'http://localhost:8000',
+        target: backendUrl,
       }
     }
   }
