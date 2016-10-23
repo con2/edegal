@@ -20,9 +20,28 @@ export default createReducer(initialState, {
 });
 
 
+const albumCache = {};
+
+
+function getCached(path) {
+  const cached = albumCache[path];
+
+  if (cached) {
+    return Promise.resolve(cached);
+  } else {
+    return get(path)
+      .then((album) => {
+        albumCache[path] = album;
+        album.pictures.forEach((picture) => { albumCache[picture.path] = album; });
+        return album;
+      });
+  }
+}
+
+
 export function getAlbum(path) {
   return dispatch =>
-    get(path)
+    getCached(path)
       .then((album) => {
         if (album.path === path) {
           // path points to album itself
