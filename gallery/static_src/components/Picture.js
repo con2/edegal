@@ -1,6 +1,8 @@
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import React from 'react';
 
+import {selectMedia} from '../helpers/media';
+
 
 export default class Album extends React.Component {
   static propTypes = {
@@ -8,10 +10,12 @@ export default class Album extends React.Component {
   }
 
   render() {
-    const {picture} = this.props;
+    const
+      {picture} = this.props,
+      preview = selectMedia(picture);
 
     return (
-      <p>{JSON.stringify(picture)}</p>
+      <img src={preview.get('src')} alt={picture.get('title')} />
     );
   }
 }
