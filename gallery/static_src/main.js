@@ -10,7 +10,7 @@ import {ReduxAsyncConnect} from 'redux-connect';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import './styles/index.css';
-import Album from './components/Album';
+import MainView from './components/MainView';
 import Gallery from './components/Gallery';
 import muiTheme from './styles/muiTheme';
 import initializeStore from './store';
@@ -36,8 +36,8 @@ ReactDOM.render(
     <MuiThemeProvider muiTheme={muiTheme}>
       <Router render={(props) => <ReduxAsyncConnect {...props} />} history={history}>
         <Route path="/" component={Gallery}>
-          <IndexRoute component={Album} />
-          <Route path="*" component={Album} />
+          <IndexRoute component={MainView} />
+          <Route path="*" component={MainView} />
         </Route>
       </Router>
     </MuiThemeProvider>

@@ -1,29 +1,48 @@
 import Immutable from 'immutable';
 import {createReducer} from 'redux-immutablejs';
+import _ from 'lodash';
 
 import {get} from '../helpers/http';
 
+import {SELECT_PICTURE} from './picture';
 
-const
-  GET_ALBUM_REQUEST = 'edegal/stuff/GET_ALBUM_REQUEST',
-  GET_ALBUM_SUCCESS = 'edegal/stuff/GET_ALBUM_SUCCESS',
-  GET_ALBUM_FAILURE = 'edegal/stuff/GET_ALBUM_FAILURE';
+
+export const
+  SELECT_ALBUM = 'edegal/album/SELECT_ALBUM',
+  GET_ALBUM_FAILURE = 'edegal/album/GET_ALBUM_FAILURE';
 
 const initialState = Immutable.fromJS({});
 
 
 export default createReducer(initialState, {
-  [GET_ALBUM_SUCCESS]: (state, action) => {
-    console.log('GET_ALBUM_SUCCESS', action)
-    return Immutable.fromJS(action.payload);
-  }
+  [SELECT_ALBUM]: (state, action) => Immutable.fromJS(action.payload),
+  [SELECT_PICTURE]: (state, action) => Immutable.fromJS(action.payload.album),
 });
 
 
 export function getAlbum(path) {
-  console.log('getAlbum', path);
-  return {
-    types: [GET_ALBUM_REQUEST, GET_ALBUM_SUCCESS, GET_ALBUM_FAILURE],
-    payload: get(path),
-  };
+  return dispatch =>
+    get(path)
+      .then((album) => {
+        if (album.path === path) {
+          // path points to album itself
+          return dispatch({
+            type: SELECT_ALBUM,
+            payload: album,
+          });
+        } else {
+          // path points to a picture in album
+          const picture = _.find(album.pictures, {path});
+
+          return dispatch({
+            type: SELECT_PICTURE,
+            payload: {album, picture},
+          });
+        }
+      })
+      .catch(err => dispatch({
+        type: GET_ALBUM_FAILURE,
+        error: true,
+        payload: err,
+      }));
 }

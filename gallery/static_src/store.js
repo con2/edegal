@@ -5,7 +5,6 @@ import {reducer as form} from 'redux-form/immutable';
 import thunkMiddleware from 'redux-thunk';
 
 import edegal from './modules';
-import promiseMiddleware from './middlewares/promiseMiddleware';
 
 
 const reducers = combineReducers({
@@ -20,10 +19,7 @@ export default () => createStore(
   reducers,
   undefined,
   compose(
-    applyMiddleware(
-      thunkMiddleware,
-      promiseMiddleware()
-    ),
+    applyMiddleware(thunkMiddleware),
     window.devToolsExtension ? window.devToolsExtension() : f => f
   )
 );
