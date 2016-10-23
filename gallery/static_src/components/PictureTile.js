@@ -11,15 +11,19 @@ export default class PictureTile extends React.Component {
   }
 
   render() {
-    const {item} = this.props;
-    const title = item.get('title');
-    const path = item.get('path');
+    const
+      {item} = this.props,
+      title = item.get('title'),
+      path = item.get('path'),
+      src = item.getIn(['thumbnail', 'src']);
 
     return (
       <GridTile
         title={title}
         containerElement={<Link to={path} />}
-      />
+      >
+        <img src={src} alt={title} />
+      </GridTile>
     );
   }
 }
