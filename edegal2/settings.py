@@ -1,9 +1,9 @@
 import environ
 
-from .settings_defaults import *
+from .settings_defaults import *  # noqa
 
 
-env = environ.Env(DEBUG=(bool, False),) # set default values and casting
+env = environ.Env(DEBUG=(bool, False),)  # set default values and casting
 
 
 DEBUG = env.bool('DEBUG', default=False)
@@ -21,13 +21,13 @@ CACHES = {
 }
 
 if DEBUG:
-  LOGGING['loggers'].update({
-      # 'django.db': {
-      #     'handlers': ['console'],
-      #     'level': 'DEBUG',
-      # },
-      'gallery': {
-          'handlers': ['console'],
-          'level': 'DEBUG',
-      },
-  })
+    LOGGING['loggers'].update({
+        # 'django.db': {
+        #     'handlers': ['console'],
+        #     'level': 'DEBUG',
+        # },
+        'gallery': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    })
