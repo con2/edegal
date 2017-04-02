@@ -8,7 +8,7 @@ env = environ.Env(DEBUG=(bool, False),) # set default values and casting
 
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='').split()
+ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='*' if DEBUG else '').split()
 
 SECRET_KEY = env.str('SECRET_KEY', default=('' if not DEBUG else 'xxx'))
 
