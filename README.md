@@ -2,23 +2,23 @@
 
 [![Sponsored by Leonidas](https://img.shields.io/badge/sponsored%20by-leonidas-389fc1.svg)](https://leonidasoy.fi/opensource)
 
-Please hold tight as we rewrite the backend in Python 3 and the frontend in ECMAScript 6.
+Please hold tight as we rewrite the backend in Python 3 and the frontend in TypeScript.
 
-The "legacy" branch, with a Node.js backend and MongoDB as the database, can still be found at [japsu/edegal-legacy](https://github.com/japsu/edegal-legacy).
+The "legacy" branch, with a Node.js backend and MongoDB as the database, can still be found at [japsu/edegal-legacy](https://github.com/japsu/edegal-legacy). See a demo of `edegal-legacy` at [uusi.kuvat.aniki.fi](http://uusi.kuvat.aniki.fi/).
 
 # Edegal – A web picture gallery
 
-Edegal is a web picture gallery written in Python 3 and ECMAScript 6 and designed with performance and scalability in mind.
+Edegal is a web picture gallery written in Python 3 and TypeScript and designed with performance and scalability in mind.
 
 This is the "version 2" reboot of the Edegal project. It incorporates the following changes to "version 1":
 
 * MongoDB is dead, long live PostgreSQL (and Redis)
-* Replace the Node.js backend with Python 3.4 and Django 1.8
-* Rewrite frontend in ECMAScript 6 instead of CoffeeScript
+* Replace the Node.js backend with Python 3.6 and Django 1.10
+* Rewrite frontend in TypeScript instead of CoffeeScript or ECMAScript 6
 
 High performance is achieved through the usage of a dead simple REST JSON API in which most cache misses only result in two database queries.
 
-Edegal is a work in progress. See a demo at [uusi.kuvat.aniki.fi](http://uusi.kuvat.aniki.fi/) or [gallery.insomnia.fi](http://gallery.insomnia.fi).
+Edegal is a work in progress.
 
 ## Goals
 
@@ -68,27 +68,11 @@ Do a minified production build:
 
 ## Technology choices
 
-* Backend
-  * Python 3.4
-  * Django 1.8
-  * PostgreSQL 9.4
-  * Redis
-  * [nginx](https://github.com/nginx/nginx)
-* Frontend development tools
-  * [Node.js](https://github.com/joyent/node)
-  * [Gulp](https://github.com/gulp/gulp)
-  * ECMAScript 2015 via Babelify
-  * [Jade](https://github.com/visionmedia/jade) templates for static HTML
-  * [Stylus](https://github.com/learnboost/stylus)
-  * [UglifyJS](https://github.com/mishoo/UglifyJS2)
-  * [Mocha](https://github.com/visionmedia/mocha)
-  * [Sinon](https://github.com/cjohansen/Sinon.JS)
-* Frontend
-  * [Knockout](https://github.com/knockout/knockout)
-  * [Knockout.Mapping](https://github.com/SteveSanderson/knockout.mapping)
-  * [Page.js](https://github.com/visionmedia/page.js)
-  * [Hammer.js](https://github.com/EightMedia/hammer.js)
-  * [JQuery 1.11](https://github.com/jquery/jquery)
+* Python 3.6
+* Django 1.10
+* PostgreSQL 9.5
+* Redis
+* [nginx](https://github.com/nginx/nginx)
 
 ## Testimonials
 
