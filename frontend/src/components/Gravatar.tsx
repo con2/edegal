@@ -28,6 +28,3 @@ export default class Gravatar extends React.Component<GravatarProps, GravatarSta
     }
   }
 }
-
-
-

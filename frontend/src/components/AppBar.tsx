@@ -12,6 +12,7 @@ const linkStyle = {
   textDecoration: 'none',
   color: 'white',
 };
+const breadcrumbSeparator = ' » ';
 
 
 interface AppBarStateProps {
@@ -31,6 +32,8 @@ class AppBar extends React.Component<AppBarProps, AppBarState> {
     const fullBreadcrumb = breadcrumb.concat([{path, title}]);
     const lastIndex = fullBreadcrumb.length - 1;
 
+    document.title = fullBreadcrumb.map(crumb => crumb.title).join(breadcrumbSeparator);
+
     return (
       <MuiAppBar
         title={fullBreadcrumb.map((item, index) => (
@@ -41,7 +44,7 @@ class AppBar extends React.Component<AppBarProps, AppBarState> {
             >
               {item.title}
             </Link>
-            {index !== lastIndex ? ' » ' : null}
+            {index !== lastIndex ? breadcrumbSeparator : null}
           </span>
         ))}
         iconElementRight={<Link to="/user"><UserAvatar /></Link>}

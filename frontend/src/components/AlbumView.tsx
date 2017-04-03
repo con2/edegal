@@ -6,7 +6,7 @@ import PictureTile from './PictureTile';
 
 
 const cellHeight = 240;
-const referenceWidth = 400;
+const referenceWidth = 360;
 
 
 interface AlbumViewProps {

@@ -38,13 +38,11 @@ class MainView extends React.Component<MainViewProps, MainViewState> {
   }
 
   componentWillMount() {
-    console.log('componentWillMount getAlbum', this.props.path);
     this.props.getAlbum(this.props.path);
   }
 
   componentWillReceiveProps(nextProps: MainViewProps) {
     if (nextProps.path !== this.props.path) {
-      console.log('componentWillReceiveProps getAlbum', nextProps.path);
       this.props.getAlbum(nextProps.path);
     }
   }
