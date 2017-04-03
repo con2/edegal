@@ -23,56 +23,24 @@ Edegal is a work in progress.
 ## Goals
 
 * Successfully replace Coppermine Image Gallery at [kuvat.aniki.fi](http://kuvat.aniki.fi)
-  * 49,860 files in 619 albums and 110 categories viewed 6,118,935 times over the course of 9 years (as of 22nd June 2013)
+  * 92,571 pictures in 1,314 albums, 8,546,875 total views over the course of 13 years. (as of 3rd April 2017)
 * Provide picture galleries for the members of [Kapsi Internet-käyttäjät ry](http://www.kapsi.fi) requestable via a web self-service portal
 * Drop some jaws with stunning visuals and flawless usability
 * Become the number one choice for a self-hosted image gallery for serious hobbyist photographers
 
 ## Getting started
 
-What is assumed:
+### The Docker Compose Way
 
-* An UNIX-like operating system such as Ubuntu, CentOS or Mac OS X
-* Python 3.4 and a working `virtualenv` tool
-  * HINT: Debian/Ubuntu have broken the standard library `venv` due to brain damage. Install `python3-virtualenv` and use `python3 -m virtualenv` instead
-  * On OS X, go on using the standard `venv`
+There is a single unified Docker Compose development environment for both the Django backend and the TypeScript/React frontend. Start the development environment with
 
-Cheats for Debian/Ubuntu:
+    docker-compose up
 
-    sudo apt-get install python3 python3-dev python3-virtualenv libjpeg-dev libpq-dev
+Backend will start at http://localhost:8000 and frontend dev server will start at http://localhost:3000. Usually you will want to open the latter in your browser. A superuser will be created with username `mahti` and password `mahti`.
 
-Set up backend development environment
+### The Traditional Way
 
-    git clone https://github.com/japsu/edegal2
-    python3.4 -m venv venv3-edegal2 # or python3.4 -m virtualenv
-    source venv3-edegal2/bin/activate
-    cd edegal2
-    pip install -r requirements.txt
-    python manage.py test
-    python manage.py setup --test
-
-Running a local server:
-
-    python manage.py runserver
-    iexplore http://localhost:8000
-
-Set up frontend development environment:
-
-    npm install
-    npm test
-    npm start
-
-Do a minified production build:
-
-    NODE_ENV=production npm run build
-
-## Technology choices
-
-* Python 3.6
-* Django 1.10
-* PostgreSQL 9.5
-* Redis
-* [nginx](https://github.com/nginx/nginx)
+For developing the backend or frontend components without Docker Compose, please see the set-up instructions in their respective README files under `backend/` and `frontend/`.
 
 ## Testimonials
 

@@ -1,24 +1,24 @@
 version: '2'
 services:
   backend:
-    build: .
+    build: backend
     command: scripts/wait-for-it.sh postgres:5432 -- python manage.py docker_start
     ports:
       - 8000:8000
     links:
       - postgres
     volumes:
-      - .:/usr/src/app
+      - ./backend:/usr/src/app
     environment:
       DEBUG: 1
   frontend:
-    build: ../edegal-frontend
+    build: frontend
     ports:
       - 3000:3000
     links:
       - backend
     volumes:
-      - ../edegal-frontend/src:/usr/src/app/src
+      - ./frontend/src:/usr/src/app/src
     environment:
       EDEGAL_BACKEND_URL: http://backend:8000
   postgres:
