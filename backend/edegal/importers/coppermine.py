@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from django.db import connections
 
-from ..models import Album, MediaSpec, Picture
+from ..models import Album, Media, MediaSpec, Picture
 
 from ..utils import slugify, log_get_or_create
 
@@ -174,5 +174,5 @@ class CoppermineImporter(object):
     def import_picture(self, coppermine_picture, parent_album):
         picture, created = coppermine_picture.get_or_create(parent_album)
         absolute_filename = os.path.join(self.media_root, coppermine_picture.filepath, coppermine_picture.filename)
-        picture.import_local_media(absolute_filename, mode=self.mode, media_specs=self.media_specs)
+        Media.import_local_media(picture, absolute_filename, mode=self.mode, media_specs=self.media_specs)
 
