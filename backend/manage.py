@@ -19,7 +19,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sighandler)
     signal.signal(signal.SIGINT, sighandler)
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "edegal2.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "edegal_site.settings")
 
     from django.core.management import execute_from_command_line
 

@@ -8,9 +8,13 @@ services:
     links:
       - postgres
     volumes:
-      - ./backend:/usr/src/app
+      - ./backend/edegal:/usr/src/app/edegal
+      - media:/usr/src/app/media
     environment:
       DEBUG: 1
+      PYTHONUNBUFFERED: 1
+      DATABASE_URL: psql://edegal:edegal@postgres/edegal
+      ALLOWED_HOSTS: '*'
   frontend:
     build: frontend
     ports:
@@ -31,3 +35,4 @@ services:
       POSTGRES_DB: edegal
 volumes:
   postgres-data: {}
+  media: {}

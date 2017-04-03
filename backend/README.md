@@ -33,8 +33,8 @@ Cheats for Debian/Ubuntu:
 Set up backend development environment
 
     git clone https://github.com/conikuvat/edegal
-    python3 -m venv venv3-edegal2 # or python3.4 -m virtualenv
-    source venv3-edegal2/bin/activate
+    python3 -m venv venv3-edegal # or python3.4 -m virtualenv
+    source venv3-edegal/bin/activate
     cd edegal/backend
     pip install -r requirements.txt
     python manage.py test
