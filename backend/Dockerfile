@@ -1,8 +1,8 @@
 FROM python:3.6
 WORKDIR /usr/src/app
-COPY requirements.txt requirements-production.txt /usr/src/app/
+COPY requirements.txt requirements-production.txt requirements-coppermine-importer.txt /usr/src/app/
 RUN groupadd -r edegal && useradd -r -g edegal edegal && \
-    pip install --no-cache-dir -r requirements.txt -r requirements-production.txt
+    pip install --no-cache-dir -r requirements.txt -r requirements-production.txt -r requirements-coppermine-importer.txt
 COPY . /usr/src/app
 RUN env DEBUG=1 python manage.py collectstatic --noinput && \
     python -m compileall -q . && \

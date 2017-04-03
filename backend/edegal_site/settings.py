@@ -16,6 +16,9 @@ DATABASES = {
     'default': env.db(default='sqlite:///edegal.sqlite3'),
 }
 
+if env('EDEGAL_COPPERMINE_DATABASE_URL', default=''):
+    DATABASES['coppermine'] = env.db('EDEGAL_COPPERMINE_DATABASE_URL')
+
 CACHES = {
     'default': env.cache(default='locmemcache://'),
 }

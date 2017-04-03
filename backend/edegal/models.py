@@ -2,7 +2,7 @@ import logging
 import shutil
 from contextlib import contextmanager
 from os import makedirs
-from os.path import dirname
+from os.path import dirname, abspath
 
 from django.conf import settings
 from django.core.validators import RegexValidator
@@ -242,6 +242,9 @@ class Picture(models.Model):
 
         return super(Picture, self).save(*args, **kwargs)
 
+    def import_local_media(self, *args, **kwargs):
+        Media.import_local_media(self, *args, **kwargs)
+
     def __str__(self):
         return self.path
 
@@ -348,6 +351,7 @@ class Media(models.Model):
 
     @classmethod
     def make_absolute_path_media_relative(cls, original_path):
+        print(original_path)
         assert original_path.startswith(settings.MEDIA_ROOT)
 
         # make path relative to /media/

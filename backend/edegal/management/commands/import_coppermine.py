@@ -24,10 +24,22 @@ class Command(BaseCommand):
                 'configured in settings.py.'
             ),
         )
+        parser.add_argument(
+            '-m', '--media-root',
+            default='',
+            help='Will be appended to all file paths from Coppermine.',
+        )
+        parser.add_argument(
+            '-s', '--skip-previews',
+            action='store_true',
+            help='Skip creating previews. For development only.',
+        )
 
     def handle(self, *args, **options):
         CoppermineImporter(
             path=options['path'],
             root_category_id=options['root_category_id'],
             connection_name=options['database_connection_name'],
+            create_previews=not options['skip_previews'],
+            media_root=options['media_root'],
         ).run()

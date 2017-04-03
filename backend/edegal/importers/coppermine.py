@@ -1,5 +1,6 @@
 import html
 import logging
+import os
 from collections import namedtuple
 
 from django.db import connections
@@ -15,23 +16,29 @@ logger = logging.getLogger(__name__)
 GET_CATEGORIES_SQL = """
 SELECT cid, name, description, pos
 FROM cpg11d_categories
-WHERE parent = ?
+WHERE parent = %s
 ORDER BY pos
 """
 
 GET_ALBUMS_SQL = """
 SELECT aid, title, description, pos
 FROM cpg11d_albums
-WHERE category = ?
+WHERE category = %s
 ORDER BY pos
 """
 
 GET_PICTURES_SQL = """
 SELECT pid, filename, filepath, title, caption, position
 FROM cpg11d_pictures
-WHERE aid = ?
+WHERE aid = %s
 ORDER BY position
 """
+
+# These will be stripped from filenames when making up titles
+STRIP_SUFFIXES = [
+    '.jpg',
+    '.jpeg',
+]
 
 
 class CoppermineAttributes(object):
@@ -73,12 +80,12 @@ class CoppermineAlbum(BaseCoppermineAlbum, CoppermineAttributes):
 
 
 BaseCopperminePicture = namedtuple('CopperminePicture', [
-    'id'
-    'filename'
-    'filepath'
-    'title_html'
-    'description_html'
-    'position'
+    'id',
+    'filename',
+    'filepath',
+    'title_html',
+    'description_html',
+    'position',
 ])
 
 
@@ -88,7 +95,7 @@ class CopperminePicture(BaseCopperminePicture, CoppermineAttributes):
     """
 
     def get_or_create(self, parent_album):
-        title = self.title if self.title_html else self.filename
+        title = self.title if self.title_html else self.title_from_filename
 
         picture, created = Picture.objects.get_or_create(
             album=parent_album,
@@ -100,6 +107,18 @@ class CopperminePicture(BaseCopperminePicture, CoppermineAttributes):
             )
         )
 
+        log_get_or_create(logger, picture, created)
+
+        return picture, created
+
+    @property
+    def title_from_filename(self):
+        for suffix in STRIP_SUFFIXES:
+            if self.filename.lower().endswith(suffix):
+                return self.filename[:-len(suffix)]
+
+        return self.filename
+
 
 class CoppermineImporter(object):
     def __init__(
@@ -107,13 +126,16 @@ class CoppermineImporter(object):
         path='/',
         connection_name='coppermine',
         root_category_id=0,
-        mode='inplace'
+        mode='inplace',
+        create_previews=True,
+        media_root='',
     ):
         self.path = path
         self.connection = connections[connection_name]
         self.root_category = CoppermineAlbum(root_category_id, None, None, None)
         self.mode = mode
-        self.media_specs = MediaSpec.objects.all()
+        self.media_specs = MediaSpec.objects.all() if create_previews else MediaSpec.objects.none()
+        self.media_root = media_root
 
     def run(self):
         # TODO query("SET NAMES 'latin1';") ?
@@ -122,19 +144,19 @@ class CoppermineImporter(object):
 
     def import_subcategories(self, coppermine_category, parent_album):
         with self.connection.cursor() as cursor:
-            cursor.execute(GET_CATEGORIES_SQL, coppermine_category.id)
+            cursor.execute(GET_CATEGORIES_SQL, [coppermine_category.id])
             for row in cursor.fetchall():
                 self.import_category(CoppermineAlbum(*row), parent_album)
 
     def import_albums(self, coppermine_category, parent_album):
         with self.connection.cursor() as cursor:
-            cursor.execute(GET_ALBUMS_SQL, coppermine_category.id)
+            cursor.execute(GET_ALBUMS_SQL, [coppermine_category.id])
             for row in cursor.fetchall():
                 self.import_album(CoppermineAlbum(*row), parent_album)
 
     def import_pictures(self, coppermine_album, parent_album):
         with self.connection.cursor() as cursor:
-            cursor.execute(GET_PICTURES_SQL, coppermine_album.id)
+            cursor.execute(GET_PICTURES_SQL, [coppermine_album.id])
             for row in cursor.fetchall():
                 self.import_picture(CopperminePicture(*row), parent_album)
 
@@ -151,5 +173,6 @@ class CoppermineImporter(object):
 
     def import_picture(self, coppermine_picture, parent_album):
         picture, created = coppermine_picture.get_or_create(parent_album)
-        picture.import_local_media(picture.filepath, mode=self.mode)
+        absolute_filename = os.path.join(self.media_root, coppermine_picture.filepath, coppermine_picture.filename)
+        picture.import_local_media(absolute_filename, mode=self.mode, media_specs=self.media_specs)
 
