@@ -7,6 +7,7 @@ env = environ.Env(DEBUG=(bool, False),)  # set default values and casting
 
 
 DEBUG = env.bool('DEBUG', default=False)
+CAVALRY_ENABLED = DEBUG
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='').split()
 
@@ -34,3 +35,4 @@ if DEBUG:
             'level': 'DEBUG',
         },
     })
+

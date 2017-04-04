@@ -20,7 +20,9 @@ INSTALLED_APPS = (
     'edegal',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
+    'cavalry.middleware.cavalry',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
