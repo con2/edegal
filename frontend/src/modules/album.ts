@@ -2,6 +2,7 @@ import Album from '../models/Album';
 import AlbumCache from '../helpers/AlbumCache';
 import Config from '../Config';
 import OtherAction from './other';
+import Picture from '../models/Picture';
 import {SelectPicture, SelectPictureAction} from './picture';
 
 
@@ -46,7 +47,16 @@ function getCached(path: string): Promise<Album> {
         const album: Album = data;
 
         AlbumCache.set(path, album);
-        album.pictures.forEach((picture) => { AlbumCache.set(picture.path, album); });
+        let previous: Picture;
+        album.pictures.forEach((picture) => {
+          if (previous) {
+            previous.next = picture;
+            picture.previous = previous;
+          }
+
+          AlbumCache.set(picture.path, album);
+          previous = picture;
+        });
         return album;
       });
   }
