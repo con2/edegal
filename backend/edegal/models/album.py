@@ -2,6 +2,7 @@ import logging
 
 from django.db import models
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -121,7 +122,7 @@ class Album(MPTTModel):
         return return_value
 
     @classmethod
-    def get_album_by_path(cls, path, **extra_criteria):
+    def get_album_by_path(cls, path, or_404=False, **extra_criteria):
         q = Q(path=path) | Q(pictures__path=path)
 
         if extra_criteria:
@@ -129,7 +130,9 @@ class Album(MPTTModel):
 
         # FIXME In SQLite, this does a full table scan on gallery_album when the WHERE over the JOIN gallery_picture
         # is present. Need to check if this is the case on PostgreSQL, too.
-        return (cls.objects.distinct()
+        queryset = (
+            cls.objects.filter(q)
+            .distinct()
             .select_related('cover_picture')
             .prefetch_related('cover_picture__media')
             .prefetch_related('pictures')
@@ -137,8 +140,12 @@ class Album(MPTTModel):
             .prefetch_related('pictures__media__spec')
             .prefetch_related('subalbums')
             .prefetch_related('subalbums__cover_picture')
-            .get(q)
         )
+
+        if or_404:
+            return get_object_or_404(queryset)
+        else:
+            return queryset.get()
 
     def __str__(self):
         return self.path
