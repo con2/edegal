@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import NavigateNext from 'material-ui/svg-icons/navigation/chevron-right';
+import NavigatePrevious from 'material-ui/svg-icons/navigation/chevron-left';
 
 import selectMedia from '../helpers/selectMedia';
 import Picture from '../models/Picture';
@@ -15,6 +18,21 @@ const nextPictureKeycodes = [
   39, // right arrow
   34, // page down
 ];
+
+
+const buttonStyle = {
+  marginTop: 10,
+};
+
+const previousButtonStyle = Object.assign({}, buttonStyle, {
+  float: 'left',
+  marginLeft: 15,
+});
+
+const nextButtonStyle = Object.assign({}, buttonStyle, {
+  float: 'right',
+  marginRight: 15,
+});
 
 
 interface PictureViewOwnProps {
@@ -33,7 +51,23 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     const {picture} = this.props;
     const preview = selectMedia(picture);
 
-    return <img src={preview.src} alt={picture.title} style={{ width: '100%' }} />;
+    return (
+      <div>
+        <img src={preview.src} alt={picture.title} style={{ width: '100%' }} />
+
+        {picture.previous ? (
+          <FloatingActionButton style={previousButtonStyle} onTouchTap={() => this.goTo('previous')}>
+            <NavigatePrevious />
+          </FloatingActionButton>
+        ) : null}
+
+        {picture.next ? (
+          <FloatingActionButton style={nextButtonStyle} onTouchTap={() => this.goTo('next')}>
+            <NavigateNext />
+          </FloatingActionButton>
+        ) : null}
+      </div>
+    );
   }
 
   componentDidMount() {
@@ -49,7 +83,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
       return;
     }
 
-    if(nextPictureKeycodes.indexOf(event.keyCode) >= 0) {
+    if (nextPictureKeycodes.indexOf(event.keyCode) >= 0) {
       this.goTo('next');
     } else if (previousPictureKeycodes.indexOf(event.keyCode) >= 0) {
       this.goTo('previous');
