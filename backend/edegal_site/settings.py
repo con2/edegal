@@ -5,6 +5,9 @@ from .settings_defaults import *  # noqa
 
 env = environ.Env(DEBUG=(bool, False),)  # set default values and casting
 
+if os.path.isfile('.env'):
+    env.read_env('.env')
+
 
 DEBUG = env.bool('DEBUG', default=False)
 CAVALRY_ENABLED = DEBUG

@@ -18,3 +18,4 @@ virtualenv/
 gallery/static/**
 *.log
 docker-compose.secret.yml
+.env
