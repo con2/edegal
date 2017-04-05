@@ -1,3 +1,4 @@
 static/
 media/
 *.sqlite3
+.env
