@@ -1,24 +1,29 @@
 import GridList from 'material-ui/GridList';
 import * as React from 'react';
+import { connect } from 'react-redux';
 
 import Album from '../models/Album';
 import AppBar from './AppBar';
 import PictureTile from './PictureTile';
+import { State } from '../modules';
 
 
 const cellHeight = 240;
 const referenceWidth = 360;
 
 
-interface AlbumViewProps {
+interface AlbumViewOwnProps {}
+interface AlbumViewStateProps {
   album: Album;
 }
+interface AlbumViewDispatchProps {}
+type AlbumViewProps = AlbumViewOwnProps & AlbumViewStateProps & AlbumViewDispatchProps;
 interface AlbumViewState {
   columns: number;
 }
 
 
-export default class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
+class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
   state = {
     columns: 1,
   };
@@ -57,3 +62,16 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     this.setState({ columns });
   }
 }
+
+
+const mapStateToProps = (state: State) => ({
+  album: state.album,
+});
+
+const mapDispatchToProps = {};
+
+
+export default connect<AlbumViewStateProps, AlbumViewDispatchProps, AlbumViewOwnProps>(
+  mapStateToProps,
+  mapDispatchToProps,
+)(AlbumView);

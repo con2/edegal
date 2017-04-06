@@ -5,15 +5,11 @@ import {getAlbum} from '../modules/album';
 import AlbumView from './AlbumView';
 import PictureView from './PictureView';
 import Loading from './Loading';
-import Album from '../models/Album';
-import Picture from '../models/Picture';
 import { State } from '../modules';
 
 
 interface MainViewStateProps {
   mainView: string;
-  album: Album;
-  picture: Picture;
   path: string;
 }
 interface MainViewDispatchProps {
@@ -26,14 +22,15 @@ interface MainViewState {}
 
 class MainView extends React.Component<MainViewProps, MainViewState> {
   render() {
-    const {mainView, album, picture} = this.props;
+    const { mainView } = this.props;
 
-    if (mainView === 'album') {
-      return <AlbumView album={album} />;
-    } else if (mainView === 'picture') {
-      return <PictureView picture={picture} />;
-    } else {
-      return <Loading />;
+    switch (mainView) {
+      case 'album':
+        return <AlbumView />;
+      case 'picture':
+        return <PictureView />;
+      default:
+        return <Loading />;
     }
   }
 
@@ -51,8 +48,6 @@ class MainView extends React.Component<MainViewProps, MainViewState> {
 
 const mapStateToProps = (state: State) => ({
   mainView: state.mainView,
-  album: state.album,
-  picture: state.picture,
   path: state.routing.locationBeforeTransitions.pathname
 });
 
