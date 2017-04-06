@@ -2,6 +2,7 @@ import GridList from 'material-ui/GridList';
 import * as React from 'react';
 
 import Album from '../models/Album';
+import AppBar from './AppBar';
 import PictureTile from './PictureTile';
 
 
@@ -27,14 +28,18 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     const {columns} = this.state;
 
     return (
-      <GridList cellHeight={cellHeight} cols={columns}>
-        {album.subalbums.map(subalbum => (
-          <PictureTile key={subalbum.path} item={subalbum} />
-        ))}
-        {album.pictures.map(picture => (
-          <PictureTile key={picture.path} item={picture} />
-        ))}
-      </GridList>
+      <div>
+        <AppBar />
+
+        <GridList cellHeight={cellHeight} cols={columns}>
+          {album.subalbums.map(subalbum => (
+            <PictureTile key={subalbum.path} item={subalbum} />
+          ))}
+          {album.pictures.map(picture => (
+            <PictureTile key={picture.path} item={picture} />
+          ))}
+        </GridList>
+      </div>
     );
   }
 
