@@ -44,7 +44,12 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
     return (
       <div className="PictureView">
-        <img src={preview.src} alt={picture.title} className="PictureView-img" />
+        <div
+          className="PictureView-img"
+          style={{
+            backgroundImage: `url(${preview.src})`
+          }}
+        />
 
         {picture.previous ? (
           <div onClick={() => this.goTo('previous')} className="PictureView-nav PictureView-nav-previous">
