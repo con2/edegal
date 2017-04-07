@@ -7,6 +7,7 @@ import Close from 'material-ui/svg-icons/navigation/close';
 import { blue50 } from 'material-ui/styles/colors';
 
 import selectMedia from '../../helpers/selectMedia';
+import preloadMedia from '../../helpers/preloadMedia';
 import Picture from '../../models/Picture';
 import { State } from '../../modules';
 
@@ -72,10 +73,30 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
   componentDidMount() {
     document.addEventListener('keydown', this.onKeyDown);
+
+    this.preloadPreviousAndNext(this.props.picture);
   }
 
   componentWillUnmount() {
     document.removeEventListener('keydown', this.onKeyDown);
+  }
+
+  componentWillReceiveProps(nextProps: PictureViewProps) {
+    this.preloadPreviousAndNext(nextProps.picture);
+  }
+
+  preloadPreviousAndNext(picture: Picture) {
+    // use setTimeout to not block rendering of current picture – improves visible latency
+    setTimeout(() => {
+      if (picture.previous) {
+        preloadMedia(picture.previous);
+      }
+
+      if (picture.next) {
+        preloadMedia(picture.next);
+      }
+    }, 0);
+
   }
 
   onKeyDown = (event: KeyboardEvent) => {
