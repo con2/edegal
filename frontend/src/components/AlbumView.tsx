@@ -6,6 +6,7 @@ import Album from '../models/Album';
 import AppBar from './AppBar';
 import PictureTile from './PictureTile';
 import { State } from '../modules';
+import preloadMedia from '../helpers/preloadMedia';
 
 
 const cellHeight = 240;
@@ -51,6 +52,7 @@ class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
   componentDidMount() {
     window.addEventListener('resize', this.updateColumns);
     this.updateColumns();
+    this.preloadFirstPicture();
   }
 
   componentWillUnmount() {
@@ -60,6 +62,13 @@ class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
   updateColumns = () => {
     const columns = Math.ceil(window.innerWidth / referenceWidth);
     this.setState({ columns });
+  }
+
+  preloadFirstPicture() {
+    const firstPicture = this.props.album.pictures[0];
+    if (firstPicture) {
+      preloadMedia(firstPicture);
+    }
   }
 }
 
