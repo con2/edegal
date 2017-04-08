@@ -47,6 +47,7 @@ class AppBar extends React.Component<AppBarProps, AppBarState> {
             {index !== lastIndex ? breadcrumbSeparator : null}
           </span>
         ))}
+        iconElementLeft={<div/>}
         iconElementRight={<Link to="/user"><UserAvatar /></Link>}
       />
     );
