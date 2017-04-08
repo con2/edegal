@@ -7,10 +7,12 @@ import FileDownload from 'material-ui/svg-icons/file/file-download';
 import Close from 'material-ui/svg-icons/navigation/close';
 import { blue50 } from 'material-ui/styles/colors';
 
+import DownloadDialog from '../DownloadDialog';
 import selectMedia from '../../helpers/selectMedia';
 import preloadMedia from '../../helpers/preloadMedia';
 import Picture from '../../models/Picture';
 import { State } from '../../modules';
+import { openDownloadDialog } from '../../modules/downloadDialog';
 
 import './index.css';
 
@@ -35,6 +37,7 @@ interface PictureViewStateProps {
 }
 interface PictureViewDispatchProps {
   push: typeof push;
+  openDownloadDialog: typeof openDownloadDialog;
 }
 interface PictureViewState {}
 type PictureViewProps = PictureViewOwnProps & PictureViewStateProps & PictureViewDispatchProps;
@@ -82,12 +85,17 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           <Close color={iconColor} style={iconSize} />
         </div>
 
-        <div
-          className="PictureView-action PictureView-action-download"
-          title="Lataa kuva"
-        >
-          <FileDownload color={iconColor} style={iconSize} />
-        </div>
+        {picture.original ? (
+          <div
+            onClick={this.props.openDownloadDialog}
+            className="PictureView-action PictureView-action-download"
+            title="Lataa kuva"
+          >
+            <FileDownload color={iconColor} style={iconSize} />
+          </div>
+        ) : null}
+
+        <DownloadDialog />
       </div>
     );
   }
@@ -145,7 +153,7 @@ const mapStateToProps = (state: State) => ({
   picture: state.picture,
 });
 
-const mapDispatchToProps = { push };
+const mapDispatchToProps = { push, openDownloadDialog };
 
 
 export default connect<PictureViewStateProps, PictureViewDispatchProps, PictureViewOwnProps>(
