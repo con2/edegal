@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import NavigateNext from 'material-ui/svg-icons/navigation/chevron-right';
 import NavigatePrevious from 'material-ui/svg-icons/navigation/chevron-left';
+import FileDownload from 'material-ui/svg-icons/file/file-download';
 import Close from 'material-ui/svg-icons/navigation/close';
 import { blue50 } from 'material-ui/styles/colors';
 
@@ -23,6 +24,7 @@ const keyMap: {[keyCode: number]: Direction} = {
   39: 'next',     // right arrow
 };
 
+const iconColor = blue50;
 const navigationWidth = 60;
 const iconSize = { width: navigationWidth, height: navigationWidth };
 
@@ -53,19 +55,38 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
         />
 
         {picture.previous ? (
-          <div onClick={() => this.goTo('previous')} className="PictureView-nav PictureView-nav-previous">
-            <NavigatePrevious color={blue50} style={iconSize} className="PictureView-icon" />
+          <div
+            onClick={() => this.goTo('previous')}
+            className="PictureView-nav PictureView-nav-previous"
+            title="Edellinen"
+          >
+            <NavigatePrevious color={iconColor} style={iconSize} className="PictureView-icon-fade" />
           </div>
         ) : null}
 
         {picture.next ? (
-          <div onClick={() => this.goTo('next')} className="PictureView-nav PictureView-nav-next">
-            <NavigateNext color={blue50} style={iconSize} className="PictureView-icon" />
+          <div
+            onClick={() => this.goTo('next')}
+            className="PictureView-nav PictureView-nav-next"
+            title="Seuraava"
+          >
+            <NavigateNext color={iconColor} style={iconSize} className="PictureView-icon-fade" />
           </div>
         ) : null}
 
-        <div onClick={() => this.goTo('album')} className="PictureView-exit">
-          <Close color={blue50} style={iconSize} />
+        <div
+          onClick={() => this.goTo('album')}
+          className="PictureView-action PictureView-action-exit"
+          title="Takaisin albumiin"
+        >
+          <Close color={iconColor} style={iconSize} />
+        </div>
+
+        <div
+          className="PictureView-action PictureView-action-download"
+          title="Lataa kuva"
+        >
+          <FileDownload color={iconColor} style={iconSize} />
         </div>
       </div>
     );

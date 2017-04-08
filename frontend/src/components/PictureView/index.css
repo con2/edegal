@@ -34,21 +34,16 @@
   align-items: center;
   cursor: pointer;
   z-index: 1;
-  transition: background-color 100ms;
-}
-
-.PictureView-icon {
-  opacity: 0.0;
-  transition: opacity 100ms;
+  background-color: black;
+  opacity: 0;
+  transition: opacity 200ms;
 }
 
 .PictureView-nav:hover {
-  background-color: rgba(0, 0, 0, 0.6);
+  opacity: 1.0;
+  transition: opacity 200ms;
 }
 
-.PictureView-nav:hover .PictureView-icon {
-  opacity: 1.0;
-}
 
 .PictureView-nav-previous {
   grid-column: 1;
@@ -58,14 +53,22 @@
   grid-column: 3;
 }
 
-.PictureView-exit {
+.PictureView-action {
   width: 100%;
   height: 100%;
-  grid-row: 1;
-  grid-column: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   z-index: 2;
+}
+
+.PictureView-action-exit {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.PictureView-action-download {
+  grid-row: 3;
+  grid-column: 3;
 }
