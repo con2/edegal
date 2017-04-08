@@ -11,4 +11,8 @@ class Command(BaseCommand):
         parser.add_argument('-p', '--path', required=True)
 
     def handle(self, *args, **options):
-        FilesystemImporter(path=options['path'], input_filenames=options['input_filenames']).run()
+        FilesystemImporter(
+            path=options['path'],
+            input_filenames=options['input_filenames'],
+            mode='copy',
+        ).run()
