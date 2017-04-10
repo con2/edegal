@@ -8,7 +8,7 @@ node {
   }
 
   stage("Build frontend") {
-    sh "cd frontend && rm -rf build && mkdir build && docker build --tag ${frontendImage} . && docker run --rm ${frontendImage} --volume ./build:/usr/src/app/build --env NODE_ENV=production yarn run build && find build -type f \\! -iname '*.gz' -exec gzip -k \{\} + && tar -cvf ../frontend.tar -C build/ ."
+    sh "cd frontend && rm -rf build && mkdir build && docker build --tag ${frontendImage} . && docker run --rm ${frontendImage} --volume ./build:/usr/src/app/build --env NODE_ENV=production yarn run build && find build -type f \\! -iname '*.gz' -exec gzip -k \\{\\} + && tar -cvf ../frontend.tar -C build/ ."
     archiveArtifacts artifacts: "frontend.tar", fingerprint: true
   }
 
