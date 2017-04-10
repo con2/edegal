@@ -46,7 +46,7 @@ node {
       ansible-playbook \
         --vault-password-file=~/.vault_pass.txt \
         --user root \
-        --limit nuoli.kompassi.eu \
+        --limit nuoli.tracon.fi \
         --tags edegal-deploy \
         tracon.yml
     """
