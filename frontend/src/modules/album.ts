@@ -1,6 +1,7 @@
 import Album from '../models/Album';
 import AlbumCache from '../helpers/AlbumCache';
 import Config from '../Config';
+import { nullMedia } from '../models/Media';
 import OtherAction from './other';
 import Picture from '../models/Picture';
 import {SelectPicture, SelectPictureAction} from './picture';
@@ -117,13 +118,7 @@ const initialState: Album = {
   subalbums: [],
   pictures: [],
   breadcrumb: [],
-  thumbnail: {
-    src: '',
-    width: 0,
-    height: 0,
-    quality: 0,
-    original: false,
-  },
+  thumbnail: nullMedia,
 };
 
 type AlbumAction = SelectAlbumAction | GetAlbumFailureAction | SelectPictureAction | OtherAction;

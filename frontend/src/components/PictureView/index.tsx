@@ -11,6 +11,7 @@ import DownloadDialog from '../DownloadDialog';
 import selectMedia from '../../helpers/selectMedia';
 import preloadMedia from '../../helpers/preloadMedia';
 import Picture from '../../models/Picture';
+import Media, { nullMedia } from '../../models/Media';
 import { State } from '../../modules';
 import { openDownloadDialog } from '../../modules/downloadDialog';
 
@@ -39,14 +40,20 @@ interface PictureViewDispatchProps {
   push: typeof push;
   openDownloadDialog: typeof openDownloadDialog;
 }
-interface PictureViewState {}
+interface PictureViewState {
+  preview: Media;
+}
 type PictureViewProps = PictureViewOwnProps & PictureViewStateProps & PictureViewDispatchProps;
 
 
 class PictureView extends React.Component<PictureViewProps, PictureViewState> {
+  state = {
+    preview: nullMedia,
+  };
+
   render() {
-    const {picture} = this.props;
-    const preview = selectMedia(picture);
+    const { picture } = this.props;
+    const { preview } = this.state;
 
     return (
       <div className="PictureView">
@@ -100,18 +107,28 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     );
   }
 
+  componentWillMount() {
+    // preview needed before render
+    this.selectMedia(this.props.picture);
+  }
+
   componentDidMount() {
     document.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('resize', this.onResize);
 
     this.preloadPreviousAndNext(this.props.picture);
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
     document.removeEventListener('keydown', this.onKeyDown);
   }
 
   componentWillReceiveProps(nextProps: PictureViewProps) {
-    this.preloadPreviousAndNext(nextProps.picture);
+    if (nextProps.picture.path !== this.props.picture.path) {
+      this.selectMedia(nextProps.picture);
+      this.preloadPreviousAndNext(nextProps.picture);
+    }
   }
 
   preloadPreviousAndNext(picture: Picture) {
@@ -126,6 +143,15 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
       }
     }, 0);
 
+  }
+
+  selectMedia(picture: Picture) {
+    const preview = selectMedia(picture);
+    this.setState({ preview });
+  }
+
+  onResize = () => {
+    this.selectMedia(this.props.picture);
   }
 
   onKeyDown = (event: KeyboardEvent) => {
