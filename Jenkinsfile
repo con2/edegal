@@ -15,7 +15,7 @@ node {
         && rm -rf build \
         && docker build --tag $frontendImage . \
         && docker run --rm --volume $buildVolume:/usr/src/app/build --env NODE_ENV=production $frontendImage yarn run build \
-        && docker run --rm --volume $buildVolume:/usr/src/app/build tar -cC /usr/src/app/build . | tar -xC build \
+        && docker run --rm --volume $buildVolume:/usr/src/app/build $frontendImage tar -cC /usr/src/app/build . | tar -xC build \
         && docker volume rm $buildVolume \
         && docker rmi $frontendImage \
         && find build -type f \\! -iname '*.gz' -exec gzip -k \\{\\} + \
