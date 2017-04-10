@@ -19,9 +19,8 @@ node {
         && docker volume rm $buildVolume \
         && docker rmi $frontendImage \
         && find build -type f \\! -iname '*.gz' -exec gzip -k \\{\\} + \
-        && tar -cvf ../frontend.tar -C build/ .
+        && rsync -avH --chown root:conikuvat build/ nuoli.tracon.fi:/srv/beta.conikuvat.fi/static \
     """
-    archiveArtifacts artifacts: "frontend.tar", fingerprint: true
   }
 
 // stage("Test") {
