@@ -1,14 +1,26 @@
 def image = "conikuvat/edegal:build-${env.BUILD_NUMBER}"
 def frontendImage = "edegal-frontend:build-${env.BUILD_NUMBER}"
+def buildVolume = "edegal-frontend-build-${env.BUILD_NUMBER}"
 
 node {
   stage("Build") {
     checkout scm
-    sh "cd backend && docker build --tag ${image} ."
+    sh "cd backend && docker build --tag $image ."
   }
 
   stage("Build frontend") {
-    sh "cd frontend && rm -rf build && mkdir build && docker build --tag ${frontendImage} . && docker run --rm --volume \$PWD/build:/usr/src/app/build --env NODE_ENV=production ${frontendImage} yarn run build && find build -type f \\! -iname '*.gz' -exec gzip -k \\{\\} + && tar -cvf ../frontend.tar -C build/ ."
+    // TODO these should probably be in some Dockerfile
+    sh """
+      cd frontend \
+        && rm -rf build \
+        && docker build --tag $frontendImage . \
+        && docker run --rm --volume $buildVolume:/usr/src/app/build --env NODE_ENV=production $frontendImage yarn run build \
+        && docker run --rm --volume $buildVolume:/usr/src/app/build tar -cC /usr/src/app/build . | tar -xC build \
+        && docker volume rm $buildVolume \
+        && docker rmi $frontendImage \
+        && find build -type f \\! -iname '*.gz' -exec gzip -k \\{\\} + \
+        && tar -cvf ../frontend.tar -C build/ .
+    """
     archiveArtifacts artifacts: "frontend.tar", fingerprint: true
   }
 
@@ -19,14 +31,14 @@ node {
 //         --rm \
 //         --link jenkins.conikuvat.fi-postgres:postgres \
 //         --env-file ~/.edegal.env \
-//         ${image} \
+//         $image \
 //         python manage.py test --keepdb
 //     """
 //   }
 // }
 
   stage("Push") {
-    sh "docker tag ${image} conikuvat/edegal:latest && docker push conikuvat/edegal:latest && docker rmi ${image}"
+    sh "docker tag $image conikuvat/edegal:latest && docker push conikuvat/edegal:latest && docker rmi $image"
   }
 
 // stage("Deploy") {
