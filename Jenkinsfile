@@ -8,7 +8,20 @@ node {
     sh "cd backend && docker build --tag $image ."
   }
 
-  stage("Build frontend") {
+// stage("Test") {
+//   node {
+//     sh """
+//       docker run \
+//         --rm \
+//         --link jenkins.conikuvat.fi-postgres:postgres \
+//         --env-file ~/.edegal.env \
+//         $image \
+//         python manage.py test --keepdb
+//     """
+//   }
+// }
+
+  stage("Deploy frontend") {
     // TODO these should probably be in some Dockerfile
     sh """
       cd frontend \
@@ -23,34 +36,19 @@ node {
     """
   }
 
-// stage("Test") {
-//   node {
-//     sh """
-//       docker run \
-//         --rm \
-//         --link jenkins.conikuvat.fi-postgres:postgres \
-//         --env-file ~/.edegal.env \
-//         $image \
-//         python manage.py test --keepdb
-//     """
-//   }
-// }
-
   stage("Push") {
     sh "docker tag $image conikuvat/edegal:latest && docker push conikuvat/edegal:latest && docker rmi $image"
   }
 
-// stage("Deploy") {
-//   node {
-//     git url: "git@github.com:tracon/ansible-tracon"
-//     sh """
-//       ansible-playbook \
-//         --vault-password-file=~/.vault_pass.txt \
-//         --user root \
-//         --limit neula.kompassi.eu \
-//         --tags edegal-deploy \
-//         tracon.yml
-//     """
-//   }
-// }
+  stage("Deploy") {
+    git url: "git@github.com:tracon/ansible-tracon"
+    sh """
+      ansible-playbook \
+        --vault-password-file=~/.vault_pass.txt \
+        --user root \
+        --limit nuoli.kompassi.eu \
+        --tags edegal-deploy \
+        tracon.yml
+    """
+  }
 }
