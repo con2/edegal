@@ -16,12 +16,10 @@ interface MainViewStateProps {
 interface MainViewDispatchProps {
   getAlbum: typeof getAlbum;
 }
-interface MainViewOwnProps {}
-type MainViewProps = MainViewStateProps & MainViewDispatchProps & MainViewOwnProps;
-interface MainViewState {}
+type MainViewProps = MainViewStateProps & MainViewDispatchProps;
 
 
-class MainView extends React.Component<MainViewProps, MainViewState> {
+class MainView extends React.Component<MainViewProps, {}> {
   render() {
     const { mainView } = this.props;
 
@@ -55,7 +53,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = { getAlbum };
 
 
-export default connect<MainViewStateProps, MainViewDispatchProps, MainViewOwnProps>(
+export default connect<MainViewStateProps, MainViewDispatchProps, {}>(
   mapStateToProps,
   mapDispatchToProps,
 )(MainView);
