@@ -141,6 +141,7 @@ class CoppermineImporter(object):
         # TODO query("SET NAMES 'latin1';") ?
         parent_album = Album.objects.get(path=self.path)
         self.import_subcategories(self.root_category, parent_album)
+        self.import_albums(self.root_category, parent_album)
 
     def import_subcategories(self, coppermine_category, parent_album):
         with self.connection.cursor() as cursor:
