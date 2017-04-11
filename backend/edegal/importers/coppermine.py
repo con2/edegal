@@ -172,6 +172,9 @@ class CoppermineImporter(object):
 
         self.import_pictures(coppermine_album, album)
 
+        # update thumbnails
+        album.save()
+
     def import_picture(self, coppermine_picture, parent_album):
         picture, created = coppermine_picture.get_or_create(parent_album)
         absolute_filename = os.path.join(self.media_root, coppermine_picture.filepath, coppermine_picture.filename)
