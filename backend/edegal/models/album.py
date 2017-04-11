@@ -28,7 +28,12 @@ class Album(MPTTModel):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
-    cover_picture = models.ForeignKey('Picture', null=True, blank=True, related_name='+')
+    cover_picture = models.ForeignKey('Picture',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
 
     is_public = models.BooleanField(
         default=True,
