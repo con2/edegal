@@ -30,7 +30,7 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument(
-            '-m', '--media-root',
+            '-r', '--media-root',
             default='',
             help='Will be prepended to all file paths from Coppermine.',
         )
