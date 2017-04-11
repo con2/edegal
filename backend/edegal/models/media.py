@@ -93,7 +93,6 @@ class Media(models.Model):
 
     @classmethod
     def make_absolute_path_media_relative(cls, original_path):
-        print(original_path)
         assert original_path.startswith(settings.MEDIA_ROOT)
 
         # make path relative to /media/
