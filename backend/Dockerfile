@@ -1,15 +1,15 @@
 FROM python:3.6
 WORKDIR /usr/src/app
 COPY requirements.txt requirements-production.txt requirements-coppermine-importer.txt /usr/src/app/
-RUN groupadd -r edegal && useradd -r -g edegal edegal && \
+RUN groupadd -g 1082 -r conikuvat && useradd -r -u 1082 -g conikuvat -G users conikuvat && \
     pip install -U pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt -r requirements-production.txt -r requirements-coppermine-importer.txt
 COPY . /usr/src/app
 RUN env DEBUG=1 python manage.py collectstatic --noinput && \
     python -m compileall -q . && \
     mkdir -p /usr/src/app/media && \
-    chown edegal:edegal /usr/src/app/media
+    chown conikuvat:conikuvat /usr/src/app/media
 VOLUME /usr/src/app/media
-USER edegal
+USER conikuvat
 EXPOSE 8000
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

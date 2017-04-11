@@ -27,7 +27,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '-m', '--media-root',
             default='',
-            help='Will be appended to all file paths from Coppermine.',
+            help='Will be prepended to all file paths from Coppermine.',
         )
         parser.add_argument(
             '-s', '--skip-previews',
