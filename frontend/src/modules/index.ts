@@ -7,13 +7,13 @@ import album from './album';
 import downloadDialog, { DownloadDialogState } from './downloadDialog';
 import picture from './picture';
 import user from './user';
-import mainView, { MainView } from './mainView';
+import mainView, { MainViewMode } from './mainView';
 
 
 export interface State {
   album: Album;
   downloadDialog: DownloadDialogState;
-  mainView: MainView;
+  mainView: MainViewMode;
   picture: Picture;
   user: User;
 

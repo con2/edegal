@@ -1,7 +1,8 @@
 import { connect } from 'react-redux';
 import * as React from 'react';
 
-import {getAlbum} from '../modules/album';
+import { getAlbum } from '../modules/album';
+import { MainViewMode } from '../modules/mainView';
 import AlbumView from './AlbumView';
 import PictureView from './PictureView';
 import Loading from './Loading';
@@ -9,7 +10,7 @@ import { State } from '../modules';
 
 
 interface MainViewStateProps {
-  mainView: string;
+  mainView: MainViewMode;
   path: string;
 }
 interface MainViewDispatchProps {
