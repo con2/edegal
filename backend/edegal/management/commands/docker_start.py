@@ -23,9 +23,14 @@ class Command(BaseCommand):
         if not test:
             raise ValueError('Should run with DEBUG=true')
 
+        run_setup = False
         try:
             Album.objects.first()
         except (ProgrammingError, OperationalError):
+            logger.info('First startup. Running setup...')
+            run_setup = True
+
+        if run_setup:
             call_command('setup')
 
         call_command('runserver', '0.0.0.0:8000')

@@ -82,14 +82,26 @@ class Media(models.Model):
             image.close()
 
     @classmethod
-    def import_local_media(cls, picture, input_filename, mode='inplace', media_specs=None):
+    def import_local_media(cls, picture, input_filename, mode='inplace', media_specs=None, refresh_album=False):
         if media_specs is None:
             media_specs = MediaSpec.objects.all()
 
+        if settings.EDEGAL_USE_CELERY:
+            from ..tasks import import_local_media
+            media_specs_ids = list(media_specs.values_list(flat=True))
+            import_local_media.delay(picture.id, input_filename, mode, media_specs_ids, refresh_album)
+        else:
+            cls._import_local_media(picture, input_filename, mode, media_specs, refresh_album)
+
+    @classmethod
+    def _import_local_media(cls, picture, input_filename, mode='inplace', media_specs=None, refresh_album=False):
         original_media, unused = cls.get_or_create_original_media(picture, input_filename, mode)
 
         for spec in media_specs:
             cls.get_or_create_scaled_media(original_media, spec)
+
+        if refresh_album:
+            picture.album.save()
 
     @classmethod
     def make_absolute_path_media_relative(cls, original_path):

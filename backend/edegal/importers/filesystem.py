@@ -3,7 +3,7 @@ from os.path import basename, splitext
 
 from django.conf import settings
 
-from ..models import Album, Media, MediaSpec, Picture
+from ..models import Album, Media, Picture
 
 from ..utils import slugify, log_get_or_create
 
@@ -46,9 +46,11 @@ class FilesystemImporter(object):
             path=self.path,
         ))
 
-        for input_filename in self.input_filenames:
+        for index, input_filename in enumerate(self.input_filenames):
             picture, unused = self.get_or_create_picture(album, input_filename)
-            Media.import_local_media(picture, input_filename, mode=self.mode)
-
-        # Update thumbnails
-        album.save()
+            Media.import_local_media(
+                picture,
+                input_filename,
+                mode=self.mode,
+                refresh_album=(index == 0),
+            )

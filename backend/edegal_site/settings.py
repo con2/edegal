@@ -39,3 +39,26 @@ if DEBUG:
         },
     })
 
+
+# Sending email
+if env('EMAIL_HOST', default=''):
+    EMAIL_HOST = env('EMAIL_HOST')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='spam@example.com')
+
+
+if env('BROKER_URL', default=''):
+    CELERY_BROKER_URL = env('BROKER_URL')
+    CELERY_ACCEPT_CONTENT = ['json']
+
+    CELERY_SEND_TASK_ERROR_EMAILS = not DEBUG
+    CELERY_SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_RESULT_SERIALIZER = 'json'
+
+    EDEGAL_USE_CELERY = True
+else:
+    EDEGAL_USE_CELERY = False
