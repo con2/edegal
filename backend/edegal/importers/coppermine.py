@@ -13,6 +13,8 @@ from ..utils import slugify, log_get_or_create
 logger = logging.getLogger(__name__)
 
 
+SET_ENCODING_SQL = "SET NAMES 'latin1'"
+
 GET_CATEGORIES_SQL = """
 SELECT cid, name, description, pos
 FROM cpg11d_categories
@@ -138,7 +140,9 @@ class CoppermineImporter(object):
         self.media_root = media_root
 
     def run(self):
-        # TODO query("SET NAMES 'latin1';") ?
+        with self.connection.cursor() as cursor:
+            cursor.execute(SET_ENCODING_SQL)
+
         parent_album = Album.objects.get(path=self.path)
         self.import_subcategories(self.root_category, parent_album)
         self.import_albums(self.root_category, parent_album)
