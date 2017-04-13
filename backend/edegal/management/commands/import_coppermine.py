@@ -39,6 +39,14 @@ class Command(BaseCommand):
             action='store_true',
             help='Skip creating previews. For development only.',
         )
+        parser.add_argument(
+            '-t', '--description-is-terms-and-conditions',
+            action='store_true',
+            help=(
+                'Store the Coppermine "description" field of albums in "terms and conditions" '
+                'instead of "description".'
+            ),
+        )
 
     def handle(self, *args, **options):
         logger.info('Running CoppermineImporter with options: %s', options)
@@ -48,4 +56,5 @@ class Command(BaseCommand):
             connection_name=options['database_connection_name'],
             create_previews=not options['skip_previews'],
             media_root=options['media_root'],
+            description_is_terms_and_conditions=options['dedescription_is_terms_and_conditions'],
         ).run()

@@ -41,6 +41,11 @@ class Album(MPTTModel):
         help_text=u'Ei-julkiset albumit näkyvät vain ylläpitokäyttäjille.',
     )
 
+    terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions',
+        null=True,
+        blank=True,
+    )
+
     def as_dict(self):
         return pick_attrs(self,
             'slug',
@@ -52,6 +57,11 @@ class Album(MPTTModel):
             subalbums=[subalbum._make_subalbum() for subalbum in self.subalbums.all()],
             pictures=[picture.as_dict() for picture in self.pictures.all()],
             thumbnail=self._make_thumbnail(),
+            terms_and_conditions=(
+                self.terms_and_conditions.as_dict()
+                if self.terms_and_conditions
+                else None
+            ),
         )
 
     def _make_thumbnail(self):

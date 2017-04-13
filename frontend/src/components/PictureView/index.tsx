@@ -92,17 +92,27 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           <Close color={iconColor} style={iconSize} />
         </div>
 
-        {picture.original ? (
-          <div
-            onClick={this.props.openDownloadDialog}
-            className="PictureView-action PictureView-action-download"
-            title="Lataa kuva"
-          >
-            <FileDownload color={iconColor} style={iconSize} />
-          </div>
-        ) : null}
+        {picture.original && (
+          picture.terms_and_conditions ? (
+            <div
+              onClick={this.props.openDownloadDialog}
+              className="PictureView-action PictureView-action-download"
+              title="Lataa kuva"
+            >
+              <FileDownload color={iconColor} style={iconSize} />
+              <DownloadDialog />
+            </div>
+          ) : (
+            <a
+              href={picture.original.src}
+              className="PictureView-action PictureView-action-download"
+              title="Lataa kuva"
+            >
+              <FileDownload color={iconColor} style={iconSize} />
+            </a>
+          )
+        )}
 
-        <DownloadDialog />
       </div>
     );
   }

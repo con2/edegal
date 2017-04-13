@@ -14,6 +14,24 @@ class Picture(models.Model):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
+    override_terms_and_conditions = models.ForeignKey(
+        'edegal.TermsAndConditions',
+        null=True,
+        blank=True,
+        verbose_name=_('Override terms and conditions'),
+        help_text=_(
+            'Terms and conditions are normally set on a per-album basis. However, you can override the '
+            'terms and conditions on a per-picture basis here.'
+        )
+    )
+
+    @property
+    def terms_and_conditions(self):
+        if self.override_terms_and_conditions:
+            return self.override_terms_and_conditions
+        else:
+            return self.album.terms_and_conditions
+
     def as_dict(self):
         return pick_attrs(self,
             'path',
@@ -21,6 +39,11 @@ class Picture(models.Model):
             'description',
             media=[medium.as_dict() for medium in self.media.all()],
             thumbnail=self.get_thumbnail().as_dict(),
+            terms_and_conditions=(
+                self.override_terms_and_conditions.as_dict()
+                if self.override_terms_and_conditions
+                else None
+            ),
         )
 
     def _make_path(self):

@@ -57,6 +57,9 @@ function getCached(path: string): Promise<Album> {
 
           picture.album = album;
           picture.original = picture.media.find((media) => media.original);
+          if (!picture.terms_and_conditions) {
+            picture.terms_and_conditions = album.terms_and_conditions;
+          }
 
           AlbumCache.set(picture.path, album);
           previous = picture;
@@ -104,11 +107,11 @@ export function getAlbum(path: string) {
           });
         }
       })
-      .catch(err => dispatch({
-        type: GetAlbumFailure,
-        error: true,
-        payload: err,
-      }));
+      // .catch(err => dispatch({
+      //   type: GetAlbumFailure,
+      //   error: true,
+      //   payload: err,
+      // }));
 }
 
 

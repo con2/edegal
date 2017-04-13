@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from django.db import connections
 
-from ..models import Album, Media, MediaSpec, Picture
+from ..models import Album, Media, MediaSpec, Picture, TermsAndConditions
 
 from ..utils import slugify, log_get_or_create
 
@@ -66,15 +66,28 @@ class CoppermineAlbum(BaseCoppermineAlbum, CoppermineAttributes):
     by position.
     """
 
-    def get_or_create(self, parent_album):
-        album, created = Album.objects.get_or_create(
-            parent=parent_album,
-            slug=self.slug,
-            defaults=dict(
-                title=self.title,
-                description=self.description,
+    def get_or_create(self, parent_album, description_is_terms_and_conditions=False):
+        if description_is_terms_and_conditions:
+            tac, created = TermsAndConditions.get_or_create(self.description, is_public=False)
+
+            album, created = Album.objects.get_or_create(
+                parent=parent_album,
+                slug=self.slug,
+                defaults=dict(
+                    title=self.title,
+                    terms_and_conditions=tac,
+                )
             )
-        )
+
+        else:
+            album, created = Album.objects.get_or_create(
+                parent=parent_album,
+                slug=self.slug,
+                defaults=dict(
+                    title=self.title,
+                    description=self.description,
+                )
+            )
 
         log_get_or_create(logger, album, created)
 
@@ -131,6 +144,7 @@ class CoppermineImporter(object):
         mode='inplace',
         create_previews=True,
         media_root='',
+        description_is_terms_and_conditions=False,
     ):
         self.path = path
         self.connection = connections[connection_name]
@@ -138,6 +152,7 @@ class CoppermineImporter(object):
         self.mode = mode
         self.media_specs = MediaSpec.objects.all() if create_previews else MediaSpec.objects.none()
         self.media_root = media_root
+        self.description_is_terms_and_conditions = description_is_terms_and_conditions
 
     def run(self):
         with self.connection.cursor() as cursor:
@@ -172,7 +187,9 @@ class CoppermineImporter(object):
         self.import_albums(coppermine_category, album)
 
     def import_album(self, coppermine_album, parent_album):
-        album, created = coppermine_album.get_or_create(parent_album)
+        album, created = coppermine_album.get_or_create(parent_album,
+            description_is_terms_and_conditions=self.description_is_terms_and_conditions,
+        )
 
         self.import_pictures(coppermine_album, album)
 

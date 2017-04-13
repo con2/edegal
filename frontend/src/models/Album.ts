@@ -1,7 +1,8 @@
 import Breadcrumb from './Breadcrumb';
-import Subalbum from './Subalbum';
-import Picture from './Picture';
 import Media from './Media';
+import Picture from './Picture';
+import Subalbum from './Subalbum';
+import TermsAndConditions from './TermsAndConditions';
 
 
 interface Album {
@@ -11,6 +12,7 @@ interface Album {
   pictures: Picture[];
   thumbnail: Media;
   breadcrumb: Breadcrumb[];
+  terms_and_conditions?: TermsAndConditions;
 };
 
 

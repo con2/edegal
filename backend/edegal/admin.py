@@ -5,6 +5,7 @@ from .models import (
     Media,
     MediaSpec,
     Picture,
+    TermsAndConditions,
 )
 
 
@@ -51,6 +52,15 @@ class MediaSpecAdmin(admin.ModelAdmin):
     fields = ('is_default_thumbnail',)
     readonly_fields = ('max_width', 'max_height', 'quality')
 
+
+class TermsAndConditionsAdmin(admin.ModelAdmin):
+    model = TermsAndConditions
+    list_display = ('admin_get_abridged_text', 'url', 'is_public')
+    fields = ('text', 'url', 'is_public')
+    readonly_fields = ('digest',)
+
+
 admin.site.register(Album, AlbumAdmin)
 admin.site.register(Picture, PictureAdmin)
 admin.site.register(MediaSpec, MediaSpecAdmin)
+admin.site.register(TermsAndConditions, TermsAndConditionsAdmin)
