@@ -74,7 +74,7 @@ class TermsAndConditions(models.Model, DedupMixin):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
 
     def admin_get_abridged_text(self, max_chars=80):
-        if len(self.text <= max_chars):
+        if len(self.text) <= max_chars:
             return self.text
         else:
             return self.text[:max_chars] + '…'
