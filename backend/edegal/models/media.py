@@ -34,12 +34,16 @@ class Media(models.Model):
             'height',
             src=self.src.url,
             original=self.is_original,
-            thumbnail=self.spec.is_default_thumbnail,
+            thumbnail=self.is_default_thumbnail,
         )
 
     @property
     def is_original(self):
         return self.spec is None
+
+    @property
+    def is_default_thumbnail(self):
+        return self.spec and self.spec.is_default_thumbnail
 
     @property
     def path(self):
