@@ -14,17 +14,6 @@ class Picture(models.Model):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
-    override_terms_and_conditions = models.ForeignKey(
-        'edegal.TermsAndConditions',
-        null=True,
-        blank=True,
-        verbose_name=_('Override terms and conditions'),
-        help_text=_(
-            'Terms and conditions are normally set on a per-album basis. However, you can override the '
-            'terms and conditions on a per-picture basis here.'
-        )
-    )
-
     @property
     def terms_and_conditions(self):
         if self.override_terms_and_conditions:
@@ -38,23 +27,29 @@ class Picture(models.Model):
             'title',
             'description',
             media=[medium.as_dict() for medium in self.media.all()],
-            thumbnail=self.get_thumbnail().as_dict(),
-            terms_and_conditions=(
-                self.override_terms_and_conditions.as_dict()
-                if self.override_terms_and_conditions
-                else None
-            ),
         )
 
     def _make_path(self):
         assert self.album
         return self.album.path + '/' + self.slug
 
-    def get_original(self):
-        return self.media.get(spec=None)
+    @property
+    def original(self):
+        if not hasattr(self, '_original'):
+            self._original = next((media for media in self.media.all() if media.spec is None), None)
 
-    def get_thumbnail(self):
-        return self.media.get(spec__is_default_thumbnail=True)
+        return self._original
+
+    @property
+    def thumbnail(self):
+        if not hasattr(self, '_thumbnail'):
+            self._thumbnail = next((
+                media
+                for media in self.media.all()
+                if media.spec and media.spec.is_default_thumbnail
+            ), None)
+
+        return self._thumbnail
 
     def save(self, *args, **kwargs):
         if self.title and not self.slug:

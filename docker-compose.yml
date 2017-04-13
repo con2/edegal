@@ -50,6 +50,7 @@ services:
     image: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - /Users/japsu/conikuvat.sql:/conikuvat.sql
     environment:
       POSTGRES_USER: edegal
       POSTGRES_PASSWORD: edegal

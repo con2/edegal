@@ -93,7 +93,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
         </div>
 
         {picture.original && (
-          picture.terms_and_conditions ? (
+          picture.album!.terms_and_conditions ? (
             <div
               onClick={this.props.openDownloadDialog}
               className="PictureView-action PictureView-action-download"

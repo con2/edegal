@@ -1,5 +1,6 @@
 import Album from '../models/Album';
 import Picture from '../models/Picture';
+import { nullMedia } from '../models/Media';
 import OtherAction from './other';
 
 
@@ -18,13 +19,7 @@ export interface SelectPictureAction {
 const initialState: Picture = {
   path: '',
   title: '',
-  thumbnail: {
-    src: '',
-    width: 0,
-    height: 0,
-    quality: 0,
-    original: false,
-  },
+  thumbnail: nullMedia,
   media: []
 };
 

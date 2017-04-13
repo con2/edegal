@@ -35,7 +35,7 @@ class DownloadDialog extends React.Component<DownloadDialogProps, DownloadDialog
       throw new Error('cannot download the original of a picture that does not have one');
     }
 
-    if (!picture.terms_and_conditions) {
+    if (!picture.album!.terms_and_conditions) {
       throw new Error('the picture does not have T&C, why did we open this dialog?');
     }
 
@@ -66,7 +66,7 @@ class DownloadDialog extends React.Component<DownloadDialogProps, DownloadDialog
         actions={actions}
       >
         <p>Kuvaaja on asettanut kuvan käytölle seuraavat ehdot:</p>
-        <p>{picture.terms_and_conditions.text}</p>
+        <p>{picture.album!.terms_and_conditions!.text}</p>
         <p>Kuvan lataaminen edellyttää, että hyväksyt ehdot.</p>
         <Checkbox
           label="Hyväksyn ehdot"

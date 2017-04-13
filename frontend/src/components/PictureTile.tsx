@@ -18,7 +18,7 @@ export default class PictureTile extends React.Component<PictureTileProps, Pictu
 
     return (
       <GridTile title={item.title} containerElement={<Link to={item.path} />}>
-        <img src={item.thumbnail.src} alt={item.title} />
+        {item.thumbnail && <img src={item.thumbnail.src} alt={item.title} />}
       </GridTile>
     );
   }

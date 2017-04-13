@@ -4,6 +4,7 @@ interface Media {
   height: number;
   quality: number;
   original: boolean;
+  thumbnail: boolean;
 }
 
 
@@ -13,6 +14,7 @@ export const nullMedia = {
   height: 0,
   quality: 0,
   original: false,
+  thumbnail: false,
 };
 
 

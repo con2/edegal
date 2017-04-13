@@ -57,9 +57,7 @@ function getCached(path: string): Promise<Album> {
 
           picture.album = album;
           picture.original = picture.media.find((media) => media.original);
-          if (!picture.terms_and_conditions) {
-            picture.terms_and_conditions = album.terms_and_conditions;
-          }
+          picture.thumbnail = picture.media.find((media) => media.thumbnail);
 
           AlbumCache.set(picture.path, album);
           previous = picture;

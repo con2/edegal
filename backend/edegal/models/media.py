@@ -34,6 +34,7 @@ class Media(models.Model):
             'height',
             src=self.src.url,
             original=self.is_original,
+            thumbnail=self.spec.is_default_thumbnail,
         )
 
     @property

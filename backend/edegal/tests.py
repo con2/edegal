@@ -84,7 +84,7 @@ class AlbumTestCase(TestCase):
     def test_canonical_path(self):
         picture1 = Picture.objects.get(path='/album-2/picture-1')
 
-        original = picture1.get_original()
+        original = picture1.original
         self.assertEqual(original.get_canonical_path(prefix=''), 'pictures/album-2/picture-1.jpg')
 
         derived = picture1.media.get(spec__max_width=640, spec__max_height=480)

@@ -66,7 +66,7 @@ class Album(MPTTModel):
 
     def _make_thumbnail(self):
         if self.cover_picture:
-            return self.cover_picture.get_thumbnail().as_dict()
+            return self.cover_picture.thumbnail.as_dict()
         else:
             return None
 
@@ -148,12 +148,14 @@ class Album(MPTTModel):
         queryset = (
             cls.objects.filter(q)
             .distinct()
-            .select_related('cover_picture')
+            # .select_related('cover_picture')
+            .select_related('terms_and_conditions')
             .prefetch_related('cover_picture__media')
-            .prefetch_related('pictures')
-            .prefetch_related('pictures__media')
+            # .prefetch_related('pictures')
+            # .prefetch_related('pictures__media')
             .prefetch_related('pictures__media__spec')
-            .prefetch_related('subalbums')
+            # .prefetch_related('pictures__override_terms_and_conditions')
+            # .prefetch_related('subalbums')
             .prefetch_related('subalbums__cover_picture')
         )
 
