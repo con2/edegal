@@ -56,5 +56,5 @@ class Command(BaseCommand):
             connection_name=options['database_connection_name'],
             create_previews=not options['skip_previews'],
             media_root=options['media_root'],
-            description_is_terms_and_conditions=options['dedescription_is_terms_and_conditions'],
+            description_is_terms_and_conditions=options['description_is_terms_and_conditions'],
         ).run()
