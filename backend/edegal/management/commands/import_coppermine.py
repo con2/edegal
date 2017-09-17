@@ -47,6 +47,12 @@ class Command(BaseCommand):
                 'instead of "description".'
             ),
         )
+        parser.add_argument(
+            '-x', '--exclude-category-id',
+            type=int,
+            nargs='*',
+            help='Specify a category ID in Coppermine to exclude from the import.',
+        )
 
     def handle(self, *args, **options):
         logger.info('Running CoppermineImporter with options: %s', options)
@@ -57,4 +63,5 @@ class Command(BaseCommand):
             create_previews=not options['skip_previews'],
             media_root=options['media_root'],
             description_is_terms_and_conditions=options['description_is_terms_and_conditions'],
+            exclude_category_ids=options['exclude_category_id'],
         ).run()

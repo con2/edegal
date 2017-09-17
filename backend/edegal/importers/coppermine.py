@@ -145,6 +145,7 @@ class CoppermineImporter(object):
         create_previews=True,
         media_root='',
         description_is_terms_and_conditions=False,
+        exclude_category_ids=[],
     ):
         self.path = path
         self.connection = connections[connection_name]
@@ -153,6 +154,9 @@ class CoppermineImporter(object):
         self.media_specs = MediaSpec.objects.all() if create_previews else MediaSpec.objects.none()
         self.media_root = media_root
         self.description_is_terms_and_conditions = description_is_terms_and_conditions
+        self.exclude_category_ids = set(exclude_category_ids)
+
+        assert self.root_category not in self.exclude_category_ids
 
     def run(self):
         with self.connection.cursor() as cursor:
@@ -181,6 +185,10 @@ class CoppermineImporter(object):
                 self.import_picture(CopperminePicture(*row), parent_album)
 
     def import_category(self, coppermine_category, parent_album):
+        if coppermine_category.id in self.exclude_category_ids:
+            logger.debug('Skipping category %d', coppermine_category.id)
+            return
+
         album, created = coppermine_category.get_or_create(parent_album)
 
         self.import_subcategories(coppermine_category, album)
