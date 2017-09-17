@@ -138,24 +138,21 @@ class Album(MPTTModel):
 
     @classmethod
     def get_album_by_path(cls, path, or_404=False, **extra_criteria):
-        q = Q(path=path) | Q(pictures__path=path)
+        # Is it a picture?
+        from .picture import Picture
+        try:
+            picture = Picture.objects.only('album_id').get(path=path)
+        except Picture.DoesNotExist:
+            query = dict(path=path, **extra_criteria)
+        else:
+            query = dict(id=picture.album_id, **extra_criteria)
 
-        if extra_criteria:
-            q &= Q(**extra_criteria)
-
-        # FIXME In SQLite, this does a full table scan on gallery_album when the WHERE over the JOIN gallery_picture
-        # is present. Need to check if this is the case on PostgreSQL, too.
         queryset = (
-            cls.objects.filter(q)
+            cls.objects.filter(**query)
             .distinct()
-            # .select_related('cover_picture')
             .select_related('terms_and_conditions')
             .prefetch_related('cover_picture__media')
-            # .prefetch_related('pictures')
-            # .prefetch_related('pictures__media')
             .prefetch_related('pictures__media__spec')
-            # .prefetch_related('pictures__override_terms_and_conditions')
-            # .prefetch_related('subalbums')
             .prefetch_related('subalbums__cover_picture')
         )
 
