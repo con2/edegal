@@ -38,6 +38,11 @@ There is a single unified Docker Compose development environment for both the Dj
 
 Backend will start at http://localhost:8000 and frontend dev server will start at http://localhost:3000. Usually you will want to open the latter in your browser. A superuser will be created with username `mahti` and password `mahti`.
 
+To run tests:
+
+    alias dc-test="docker-compose --file=docker-compose.test.yml up --abort-on-container-exit --exit-code-from=test"
+    dc-test
+
 ### The Traditional Way
 
 For developing the backend or frontend components without Docker Compose, please see the set-up instructions in their respective README files under `backend/` and `frontend/`.

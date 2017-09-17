@@ -1,0 +1,28 @@
+version: '2.2'
+services:
+  test:
+    build: backend
+    init: true
+    command: scripts/wait-for-it.sh --strict postgres:5432 -- python manage.py test
+    ports:
+      - 8000:8000
+    links:
+      - postgres
+    volumes:
+      - ./backend/edegal:/usr/src/app/edegal
+    environment:
+      DEBUG: 1
+      PYTHONUNBUFFERED: 1
+      DATABASE_URL: psql://edegal:edegal@postgres/edegal
+      ALLOWED_HOSTS: '*'
+  postgres:
+    image: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: edegal
+      POSTGRES_PASSWORD: edegal
+      POSTGRES_DB: edegal
+volumes:
+  postgres-data: {}
+  media: {}
