@@ -1,3 +1,5 @@
+from email.utils import parseaddr
+
 import environ
 
 from .settings_defaults import *  # noqa
@@ -15,6 +17,9 @@ CAVALRY_ENABLED = DEBUG
 ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='').split()
 
 SECRET_KEY = env.str('SECRET_KEY', default=('' if not DEBUG else 'xxx'))
+
+ADMINS = [parseaddr(addr) for addr in env('ADMINS', default='').split(',') if addr]
+MANAGERS = ADMINS
 
 DATABASES = {
     'default': env.db(default='sqlite:///edegal.sqlite3'),
