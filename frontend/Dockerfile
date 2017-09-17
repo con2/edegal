@@ -1,9 +1,4 @@
-FROM node:7
-
-# speed up exit on SIGINT/SIGTERM
-RUN wget -qO /tini https://github.com/krallin/tini/releases/download/v0.14.0/tini
-RUN chmod +x /tini
-ENTRYPOINT ["/tini", "--"]
+FROM node:8
 
 WORKDIR /usr/src/app
 COPY package.json yarn.lock /usr/src/app/

@@ -1,7 +1,8 @@
-version: '2'
+version: '2.2'
 services:
   backend:
     build: backend
+    init: true
     command: scripts/wait-for-it.sh --strict postgres:5432 -- scripts/wait-for-it.sh --strict rabbitmq:5672 -- python manage.py docker_start
     ports:
       - 8000:8000
@@ -21,6 +22,7 @@ services:
       CACHE_URL: memcache://memcache
   worker:
     build: backend
+    init: true
     command: scripts/wait-for-it.sh --strict postgres:5432 -- scripts/wait-for-it.sh --strict rabbitmq:5672 -- celery -A edegal_site.celery:app worker
     links:
       - rabbitmq
@@ -50,7 +52,6 @@ services:
     image: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - /Users/japsu/conikuvat.sql:/conikuvat.sql
     environment:
       POSTGRES_USER: edegal
       POSTGRES_PASSWORD: edegal
