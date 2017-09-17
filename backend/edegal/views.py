@@ -23,5 +23,5 @@ class ApiV2View(View):
         return JsonResponse(album.as_dict())
 
 
-# api_v2_view = ApiV2View.as_view()
-api_v2_view = cache_page(CACHE_SECONDS)(ApiV2View.as_view())
+api_v2_view = ApiV2View.as_view()
+# api_v2_view = cache_page(CACHE_SECONDS)(ApiV2View.as_view())
