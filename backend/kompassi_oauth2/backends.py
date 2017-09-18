@@ -30,7 +30,7 @@ class KompassiOAuth2AuthenticationBackend(object):
 
         user, created = User.objects.get_or_create(username=kompassi_user['username'])
 
-        for key, value in user_attrs_from_kompassi(kompassi_user).iteritems():
+        for key, value in user_attrs_from_kompassi(kompassi_user).items():
             setattr(user, key, value)
 
         user.save()
