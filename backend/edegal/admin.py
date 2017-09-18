@@ -47,7 +47,7 @@ class AlbumAdmin(MultiUploadAdmin):
             )
         )
 
-        Media.import_open_file(picture, uploaded.file)
+        Media.import_open_file(picture, uploaded.file, refresh_album=True)
 
         return dict(
             url='',  # FIXME

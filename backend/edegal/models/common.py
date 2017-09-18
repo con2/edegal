@@ -30,17 +30,14 @@ class CommonFields(object):
             'Tekninen nimi eli "slug" näkyy URL-osoitteissa. Sallittuja '
             'merkkejä ovat pienet kirjaimet, numerot ja väliviiva. Jos jätät teknisen nimen tyhjäksi, '
             'se generoidaan automaattisesti otsikosta. Jos muutat teknistä nimeä julkaisun jälkeen, '
-            'muista luoda tarvittavat uudelleenojaukset.'
+            'muista luoda tarvittavat uudelleenohjaukset.'
         ),
     )
 
     title = dict(
         max_length=1023,
         verbose_name='Otsikko',
-        help_text=(
-            'Otsikko näytetään automaattisesti sivun ylälaidassa sekä valikossa. Älä lisää erillistä pääotsikkoa '
-            'sivun tekstiin.'
-        ),
+        help_text='Otsikko näytetään automaattisesti sivun ylälaidassa sekä valikossa.',
     )
 
     description = dict(

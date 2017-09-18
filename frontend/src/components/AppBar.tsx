@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 import UserAvatar from './UserAvatar';
 import Breadcrumb from '../models/Breadcrumb';
 import { State } from '../modules';
+import Config from '../Config';
 
 
 const linkStyle = {
@@ -48,7 +49,7 @@ class AppBar extends React.Component<AppBarProps, AppBarState> {
           </span>
         ))}
         iconElementLeft={<div/>}
-        iconElementRight={<Link to="/user"><UserAvatar /></Link>}
+        iconElementRight={<a href={Config.loginUrl}><UserAvatar /></a>}
       />
     );
   }

@@ -34,18 +34,10 @@ CACHES = {
 
 if DEBUG:
     LOGGING['loggers'].update({
-        # 'django.db': {
-        #     'handlers': ['console'],
-        #     'level': 'DEBUG',
-        # },
         'edegal': {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
-        'django.db.backends': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-        }
     })
 
 
@@ -73,3 +65,28 @@ if env('BROKER_URL', default=''):
     EDEGAL_USE_CELERY = True
 else:
     EDEGAL_USE_CELERY = False
+
+
+if env('KOMPASSI_OAUTH2_CLIENT_SECRET', default=''):
+    INSTALLED_APPS = INSTALLED_APPS + ('kompassi_oauth2',)
+    AUTHENTICATION_BACKENDS = (
+        'kompassi_oauth2.backends.KompassiOAuth2AuthenticationBackend',
+    ) + AUTHENTICATION_BACKENDS
+
+    KOMPASSI_INSTALLATION_SLUG = env('KOMPASSI_INSTALLATION_SLUG', default='turska')
+    KOMPASSI_HOST = env('KOMPASSI_HOST', default='https://kompassi.eu')
+    KOMPASSI_OAUTH2_AUTHORIZATION_URL = f'{KOMPASSI_HOST}/oauth2/authorize'
+    KOMPASSI_OAUTH2_TOKEN_URL = f'{KOMPASSI_HOST}/oauth2/token'
+    KOMPASSI_OAUTH2_CLIENT_ID = env('KOMPASSI_OAUTH2_CLIENT_ID')
+    KOMPASSI_OAUTH2_CLIENT_SECRET = env('KOMPASSI_OAUTH2_CLIENT_SECRET')
+    KOMPASSI_OAUTH2_SCOPE = ['read']
+    KOMPASSI_API_V2_USER_INFO_URL = f'{KOMPASSI_HOST}/api/v2/people/me'
+    KOMPASSI_API_V2_EVENT_INFO_URL_TEMPLATE = '{kompassi_host}/api/v2/events/{event_slug}'
+    KOMPASSI_ADMIN_GROUP = env('KOMPASSI_ADMIN_GROUP', default='admins')
+    KOMPASSI_EDITOR_GROUP = env('KOMPASSI_EDITOR_GROUP', default='conikuvat-staff')
+
+    LOGIN_URL = '/admin/oauth2/login'
+
+    EDEGAL_USE_KOMPASSI_OAUTH2 = True
+else:
+    EDEGAL_USE_KOMPASSI_OAUTH2 = False
