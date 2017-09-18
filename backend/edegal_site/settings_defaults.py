@@ -104,6 +104,7 @@ LOGGING = {
 }
 
 WSGI_APPLICATION = 'edegal_site.wsgi.application'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 LANGUAGE_CODE = 'fi-fi'
 
