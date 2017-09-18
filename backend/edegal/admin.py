@@ -19,19 +19,17 @@ class PictureInline(admin.TabularInline):
     model = Picture
     extra = 0
     max_num = 0
-    fields = ('order',)
-    readonly_fields = ('path', 'title')
+    fields = ('order', 'title')
+    readonly_fields = ('path',)
     can_delete = True
     show_change_link = True
-    verbose_name = 'kuvien järjestys'
-    verbose_name_plural = 'kuvien järjestys'
 
 
 class AlbumAdmin(MultiUploadAdmin):
     model = Album
     readonly_fields = ('path',)
     list_display = ('path', 'title')
-    raw_id_fields = ('cover_picture',)
+    raw_id_fields = ('cover_picture', 'terms_and_conditions')
     inlines = (PictureInline,)
     multiupload_form = True
     multiupload_list = False
@@ -57,6 +55,9 @@ class AlbumAdmin(MultiUploadAdmin):
             id=picture.id,
             name=picture.title
         )
+
+    def get_changeform_initial_data(self, request):
+        return dict(parent=Album.objects.filter(path='/').first())
 
 
 class MediaInline(admin.TabularInline):
@@ -88,6 +89,7 @@ class TermsAndConditionsAdmin(admin.ModelAdmin):
     list_display = ('admin_get_abridged_text', 'url', 'is_public')
     fields = ('text', 'url', 'is_public')
     readonly_fields = ('digest',)
+    search_fields = ('text', 'url')
 
 
 admin.site.register(Album, AlbumAdmin)

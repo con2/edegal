@@ -87,6 +87,9 @@ class TermsAndConditions(models.Model, DedupMixin):
             'url',
         )
 
+    def __str__(self):
+        return self.text
+
     class Meta:
         verbose_name = _('Terms and conditions')
         verbose_name_plural = _('Terms and conditions')
