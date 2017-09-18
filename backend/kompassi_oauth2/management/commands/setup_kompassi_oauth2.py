@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
         permissions = Permission.objects.filter(
             content_type__app_label='edegal',
-            content_type__model__in=['album', 'picture', 'termsandconditions'],
+            content_type__model__in=['album', 'picture', 'termsandconditions', 'media'],
         )
 
         group.permissions.add(*permissions)
