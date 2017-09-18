@@ -6,7 +6,6 @@ from multiupload.admin import MultiUploadAdmin
 
 from .utils import slugify
 
-
 from .models import (
     Album,
     Media,
