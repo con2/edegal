@@ -10,7 +10,13 @@ def user_attrs_from_kompassi(kompassi_user):
         ('last_name', lambda u: u['surname']),
         ('is_superuser', lambda u: settings.KOMPASSI_ADMIN_GROUP in u['groups']),
         ('is_staff', lambda u: settings.KOMPASSI_EDITOR_GROUP in u['groups']),
-        ('groups', lambda u: [Group.objects.get_or_create(name=group_name)[0] for group_name in u['groups']]),
+
+        # only create and update groups that are relevant for this application
+        ('groups', lambda u: [
+            Group.objects.get_or_create(name=group_name)[0]
+            for group_name in u['groups']
+            if group_name in [settings.KOMPASSI_ADMIN_GROUP, settings.KOMPASSI_EDITOR_GROUP]
+        ]),
     ])
 
 
