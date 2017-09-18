@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     def handle(self, *args, **options):
         management_commands = [
-            (('collectstatic',), dict(interactive=False)),
             (('migrate',), dict()),
             (('setup_default_media_specs',), dict()),
         ]
