@@ -35,18 +35,18 @@ class Album(MPTTModel):
         related_name='+',
     )
 
-    is_public = models.BooleanField(
-        default=True,
-        verbose_name=u'Julkinen',
-        help_text=u'Ei-julkiset albumit näkyvät vain ylläpitokäyttäjille.',
-    )
+    is_public = models.BooleanField(**CommonFields.is_public)
 
     terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions',
         null=True,
         blank=True,
     )
 
-    def as_dict(self):
+    def as_dict(self, include_hidden=False):
+        child_criteria = dict()
+        if not include_hidden:
+            child_criteria.update(is_public=True)
+
         return pick_attrs(self,
             'slug',
             'path',
@@ -54,8 +54,8 @@ class Album(MPTTModel):
             'description',
 
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
-            subalbums=[subalbum._make_subalbum() for subalbum in self.subalbums.all()],
-            pictures=[picture.as_dict() for picture in self.pictures.all()],
+            subalbums=[subalbum._make_subalbum() for subalbum in self.subalbums.filter(**child_criteria)],
+            pictures=[picture.as_dict() for picture in self.pictures.filter(**child_criteria)],
             thumbnail=self._make_thumbnail(),
             terms_and_conditions=(
                 self.terms_and_conditions.as_dict()
@@ -65,6 +65,8 @@ class Album(MPTTModel):
         )
 
     def _make_thumbnail(self):
+        # TODO what if the thumbnail is hidden?
+
         if self.cover_picture:
             return self.cover_picture.thumbnail.as_dict()
         else:

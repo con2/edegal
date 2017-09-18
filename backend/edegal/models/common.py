@@ -58,3 +58,9 @@ class CommonFields(object):
             'järjestykseen (pienin ensin).'
         )
     )
+
+    is_public = dict(
+        default=True,
+        verbose_name=u'Julkinen',
+        help_text=u'Ei-julkiset albumit näkyvät vain ylläpitokäyttäjille.',
+    )

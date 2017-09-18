@@ -14,6 +14,8 @@ class Picture(models.Model):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
+    is_public = models.BooleanField(default=True)
+
     @property
     def terms_and_conditions(self):
         if self.override_terms_and_conditions:

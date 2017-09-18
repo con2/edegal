@@ -16,7 +16,7 @@ class ApiV2View(View):
             extra_criteria.update(is_public=True)
 
         album = Album.get_album_by_path(path, or_404=True, **extra_criteria)
-        return JsonResponse(album.as_dict())
+        return JsonResponse(album.as_dict(include_hidden=request.user.is_staff))
 
 
 api_v2_view = ApiV2View.as_view()
