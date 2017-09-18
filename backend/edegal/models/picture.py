@@ -67,4 +67,5 @@ class Picture(models.Model):
         verbose_name = _('Picture')
         verbose_name_plural = _('Pictures')
         unique_together = [('album', 'slug')]
-        ordering = ('album', 'order')
+        ordering = ('album', 'order', 'slug')
+        index_together = [('album', 'order', 'slug')]
