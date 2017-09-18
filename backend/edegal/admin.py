@@ -1,3 +1,5 @@
+from os.path import splitext
+
 from django.contrib import admin
 
 from multiupload.admin import MultiUploadAdmin
@@ -38,11 +40,13 @@ class AlbumAdmin(MultiUploadAdmin):
     def process_uploaded_file(self, uploaded, album, request):
         assert album is not None
 
+        plain_name, extension = splitext(uploaded.name)
+
         picture, created = Picture.objects.get_or_create(
-            slug=slugify(uploaded.name),
+            slug=slugify(plain_name),
             album=album,
             defaults=dict(
-                title=uploaded.name,
+                title=plain_name,
             )
         )
 
