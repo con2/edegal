@@ -1,7 +1,7 @@
 import logging
 
+from django.conf import settings
 from django.db import models
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from mptt.models import MPTTModel, TreeForeignKey
@@ -163,6 +163,9 @@ class Album(MPTTModel):
 
     def __str__(self):
         return self.path
+
+    def get_absolute_url(self):
+        return f'{settings.EDEGAL_FRONTEND_URL}{self.path}'
 
     class Meta:
         verbose_name = 'Albumi'

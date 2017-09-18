@@ -1,5 +1,10 @@
 from django.contrib import admin
 
+from multiupload.admin import MultiUploadAdmin
+
+from .utils import slugify
+
+
 from .models import (
     Album,
     Media,
@@ -21,12 +26,34 @@ class PictureInline(admin.TabularInline):
     verbose_name_plural = 'kuvien järjestys'
 
 
-class AlbumAdmin(admin.ModelAdmin):
+class AlbumAdmin(MultiUploadAdmin):
     model = Album
     readonly_fields = ('path',)
     list_display = ('path', 'title')
     raw_id_fields = ('cover_picture',)
     inlines = (PictureInline,)
+    multiupload_form = True
+    multiupload_list = False
+
+    def process_uploaded_file(self, uploaded, album, request):
+        assert album is not None
+
+        picture, created = Picture.objects.get_or_create(
+            slug=slugify(uploaded.name),
+            album=album,
+            defaults=dict(
+                title=uploaded.name,
+            )
+        )
+
+        Media.import_open_file(picture, uploaded.file)
+
+        return dict(
+            url='',  # FIXME
+            thumbnail_url='',  # FIXME
+            id=picture.id,
+            name=picture.title
+        )
 
 
 class MediaInline(admin.TabularInline):

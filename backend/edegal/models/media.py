@@ -109,6 +109,15 @@ class Media(models.Model):
             picture.album.save()
 
     @classmethod
+    def import_open_file(cls, picture, input_file, media_specs=None, refresh_album=False):
+        original_path = Media(picture=picture).get_canonical_path()
+
+        with open(original_path, 'wb') as output_file:
+            output_file.write(input_file.read())
+
+        cls.import_local_media(picture, original_path, mode='inplace', media_specs=media_specs, refresh_album=refresh_album)
+
+    @classmethod
     def make_absolute_path_media_relative(cls, original_path):
         assert original_path.startswith(settings.MEDIA_ROOT)
 

@@ -16,6 +16,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'mptt',
+    'multiupload',
 
     'edegal',
 )

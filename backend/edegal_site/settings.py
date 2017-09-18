@@ -57,6 +57,8 @@ else:
 
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='spam@example.com')
 
+EDEGAL_FRONTEND_URL = env('EDEGAL_FRONTEND_URL', default='http://localhost:3000')
+
 
 if env('BROKER_URL', default=''):
     CELERY_BROKER_URL = env('BROKER_URL')
