@@ -111,6 +111,7 @@ class Media(models.Model):
     @classmethod
     def import_open_file(cls, picture, input_file, media_specs=None, refresh_album=False):
         original_path = Media(picture=picture).get_canonical_path()
+        makedirs(dirname(original_path), exist_ok=True)
 
         with open(original_path, 'wb') as output_file:
             output_file.write(input_file.read())
