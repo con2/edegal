@@ -44,7 +44,6 @@ class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
 
         {album.body ? (
           <Paper style={bodyStyle}>
-            <h1>{album.title}</h1>
             <div dangerouslySetInnerHTML={{__html: album.body}} />
           </Paper>
         ): null}
