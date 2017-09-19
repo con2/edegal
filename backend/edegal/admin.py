@@ -36,7 +36,7 @@ class AlbumAdminForm(forms.ModelForm):
     )
 
     class Meta:
-        fields = ('title', 'description', 'body', 'cover_picture', 'terms_and_conditions', 'slug')
+        fields = ('title', 'description', 'body', 'cover_picture', 'terms_and_conditions', 'slug', 'is_public')
         model = Album
 
 
