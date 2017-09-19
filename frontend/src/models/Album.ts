@@ -8,6 +8,7 @@ import TermsAndConditions from './TermsAndConditions';
 interface Album {
   path: string;
   title: string;
+  body: string;
   subalbums: Subalbum[];
   pictures: Picture[];
   thumbnail: Media;

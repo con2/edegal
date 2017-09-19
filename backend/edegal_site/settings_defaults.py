@@ -17,6 +17,7 @@ INSTALLED_APPS = (
 
     'mptt',
     'multiupload',
+    'ckeditor',
 
     'edegal',
 )
@@ -118,3 +119,20 @@ STATIC_URL = '/static/'
 STATIC_ROOT = mkpath('static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = mkpath('media')
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+CKEDITOR_JQUERY_URL = '/static/common/js/jquery.min.js'
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': [
+            ['Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker'],
+            ['NumberedList', 'BulletedList', 'Indent', 'Outdent', 'JustifyLeft', 'JustifyCenter', 'JustifyRight'],
+            ['Image', 'Table', 'Link', 'Unlink', 'Anchor', 'SectionLink', 'Subscript', 'Superscript'],
+            ['Undo', 'Redo'],
+            ['Source'],
+            ['Maximize']
+        ],
+        'extraPlugins': 'image2',
+    },
+}

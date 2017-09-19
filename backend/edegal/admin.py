@@ -1,7 +1,9 @@
 from os.path import splitext
 
 from django.contrib import admin
+from django import forms
 
+from ckeditor.widgets import CKEditorWidget
 from multiupload.admin import MultiUploadAdmin
 
 from .utils import slugify
@@ -25,8 +27,22 @@ class PictureInline(admin.TabularInline):
     show_change_link = True
 
 
+class AlbumAdminForm(forms.ModelForm):
+    body = forms.CharField(
+        widget=CKEditorWidget(),
+        required=False,
+        label=Album._meta.get_field('body').verbose_name,
+        help_text=Album._meta.get_field('body').help_text,
+    )
+
+    class Meta:
+        fields = ('title', 'description', 'body', 'cover_picture', 'terms_and_conditions', 'slug')
+        model = Album
+
+
 class AlbumAdmin(MultiUploadAdmin):
     model = Album
+    form = AlbumAdminForm
     readonly_fields = ('path',)
     list_display = ('path', 'title')
     raw_id_fields = ('cover_picture', 'terms_and_conditions')

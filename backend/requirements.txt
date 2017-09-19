@@ -4,8 +4,9 @@ django-environ==0.4.1
 django-mptt~=0.8.6
 Django==1.11
 ipython~=5.3.0
-Pillow~=4.0.0
+Pillow~=4.2.1
 python-memcached~=1.58
 git+git://github.com/gkuhn1/django-admin-multiupload.git@2195fc19c5ed8f52509bbbe11654bca8a008136a#egg=django-admin-multiupload
 requests-oauthlib~=0.8.0
 requests~=2.18.2
+django-ckeditor~=5.3.0

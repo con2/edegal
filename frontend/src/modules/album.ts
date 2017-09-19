@@ -116,6 +116,7 @@ export function getAlbum(path: string) {
 const initialState: Album = {
   path: '',
   title: '',
+  body: '',
   subalbums: [],
   pictures: [],
   breadcrumb: [],

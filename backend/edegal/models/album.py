@@ -28,6 +28,16 @@ class Album(MPTTModel):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
+    body = models.TextField(
+        blank=True,
+        default='',
+        verbose_name='Tekstisisältö',
+        help_text=(
+            'Albumilla voi olla tekstisisältöä, jolloin se näytetään albuminäkymän yläosassa '
+            'ennen ala-albumeja ja kuvia.'
+        ),
+    )
+
     cover_picture = models.ForeignKey('Picture',
         on_delete=models.SET_NULL,
         null=True,
@@ -52,6 +62,7 @@ class Album(MPTTModel):
             'path',
             'title',
             'description',
+            'body',
 
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
             subalbums=[subalbum._make_subalbum() for subalbum in self.subalbums.filter(**child_criteria)],
