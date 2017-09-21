@@ -46,7 +46,7 @@ class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
           <Paper style={bodyStyle}>
             <div dangerouslySetInnerHTML={{__html: album.body}} />
           </Paper>
-        ): null}
+        ) : null}
 
         <GridList cellHeight={cellHeight} cols={columns}>
           {album.subalbums.map(subalbum => (

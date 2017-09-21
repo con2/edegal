@@ -42,8 +42,8 @@ function getCached(path: string): Promise<Album> {
     };
 
     return fetch(makeApiUrl(path), options)
-      .then((response) => response.json())
-      .then((data: any) => {
+      .then((response: Response) => response.json())
+      .then((data: any) => { // tslint:disable-line:no-any
         // TODO: validate response
         const album: Album = data;
 
@@ -104,12 +104,11 @@ export function getAlbum(path: string) {
             payload: {album, picture},
           });
         }
-      })
-      // .catch(err => dispatch({
-      //   type: GetAlbumFailure,
-      //   error: true,
-      //   payload: err,
-      // }));
+      }, (err) => dispatch({
+        type: GetAlbumFailure,
+        error: true,
+        payload: err,
+      }));
 }
 
 
