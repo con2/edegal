@@ -32,7 +32,7 @@ node {
         && docker volume rm $buildVolume \
         && docker rmi $frontendImage \
         && find build -type f \\! -iname '*.gz' -exec gzip -k \\{\\} + \
-        && rsync -avH --chown root:conikuvat build/ root@nuoli.tracon.fi:/srv/beta.conikuvat.fi/public_html \
+        && rsync -avH --chown root:conikuvat build/ root@nuoli.tracon.fi:/srv/conikuvat.fi/public_html \
     """
   }
 
