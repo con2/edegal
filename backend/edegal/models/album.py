@@ -65,8 +65,14 @@ class Album(MPTTModel):
             'body',
 
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
-            subalbums=[subalbum._make_subalbum() for subalbum in self.subalbums.filter(**child_criteria)],
-            pictures=[picture.as_dict() for picture in self.pictures.filter(**child_criteria)],
+            subalbums=[
+                subalbum._make_subalbum()
+                for subalbum in self.subalbums.filter(**child_criteria).prefetch_related('pictures')
+            ],
+            pictures=[
+                picture.as_dict()
+                for picture in self.pictures.filter(**child_criteria).prefetch_related('media')
+            ],
             thumbnail=self._make_thumbnail(),
             terms_and_conditions=(
                 self.terms_and_conditions.as_dict()
@@ -165,8 +171,6 @@ class Album(MPTTModel):
             .distinct()
             .select_related('terms_and_conditions')
             .prefetch_related('cover_picture__media')
-            .prefetch_related('pictures__media__spec')
-            .prefetch_related('subalbums__cover_picture')
         )
 
         if or_404:
