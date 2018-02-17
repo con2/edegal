@@ -84,7 +84,7 @@ class Album(MPTTModel):
     def _make_thumbnail(self):
         # TODO what if the thumbnail is hidden?
 
-        if self.cover_picture:
+        if self.cover_picture and self.cover_picture.thumbnail:
             return self.cover_picture.thumbnail.as_dict()
         else:
             return None
