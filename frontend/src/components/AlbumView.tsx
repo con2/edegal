@@ -1,21 +1,15 @@
-import GridList from 'material-ui/GridList';
-import Paper from 'material-ui/Paper';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
 import Album from '../models/Album';
 import AppBar from './AppBar';
 import PictureTile from './PictureTile';
-import { State } from '../modules';
+import { State } from '../modules';
 import preloadMedia from '../helpers/preloadMedia';
 
 
 const cellHeight = 240;
 const referenceWidth = 360;
-const bodyStyle = {
-  padding: '1em',
-  margin: '1em',
-};
 
 
 interface AlbumViewOwnProps {}
@@ -42,20 +36,14 @@ class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
       <div>
         <AppBar />
 
-        {album.body ? (
-          <Paper style={bodyStyle}>
-            <div dangerouslySetInnerHTML={{__html: album.body}} />
-          </Paper>
-        ) : null}
+        {album.body ? <div dangerouslySetInnerHTML={{__html: album.body}} /> : null}
 
-        <GridList cellHeight={cellHeight} cols={columns}>
-          {album.subalbums.map(subalbum => (
-            <PictureTile key={subalbum.path} item={subalbum} />
-          ))}
-          {album.pictures.map(picture => (
-            <PictureTile key={picture.path} item={picture} />
-          ))}
-        </GridList>
+        {album.subalbums.map(subalbum => (
+          <PictureTile key={subalbum.path} item={subalbum} />
+        ))}
+        {album.pictures.map(picture => (
+          <PictureTile key={picture.path} item={picture} />
+        ))}
       </div>
     );
   }

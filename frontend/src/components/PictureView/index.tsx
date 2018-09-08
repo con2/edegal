@@ -1,19 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
-import NavigateNext from 'material-ui/svg-icons/navigation/chevron-right';
-import NavigatePrevious from 'material-ui/svg-icons/navigation/chevron-left';
-import FileDownload from 'material-ui/svg-icons/file/file-download';
-import Close from 'material-ui/svg-icons/navigation/close';
-import { blue50 } from 'material-ui/styles/colors';
+import { push } from 'react-router-redux';
 
 import DownloadDialog from '../DownloadDialog';
 import selectMedia from '../../helpers/selectMedia';
 import preloadMedia from '../../helpers/preloadMedia';
 import Picture from '../../models/Picture';
-import Media, { nullMedia } from '../../models/Media';
+import Media, { nullMedia } from '../../models/Media';
 import { State } from '../../modules';
-import { openDownloadDialog } from '../../modules/downloadDialog';
+import { openDownloadDialog } from '../../modules/downloadDialog';
 
 import './index.css';
 
@@ -27,9 +22,7 @@ const keyMap: {[keyCode: number]: Direction} = {
   39: 'next',     // right arrow
 };
 
-const iconColor = blue50;
 const navigationWidth = 60;
-const iconSize = { width: navigationWidth, height: navigationWidth };
 
 
 interface PictureViewOwnProps {}
@@ -70,7 +63,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-previous"
             title="Edellinen"
           >
-            <NavigatePrevious color={iconColor} style={iconSize} className="PictureView-icon-fade" />
+            Edellinen
           </div>
         ) : null}
 
@@ -80,7 +73,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-next"
             title="Seuraava"
           >
-            <NavigateNext color={iconColor} style={iconSize} className="PictureView-icon-fade" />
+            Seuraava
           </div>
         ) : null}
 
@@ -89,7 +82,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           className="PictureView-action PictureView-action-exit"
           title="Takaisin albumiin"
         >
-          <Close color={iconColor} style={iconSize} />
+          Sulje
         </div>
 
         {picture.original && (
@@ -99,7 +92,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
               className="PictureView-action PictureView-action-download"
               title="Lataa kuva"
             >
-              <FileDownload color={iconColor} style={iconSize} />
+              Lataa kuva
               <DownloadDialog />
             </div>
           ) : (
@@ -108,7 +101,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
               className="PictureView-action PictureView-action-download"
               title="Lataa kuva"
             >
-              <FileDownload color={iconColor} style={iconSize} />
+              Lataa kuva
             </a>
           )
         )}
