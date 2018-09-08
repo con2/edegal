@@ -1,4 +1,4 @@
-celery~=4.0.2
+celery~=4.2.1
 django-cavalry~=0.0.1
 django-environ==0.4.1
 django-mptt~=0.8.6
