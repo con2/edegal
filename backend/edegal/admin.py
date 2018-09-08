@@ -1,5 +1,6 @@
 from os.path import splitext
 
+from django.conf import settings
 from django.contrib import admin
 from django import forms
 
@@ -49,6 +50,7 @@ class AlbumAdmin(MultiUploadAdmin):
     inlines = (PictureInline,)
     multiupload_form = True
     multiupload_list = False
+    multiupload_maxfilesize = settings.MAX_UPLOAD_SIZE
 
     def process_uploaded_file(self, uploaded, album, request):
         assert album is not None
