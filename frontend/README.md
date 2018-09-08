@@ -7,7 +7,6 @@ This is the browser frontend for desktop & mobile browsers. Technology choices i
 * TypeScript
 * React
 * Redux
-* Material UI
 
 ## Getting started
 
@@ -21,9 +20,11 @@ If, for some reason, you want to develop the Edegal frontend without using Docke
 
 Requirements:
 
-* Node.js 7.x (tested: 7.6)
+* Node.js 10.x or 8.x
 
-Yarn is recommended over `npm`.
+Yarn is not supported, only `npm` is.
+
+Change `proxy` in `package.json` to point to wherever you are running the Django backend.
 
 You should get up and running with the following commands:
 

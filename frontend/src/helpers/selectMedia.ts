@@ -34,8 +34,8 @@ export default function selectMedia(picture: Picture, dimensions?: Dimensions): 
     return picture.media[0];
   }
 
-  // return biggestThatFits that fits
-  let biggestThatFits: Media | null = null;
+  // return biggest that fits
+  let biggestThatFits: Media | null = null;
   mediaThatFit.forEach((medium) => {
     if (!biggestThatFits || medium.width > biggestThatFits.width) {
       biggestThatFits = medium;

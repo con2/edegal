@@ -15,10 +15,10 @@ function makeAlbumCache(): AlbumCache {
     return new Map<string, Album>();
   }
 
-  const _cache = {};
+  const cache = {};
   return {
-    get: (path: string) => _cache[path] as Album | undefined,
-    set: (path: string, album: Album) => _cache[path] = album,
+    get: (path: string) => cache[path] as Album | undefined,
+    set: (path: string, album: Album) => cache[path] = album,
   };
 }
 

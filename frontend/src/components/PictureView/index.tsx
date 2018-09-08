@@ -1,24 +1,19 @@
+import { push } from 'connected-react-router';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
-import NavigateNext from 'material-ui/svg-icons/navigation/chevron-right';
-import NavigatePrevious from 'material-ui/svg-icons/navigation/chevron-left';
-import FileDownload from 'material-ui/svg-icons/file/file-download';
-import Close from 'material-ui/svg-icons/navigation/close';
-import { blue50 } from 'material-ui/styles/colors';
 
-import DownloadDialog from '../DownloadDialog';
-import selectMedia from '../../helpers/selectMedia';
 import preloadMedia from '../../helpers/preloadMedia';
+import selectMedia from '../../helpers/selectMedia';
+import Media, { nullMedia } from '../../models/Media';
 import Picture from '../../models/Picture';
-import Media, { nullMedia } from '../../models/Media';
 import { State } from '../../modules';
-import { openDownloadDialog } from '../../modules/downloadDialog';
+import { openDownloadDialog } from '../../modules/downloadDialog';
+// import DownloadDialog from '../DownloadDialog';
 
 import './index.css';
 
 
-type Direction = 'next' | 'previous' | 'album';
+type Direction = 'next' | 'previous' | 'album';
 const keyMap: {[keyCode: number]: Direction} = {
   27: 'album',    // escape
   33: 'previous', // page up
@@ -27,12 +22,7 @@ const keyMap: {[keyCode: number]: Direction} = {
   39: 'next',     // right arrow
 };
 
-const iconColor = blue50;
-const navigationWidth = 60;
-const iconSize = { width: navigationWidth, height: navigationWidth };
 
-
-interface PictureViewOwnProps {}
 interface PictureViewStateProps {
   picture: Picture;
 }
@@ -43,7 +33,7 @@ interface PictureViewDispatchProps {
 interface PictureViewState {
   preview: Media;
 }
-type PictureViewProps = PictureViewOwnProps & PictureViewStateProps & PictureViewDispatchProps;
+type PictureViewProps = PictureViewStateProps & PictureViewDispatchProps;
 
 
 class PictureView extends React.Component<PictureViewProps, PictureViewState> {
@@ -70,7 +60,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-previous"
             title="Edellinen"
           >
-            <NavigatePrevious color={iconColor} style={iconSize} className="PictureView-icon-fade" />
+            Edellinen
           </div>
         ) : null}
 
@@ -80,7 +70,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-next"
             title="Seuraava"
           >
-            <NavigateNext color={iconColor} style={iconSize} className="PictureView-icon-fade" />
+            Seuraava
           </div>
         ) : null}
 
@@ -89,26 +79,28 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           className="PictureView-action PictureView-action-exit"
           title="Takaisin albumiin"
         >
-          <Close color={iconColor} style={iconSize} />
+          Sulje
         </div>
 
         {picture.original && (
           picture.album!.terms_and_conditions ? (
-            <div
-              onClick={this.props.openDownloadDialog}
+            <a
+            // <div
+              // onClick={this.props.openDownloadDialog}
+              href={picture.original.src}
               className="PictureView-action PictureView-action-download"
               title="Lataa kuva"
             >
-              <FileDownload color={iconColor} style={iconSize} />
-              <DownloadDialog />
-            </div>
+              Lataa kuva
+              {/* <DownloadDialog /> */}
+            </a>
           ) : (
             <a
               href={picture.original.src}
               className="PictureView-action PictureView-action-download"
               title="Lataa kuva"
             >
-              <FileDownload color={iconColor} style={iconSize} />
+              Lataa kuva
             </a>
           )
         )}
@@ -192,7 +184,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = { push, openDownloadDialog };
 
 
-export default connect<PictureViewStateProps, PictureViewDispatchProps, PictureViewOwnProps>(
+export default connect<PictureViewStateProps, PictureViewDispatchProps, {}>(
   mapStateToProps,
   mapDispatchToProps,
 )(PictureView);

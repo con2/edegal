@@ -1,5 +1,5 @@
-import OtherAction from './other';
 import User from '../models/User';
+import OtherAction from './other';
 
 
 const anonymousUser: User = {

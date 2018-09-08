@@ -1,9 +1,9 @@
-import Album from '../models/Album';
-import AlbumCache from '../helpers/AlbumCache';
 import Config from '../Config';
+import AlbumCache from '../helpers/AlbumCache';
+import Album from '../models/Album';
 import { nullMedia } from '../models/Media';
-import OtherAction from './other';
 import Picture from '../models/Picture';
+import OtherAction from './other';
 import {SelectPicture, SelectPictureAction} from './picture';
 
 
@@ -34,14 +34,12 @@ function getCached(path: string): Promise<Album> {
   if (cached) {
     return Promise.resolve(cached);
   } else {
-    const options = {
+    return fetch(makeApiUrl(path), {
       headers: {
         accept: 'application/json',
       },
       credentials: 'same-origin',
-    };
-
-    return fetch(makeApiUrl(path), options)
+    })
       .then((response: Response) => response.json())
       .then((data: any) => { // tslint:disable-line:no-any
         // TODO: validate response
@@ -76,6 +74,7 @@ function getCached(path: string): Promise<Album> {
  * @param path Path to an Album or Picture.
  */
 export function getAlbum(path: string) {
+  // tslint:disable-next-line
   return (dispatch: Function) =>
     getCached(path)
       .then((album) => {

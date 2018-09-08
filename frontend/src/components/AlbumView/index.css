@@ -1,0 +1,24 @@
+.AlbumView-row {
+  display: flex;
+}
+
+.AlbumView-tile {
+  border: 1px solid black;
+  display: block;
+  position: relative;
+}
+
+.AlbumView-tile:hover {
+  border: 1px solid #888;
+}
+
+.PictureTile-title {
+  position: absolute;
+  bottom: 0px;
+  height: 25px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #eee;
+  padding-left: 4px;
+  text-overflow: ellipsis;
+}

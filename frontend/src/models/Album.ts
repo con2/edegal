@@ -14,7 +14,7 @@ interface Album {
   thumbnail: Media;
   breadcrumb: Breadcrumb[];
   terms_and_conditions?: TermsAndConditions;
-};
+}
 
 
 export default Album;

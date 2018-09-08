@@ -6,7 +6,7 @@ export const OpenDownloadDialog: OpenDownloadDialog = 'edegal/downloadDialog/Ope
 
 export interface OpenDownloadDialogAction {
   type: OpenDownloadDialog;
-};
+}
 
 export function openDownloadDialog(): OpenDownloadDialogAction {
   return { type: OpenDownloadDialog };
@@ -18,7 +18,7 @@ export const CloseDownloadDialog: CloseDownloadDialog = 'edegal/downloadDialog/C
 
 export interface CloseDownloadDialogAction {
   type: CloseDownloadDialog;
-};
+}
 
 export function closeDownloadDialog(): CloseDownloadDialogAction {
   return { type: CloseDownloadDialog };

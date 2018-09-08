@@ -1,56 +1,46 @@
-import MuiAppBar from 'material-ui/AppBar';
 import * as React from 'react';
-import {Link} from 'react-router';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
 
-import UserAvatar from './UserAvatar';
+import Config from '../Config';
 import Breadcrumb from '../models/Breadcrumb';
 import { State } from '../modules';
-import Config from '../Config';
 
 
-const linkStyle = {
-  textDecoration: 'none',
-  color: 'white',
-};
 const breadcrumbSeparator = ' » ';
 
 
-interface AppBarStateProps {
+interface AppBarProps {
   breadcrumb: Breadcrumb[];
   path: string;
   title: string;
 }
-interface AppBarDispatchProps {}
-interface AppBarOwnProps {}
-interface AppBarState {}
-type AppBarProps = AppBarStateProps & AppBarDispatchProps & AppBarOwnProps;
 
 
-class AppBar extends React.Component<AppBarProps, AppBarState> {
+class AppBar extends React.Component<AppBarProps, {}> {
   render() {
-    const {path, title, breadcrumb} = this.props;
-    const fullBreadcrumb = breadcrumb.concat([{path, title}]);
-    const lastIndex = fullBreadcrumb.length - 1;
+    const { path, title, breadcrumb } = this.props;
+    const fullBreadcrumb = breadcrumb.concat([{ path, title }]);
+    const rootAlbum = fullBreadcrumb.shift();
 
     document.title = fullBreadcrumb.map(crumb => crumb.title).join(breadcrumbSeparator);
 
     return (
-      <MuiAppBar
-        title={fullBreadcrumb.map((item, index) => (
-          <span key={item.path}>
-            <Link
-              to={item.path}
-              style={linkStyle}
-            >
-              {item.title}
-            </Link>
-            {index !== lastIndex ? breadcrumbSeparator : null}
-          </span>
-        ))}
-        iconElementLeft={<div/>}
-        iconElementRight={<a href={Config.loginUrl}><UserAvatar /></a>}
-      />
+      <nav className="navbar navbar-dark navbar-fixed-top">
+        <Link className="navbar-brand" to={rootAlbum!.path}>{rootAlbum!.title}</Link>
+        <ul className="navbar-nav mr-auto">
+          {fullBreadcrumb.map((item) => (
+            <li key={item.path} className="nav-item">
+              <Link className="nav-link" to={item.path}>{breadcrumbSeparator}{item.title}</Link>
+            </li>
+          ))}
+        </ul>
+        <ul className="navbar-nav">
+          <li className="navbar-item">
+            <a href={Config.loginUrl} className="nav-link">Admin</a>
+          </li>
+        </ul>
+      </nav>
     );
   }
 }
@@ -62,10 +52,5 @@ const mapStateToProps = (state: State) => ({
   breadcrumb: state.album.breadcrumb,
 });
 
-const mapDispatchToProps = {};
 
-
-export default connect<AppBarStateProps, AppBarDispatchProps, AppBarOwnProps>(
-  mapStateToProps,
-  mapDispatchToProps,
-)(AppBar);
+export default connect<AppBarProps>(mapStateToProps)(AppBar);
