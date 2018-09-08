@@ -45,7 +45,7 @@ class AlbumAdmin(MultiUploadAdmin):
     form = AlbumAdminForm
     readonly_fields = ('path',)
     list_display = ('path', 'title')
-    raw_id_fields = ('cover_picture', 'terms_and_conditions')
+    raw_id_fields = ('cover_picture', 'terms_and_conditions', 'parent')
     inlines = (PictureInline,)
     multiupload_form = True
     multiupload_list = False
