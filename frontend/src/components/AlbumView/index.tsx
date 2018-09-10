@@ -29,8 +29,6 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
       </div>
     );
   }
-
-
 }
 
 
