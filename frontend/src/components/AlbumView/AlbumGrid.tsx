@@ -56,6 +56,10 @@ class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
   }
 
   private getRows(items: TileItem[]): Row[] {
+    if (items.length < 1) {
+      return [];
+    }
+
     let currentRow: Row = makeRow();
     const rows: Row[] = [currentRow];
     const maxWidth = maxWidthFactor * this.props.width;
