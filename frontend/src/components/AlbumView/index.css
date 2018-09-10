@@ -21,4 +21,6 @@
   color: #eee;
   padding-left: 4px;
   text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
