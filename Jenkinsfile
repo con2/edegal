@@ -27,7 +27,7 @@ node {
       cd frontend \
         && rm -rf build \
         && docker build --tag $frontendImage . \
-        && docker run --rm --volume $buildVolume:/usr/src/app/build --env NODE_ENV=production $frontendImage yarn run build \
+        && docker run --rm --volume $buildVolume:/usr/src/app/build --env NODE_ENV=production --user root $frontendImage npm run build \
         && docker run --rm --volume $buildVolume:/usr/src/app/build $frontendImage tar -c build/ | tar -x \
         && docker volume rm $buildVolume \
         && docker rmi $frontendImage \

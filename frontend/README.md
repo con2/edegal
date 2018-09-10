@@ -30,6 +30,6 @@ You should get up and running with the following commands:
 
     git clone git@github.com:conikuvat/edegal-frontend
     cd edegal-frontend
-    yarn install # or npm install
-    yarn start   # or npm start
+    npm install
+    npm start
     iexplore http://localhost:8080
