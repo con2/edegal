@@ -17,7 +17,7 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
 
     return (
       <Link
-        className="AlbumView-tile"
+        className="PictureTile"
         to={path}
       >
         {src ? (
@@ -25,8 +25,8 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
             src={src}
             style={{
               display: "block",
-              width,
-              height,
+              width: Math.floor(width),
+              height: Math.floor(height),
             }}
           />
         ) : null}

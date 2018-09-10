@@ -10,10 +10,11 @@ import './index.css';
 import PictureTile from './PictureTile';
 
 
-const maxWidthFactor = 1.2;
+const maxWidthFactor = 1.1;
 const scaleThresholdFactor = 0.8;
 const defaultThumbnailWidth = 240;
 const thumbnailHeight = 240;
+const borderAdjustmentPixels = 2;
 
 
 interface AlbumViewProps {
@@ -40,7 +41,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
 
         {/* Subalbums */}
         {this.getRows(this.props.album.subalbums).map((row, index) => (
-          <div key={index} className="AlbumView-row">
+          <div key={index} className="AlbumView-row" style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}>
             {row.items.map((item) => (
               <PictureTile
                 key={item.path}
@@ -56,7 +57,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
 
         {/* Pictures */}
         {this.getRows(this.props.album.pictures).map((row, index) => (
-          <div key={index} className="AlbumView-row">
+          <div key={index} className="AlbumView-row" style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}>
             {row.items.map((item) => (
               <PictureTile
                 key={item.path}

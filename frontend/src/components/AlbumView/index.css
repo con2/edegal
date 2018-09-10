@@ -3,13 +3,13 @@
   white-space: nowrap;
 }
 
-.AlbumView-tile {
+.PictureTile {
   border: 1px solid black;
   display: inline-block;
   position: relative;
 }
 
-.AlbumView-tile:hover {
+.PictureTile:hover {
   border: 1px solid #888;
 }
 
