@@ -1,9 +1,9 @@
 def image = "conikuvat/edegal:build-${env.BUILD_NUMBER}"
-def frontendImage = "edegal-frontend:build-${env.BUILD_NUMBER}"
-def buildVolume = "edegal-frontend-build-${env.BUILD_NUMBER}"
+def frontendImage = "conikuvat/edegal-frontend:build-${env.BUILD_NUMBER}"
+def staticImage = "conikuvat/edegal-static:build-${env.BUILD_NUMBER}"
 
 node {
-  stage("Build") {
+  stage("Build backend") {
     checkout scm
     sh "cd backend && docker build --tag $image ."
   }
@@ -20,6 +20,14 @@ node {
 //     """
 //   }
 // }
+
+  stage("Build frontend") {
+    sh "cd frontend && docker build --tag $frontendImage ."
+  }
+
+  stage("Build static") {
+    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --tag $staticImage ."
+  }
 
   stage("Deploy frontend") {
     // TODO these should probably be in some Dockerfile

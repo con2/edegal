@@ -1,0 +1,7 @@
+ARG FRONTEND_IMAGE=conikuvat/edegal-frontend
+FROM $FRONTEND_IMAGE
+RUN node_modules/.bin/react-scripts-ts build
+
+FROM nginx:1-alpine
+COPY --from=0 /usr/src/app/build /usr/share/nginx/html
+
