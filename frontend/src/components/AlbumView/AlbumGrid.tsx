@@ -35,9 +35,11 @@ type AlbumGridProps = AlbumGridStateProps & AlbumGridOwnProps;
 
 class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
   render() {
+    const { tiles, getTitle } = this.props;
+
     return (
       <div>
-        {this.getRows(this.props.tiles).map((row, index) => (
+        {this.getRows(tiles).map((row, index) => (
           <div key={index} className="AlbumView-row" style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}>
             {row.items.map((item) => (
               <PictureTile
@@ -45,7 +47,7 @@ class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
                 path={item.path}
                 width={item.thumbnail ? item.thumbnail.width * row.scaleFactor : defaultThumbnailWidth * row.scaleFactor}
                 height={row.height}
-                title={item.title}
+                title={getTitle(item)}
                 src={item.thumbnail ? item.thumbnail.src : undefined}
               />
             ))}
