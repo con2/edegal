@@ -29,6 +29,9 @@ interface Row {
 }
 
 
+const makeRow: () => Row = () => ({ height: thumbnailHeight, totalWidth: 0, items: [], scaleFactor: 1.0 });
+
+
 class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
   render() {
     return (
@@ -42,6 +45,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
               <PictureTile
                 key={item.path}
                 path={item.path}
+                width={item.thumbnail ? item.thumbnail.width * row.scaleFactor : defaultThumbnailWidth * row.scaleFactor}
                 height={row.height}
                 title={item.title}
                 src={item.thumbnail ? item.thumbnail.src : undefined}
@@ -57,6 +61,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
               <PictureTile
                 key={item.path}
                 path={item.path}
+                width={item.thumbnail ? item.thumbnail.width * row.scaleFactor : defaultThumbnailWidth * row.scaleFactor}
                 height={row.height}
                 src={item.thumbnail ? item.thumbnail.src : undefined}
               />
@@ -68,7 +73,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
   }
 
   private getRows(items: TileItem[]): Row[] {
-    let currentRow: Row = { height: thumbnailHeight, totalWidth: 0, items: [], scaleFactor: 1.0 };
+    let currentRow: Row = makeRow();
     const rows: Row[] = [currentRow];
     const maxWidth = maxWidthFactor * this.props.width;
 
@@ -77,7 +82,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
 
       if (currentRow.totalWidth + itemWidth > maxWidth) {
         // Initialize new row
-        currentRow = { height: thumbnailHeight, totalWidth: 0, items: [], scaleFactor: 1.0 };
+        currentRow = makeRow();
         rows.push(currentRow);
       }
 

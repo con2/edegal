@@ -1,15 +1,21 @@
 .AlbumView-row {
-  display: flex;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .AlbumView-tile {
   border: 1px solid black;
-  display: block;
+  display: inline-block;
   position: relative;
 }
 
 .AlbumView-tile:hover {
   border: 1px solid #888;
+}
+
+.PictureTile img {
+  width: 100%;
+  height: 100%;
 }
 
 .PictureTile-title {

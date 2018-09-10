@@ -14,6 +14,7 @@
     "no-empty-interface": false,
     "object-literal-sort-keys": false,
     "one-variable-per-declaration": false,
-    "semicolon": [true, "always"]
+    "semicolon": [true, "always"],
+    "no-console": false
   }
 }

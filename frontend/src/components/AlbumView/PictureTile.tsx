@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 interface PictureTileProps {
   path: string;
   height: number;
+  width: number;
   title?: string;
   src?: string;
 }
@@ -12,7 +13,7 @@ interface PictureTileProps {
 
 export default class PictureTile extends React.PureComponent<PictureTileProps> {
   render() {
-    const { path, height, src, title } = this.props;
+    const { path, width, height, src, title } = this.props;
 
     return (
       <Link
@@ -24,7 +25,7 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
             src={src}
             style={{
               display: "block",
-              border: "1px solid black",
+              width,
               height,
             }}
           />
