@@ -25,23 +25,41 @@ export default function selectMedia(picture: Picture, dimensions?: Dimensions): 
     [maxHeight, maxWidth] = getPictureAreaDimensions();
   }
 
-  const mediaThatFit = picture.media.filter((medium: Media) =>
-    medium.width <= maxWidth && medium.height <= maxHeight
+  const acceptableMedia = picture.media.filter((medium: Media) =>
+    !medium.thumbnail && !medium.original
   );
 
-  if (mediaThatFit.length === 0) {
-    // fall back to whatever media
-    return picture.media[0];
-  }
+  const fits = (medium: Media) => medium.width <= maxWidth && medium.height <= maxHeight;
+  const doesntFit = (medium: Media) => !fits(medium);
+  const tooBigMedia = acceptableMedia.filter(doesntFit);
+  let selected: Media | null = null;
 
-  // return biggest that fits
-  let biggestThatFits: Media | null = null;
-  mediaThatFit.forEach((medium) => {
-    if (!biggestThatFits || medium.width > biggestThatFits.width) {
-      biggestThatFits = medium;
+  // return smallest that exceeds display area
+  tooBigMedia.forEach((medium) => {
+    if (!selected || medium.width < selected.width) {
+      selected = medium;
     }
   });
 
-  // we know mediaThatFit is not empty by know, so there also must be a biggestThatFits
-  return biggestThatFits!;
+  if (selected) {
+    return selected;
+  }
+
+  // return biggest that fits
+  const mediaThatFit = acceptableMedia.filter(fits);
+  mediaThatFit.forEach((medium) => {
+    if (!selected || medium.width > selected.width) {
+      selected = medium;
+    }
+  });
+
+  if (selected) {
+    return selected;
+  } else if (acceptableMedia.length > 0) {
+    // whatever
+    return acceptableMedia[0];
+  } else {
+    // WHATEVER
+    return picture.media[0];
+  }
 }

@@ -51,8 +51,8 @@ describe('selectMedia', () => {
     assert.equal(media.width, 1024);
   });
 
-  it('selects the smallest when none fit', () => {
+  it('selects the smallest non-thumbnail when none fit', () => {
     const media = selectMedia(picture, [240, 180]); // minuscule display!
-    assert.equal(media.width, 320);
+    assert.equal(media.width, 800);
   });
 });
