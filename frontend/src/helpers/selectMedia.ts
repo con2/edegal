@@ -13,7 +13,6 @@ export function getPictureAreaDimensions(): Dimensions {
 }
 
 
-// TODO Suboptimal for quality: should select the first too big media instead of the first too small
 /**
  * Selects which Media to show for a Picture.
  */
