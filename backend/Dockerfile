@@ -12,4 +12,5 @@ RUN env DEBUG=1 python manage.py collectstatic --noinput && \
 VOLUME /usr/src/app/media
 USER conikuvat
 EXPOSE 8000
+ENTRYPOINT ["/usr/src/app/scripts/docker-entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

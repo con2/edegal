@@ -9,30 +9,30 @@ static_image: !Format conikuvat/edegal-static:{tag}
 
 # Common environment vars for both edegal and celery pods.
 common_environment:
-  - name: EDEGAL_POSTGRESQL_HOSTNAME
+  - name: POSTGRESQL_HOSTNAME
     value: postgres
-  - name: EDEGAL_POSTGRESQL_DATABASE
+  - name: POSTGRESQL_DATABASE
     value: edegal
-  - name: EDEGAL_POSTGRESQL_USERNAME
+  - name: POSTGRESQL_USERNAME
     valueFrom:
       secretKeyRef:
         name: postgres
         key: username
-  - name: EDEGAL_POSTGRESQL_PASSWORD
+  - name: POSTGRESQL_PASSWORD
     valueFrom:
       secretKeyRef:
         name: postgres
         key: password
-  - name: EDEGAL_RABBITMQ_HOSTNAME
+  - name: RABBITMQ_HOSTNAME
     value: rabbitmq
-  - name: EDEGAL_RABBITMQ_VHOST
+  - name: RABBITMQ_VHOST
     value: edegal
-  - name: EDEGAL_RABBITMQ_USERNAME
+  - name: RABBITMQ_USERNAME
     valueFrom:
       secretKeyRef:
         name: rabbitmq
         key: username
-  - name: EDEGAL_RABBITMQ_PASSWORD
+  - name: RABBITMQ_PASSWORD
     valueFrom:
       secretKeyRef:
         name: rabbitmq
