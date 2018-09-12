@@ -14,6 +14,12 @@
   background-color: black;
 }
 
+.PictureView-icon {
+  width: 48px;
+  height: 48px;
+  fill: #eee;
+}
+
 .PictureView-img {
   grid-row: 1 / span 3;
   grid-column: 1 / span 3;

@@ -2,6 +2,9 @@ import { push } from 'connected-react-router';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
+import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
+import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg';
+
 import preloadMedia from '../../helpers/preloadMedia';
 import selectMedia from '../../helpers/selectMedia';
 import Media, { nullMedia } from '../../models/Media';
@@ -60,7 +63,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-previous"
             title="Edellinen"
           >
-            Edellinen
+            <svg className="PictureView-icon">
+              <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
+            </svg>
           </div>
         ) : null}
 
@@ -70,7 +75,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-next"
             title="Seuraava"
           >
-            Seuraava
+            <svg className="PictureView-icon">
+              <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
+            </svg>
           </div>
         ) : null}
 
@@ -79,7 +86,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           className="PictureView-action PictureView-action-exit"
           title="Takaisin albumiin"
         >
-          Sulje
+          <svg className="PictureView-icon">
+            <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
+          </svg>
         </div>
 
         {picture.original && (
@@ -91,7 +100,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
               className="PictureView-action PictureView-action-download"
               title="Lataa kuva"
             >
-              Lataa kuva
+              <svg className="PictureView-icon">
+                <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+              </svg>
               {/* <DownloadDialog /> */}
             </a>
           ) : (
@@ -100,7 +111,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
               className="PictureView-action PictureView-action-download"
               title="Lataa kuva"
             >
-              Lataa kuva
+              <svg className="PictureView-icon">
+                <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+              </svg>
             </a>
           )
         )}
