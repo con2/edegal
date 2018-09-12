@@ -10,9 +10,14 @@ export const MainViewResized: MainViewResized = 'edegal/mainView/MainViewResized
 export interface MainViewResizedAction {
   type: MainViewResized;
   width: number;
+  height: number;
 }
 
-export const mainViewResized = (w: number) => ({ type: MainViewResized, width: w });
+export const mainViewResized = (w: number, h: number) => ({
+  type: MainViewResized,
+  width: w,
+  height: h,
+});
 
 
 export type MainViewMode = 'loading' | 'album' | 'picture';
@@ -22,6 +27,7 @@ type MainViewAction = MainViewResizedAction | SelectAlbumAction | SelectPictureA
 export interface MainViewState {
   mode: MainViewMode;
   width: number;
+  height: number;
 }
 
 
@@ -46,5 +52,14 @@ function width(state: number = 0, action: MainViewAction = OtherAction) {
   }
 }
 
+function height(state: number = 0, action: MainViewAction = OtherAction) {
+  switch (action.type) {
+    case MainViewResized:
+      return action.height;
+    default:
+      return state;
+  }
+}
 
-export default combineReducers<MainViewState>({ mode, width });
+
+export default combineReducers<MainViewState>({ mode, width, height });

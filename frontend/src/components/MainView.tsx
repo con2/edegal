@@ -13,6 +13,7 @@ interface MainViewStateProps {
   mode: MainViewMode;
   path: string;
   width: number;
+  height: number;
 }
 interface MainViewDispatchProps {
   getAlbum: typeof getAlbum;
@@ -37,15 +38,16 @@ class MainView extends React.Component<MainViewProps, {}> {
 
   handleResize = () => {
     const newWidth = document.documentElement.clientWidth;
+    const newHeight = document.documentElement.clientHeight;
 
-    if (newWidth !== this.props.width) {
-      this.props.mainViewResized(newWidth);
+    if (newWidth !== this.props.width || newHeight !== this.props.height) {
+      this.props.mainViewResized(newWidth, newHeight);
     }
   }
 
   componentDidMount() {
     this.props.getAlbum(this.props.path);
-    this.props.mainViewResized(document.documentElement.clientWidth);
+    this.handleResize();
 
     window.addEventListener('resize', this.handleResize);
   }
@@ -65,6 +67,7 @@ class MainView extends React.Component<MainViewProps, {}> {
 const mapStateToProps = (state: State) => ({
   mode: state.mainView.mode,
   width: state.mainView.width,
+  height: state.mainView.height,
   path: state.router.location.pathname,
 });
 

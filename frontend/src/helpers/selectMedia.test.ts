@@ -47,12 +47,12 @@ const picture: Picture = {
 
 describe('selectMedia', () => {
   it('selects the biggest that fits', () => {
-    const media = selectMedia(picture, [1280, 960]);
+    const media = selectMedia(picture, 1280, 960);
     assert.equal(media.width, 1024);
   });
 
   it('selects the smallest non-thumbnail when none fit', () => {
-    const media = selectMedia(picture, [240, 180]); // minuscule display!
+    const media = selectMedia(picture, 240, 180); // minuscule display!
     assert.equal(media.width, 800);
   });
 });

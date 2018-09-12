@@ -7,7 +7,6 @@ import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite
 
 import preloadMedia from '../../helpers/preloadMedia';
 import selectMedia from '../../helpers/selectMedia';
-import Media, { nullMedia } from '../../models/Media';
 import Picture from '../../models/Picture';
 import { State } from '../../modules';
 import { openDownloadDialog } from '../../modules/downloadDialog';
@@ -28,25 +27,21 @@ const keyMap: {[keyCode: number]: Direction} = {
 
 interface PictureViewStateProps {
   picture: Picture;
+  width: number;
+  height: number;
 }
 interface PictureViewDispatchProps {
   push: typeof push;
   openDownloadDialog: typeof openDownloadDialog;
 }
-interface PictureViewState {
-  preview: Media;
-}
 type PictureViewProps = PictureViewStateProps & PictureViewDispatchProps;
 
 
-class PictureView extends React.Component<PictureViewProps, PictureViewState> {
-  state = {
-    preview: nullMedia,
-  };
-
+class PictureView extends React.PureComponent<PictureViewProps, {}> {
   render() {
-    const { picture } = this.props;
-    const { preview } = this.state;
+    const { picture, width, height } = this.props;
+    const preview = selectMedia(picture, width, height);
+    console.log('PictureView.render', this.props.picture.path, this.props.width, preview.width);
 
     return (
       <div className="PictureView">
@@ -122,51 +117,36 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     );
   }
 
-  componentWillMount() {
-    // preview needed before render
-    this.selectMedia(this.props.picture);
-  }
-
   componentDidMount() {
     document.addEventListener('keydown', this.onKeyDown);
-    window.addEventListener('resize', this.onResize);
 
     this.preloadPreviousAndNext(this.props.picture);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.onResize);
     document.removeEventListener('keydown', this.onKeyDown);
   }
 
-  componentWillReceiveProps(nextProps: PictureViewProps) {
-    if (nextProps.picture.path !== this.props.picture.path) {
-      this.selectMedia(nextProps.picture);
-      this.preloadPreviousAndNext(nextProps.picture);
+  componentDidUpdate(prevProps: PictureViewProps) {
+    if (this.props.picture.path !== prevProps.picture.path) {
+      this.preloadPreviousAndNext(this.props.picture);
     }
   }
 
   preloadPreviousAndNext(picture: Picture) {
     // use setTimeout to not block rendering of current picture – improves visible latency
     setTimeout(() => {
+      const { width, height } = this.props;
+
       if (picture.previous) {
-        preloadMedia(picture.previous);
+        preloadMedia(picture.previous, width, height);
       }
 
       if (picture.next) {
-        preloadMedia(picture.next);
+        preloadMedia(picture.next, width, height);
       }
     }, 0);
 
-  }
-
-  selectMedia(picture: Picture) {
-    const preview = selectMedia(picture);
-    this.setState({ preview });
-  }
-
-  onResize = () => {
-    this.selectMedia(this.props.picture);
   }
 
   onKeyDown = (event: KeyboardEvent) => {
@@ -192,6 +172,8 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
 const mapStateToProps = (state: State) => ({
   picture: state.picture,
+  width: state.mainView.width,
+  height: state.mainView.height,
 });
 
 const mapDispatchToProps = { push, openDownloadDialog };

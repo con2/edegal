@@ -8,8 +8,8 @@ import selectMedia from './selectMedia';
  *
  * @param picture The picture to preload media for.
  */
-export default function preloadMedia(picture: Picture) {
-  const media = selectMedia(picture);
+export default function preloadMedia(picture: Picture, width: number, height: number) {
+  const media = selectMedia(picture, width, height);
   const element = document.createElement('img');
   element.src = media.src;
 }

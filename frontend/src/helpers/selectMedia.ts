@@ -2,33 +2,18 @@ import Media from '../models/Media';
 import Picture from '../models/Picture';
 
 
-const WRAP_VERTICAL_UNUSABLE_PX = 50;
-
-
-type Dimensions = [number, number];
-
-
-export function getPictureAreaDimensions(): Dimensions {
-  return [window.innerWidth, window.innerHeight - WRAP_VERTICAL_UNUSABLE_PX];
-}
-
-
 /**
  * Selects which Media to show for a Picture.
+ *
+ * @param width Picture area width
+ * @param height Picture area height
  */
-export default function selectMedia(picture: Picture, dimensions?: Dimensions): Media {
-  let maxHeight: number, maxWidth: number;
-  if (dimensions) {
-    [maxHeight, maxWidth] = dimensions;
-  } else {
-    [maxHeight, maxWidth] = getPictureAreaDimensions();
-  }
-
+export default function selectMedia(picture: Picture, width: number, height: number): Media {
   const acceptableMedia = picture.media.filter((medium: Media) =>
     !medium.thumbnail && !medium.original
   );
 
-  const fits = (medium: Media) => medium.width <= maxWidth && medium.height <= maxHeight;
+  const fits = (medium: Media) => medium.width <= width && medium.height <= height;
   const doesntFit = (medium: Media) => !fits(medium);
   const tooBigMedia = acceptableMedia.filter(doesntFit);
   let selected: Media | null = null;
