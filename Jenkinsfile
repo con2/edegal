@@ -46,12 +46,12 @@ node {
         docker push $image && \
         docker rmi $image && \
 
-      docker tag $frontendImage conikuvat/edegal:latest && \
+      docker tag $frontendImage conikuvat/edegal-frontend:latest && \
         docker push conikuvat/edegal-frontend:latest && \
         docker push $frontendImage && \
         docker rmi $frontendImage && \
 
-      docker tag $staticImage conikuvat/edegal:latest && \
+      docker tag $staticImage conikuvat/edegal-static:latest && \
         docker push conikuvat/edegal-static:latest && \
         docker push $staticImage && \
         docker rmi $staticImage
