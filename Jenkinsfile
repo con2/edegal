@@ -29,26 +29,36 @@ node {
     sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --tag $staticImage ."
   }
 
-  stage("Deploy frontend") {
-    // TODO these should probably be in some Dockerfile
+  stage("Deploy legacy frontend") {
     sh """
       cd frontend \
         && rm -rf build \
-        && docker build --tag $frontendImage . \
-        && docker run --rm --volume $buildVolume:/usr/src/app/build --env NODE_ENV=production --user root $frontendImage npm run build \
-        && docker run --rm --volume $buildVolume:/usr/src/app/build $frontendImage tar -c build/ | tar -x \
-        && docker volume rm $buildVolume \
-        && docker rmi $frontendImage \
-        && find build -type f \\! -iname '*.gz' -exec gzip -k \\{\\} + \
-        && rsync -avH --chown root:conikuvat build/ root@nuoli.tracon.fi:/srv/conikuvat.fi/public_html \
+        && mkdir build \
+        && docker run --rm $staticImage -C /usr/share/nginx -c html/ | tar -x -C build/ --strip-components=1 \
+        && rsync -avH --chown root:conikuvat build/ root@nuoli.tracon.fi:/srv/conikuvat.fi/public_html
     """
   }
 
   stage("Push") {
-    sh "docker tag $image conikuvat/edegal:latest && docker push conikuvat/edegal:latest && docker rmi $image"
+    sh """
+      docker tag $image conikuvat/edegal:latest && \
+        docker push conikuvat/edegal:latest && \
+        docker push $image && \
+        docker rmi $image && \
+
+      docker tag $frontendImage conikuvat/edegal:latest && \
+        docker push conikuvat/edegal-frontend:latest && \
+        docker push $frontendImage && \
+        docker rmi $frontendImage && \
+
+      docker tag $staticImage conikuvat/edegal:latest && \
+        docker push conikuvat/edegal-static:latest && \
+        docker push $staticImage && \
+        docker rmi $staticImage
+    """
   }
 
-  stage("Deploy") {
+  stage("Deploy legacy") {
     git url: "git@github.com:tracon/ansible-tracon"
     sh """
       ansible-playbook \
