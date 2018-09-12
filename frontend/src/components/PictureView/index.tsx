@@ -41,7 +41,6 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
   render() {
     const { picture, width, height } = this.props;
     const preview = selectMedia(picture, width, height);
-    console.log('PictureView.render', this.props.picture.path, this.props.width, preview.width);
 
     return (
       <div className="PictureView">
