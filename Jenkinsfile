@@ -26,7 +26,7 @@ node {
   }
 
   stage("Build static") {
-    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --tag $staticImage ."
+    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --build-arg BACKEND_IMAGE=$image --tag $staticImage ."
   }
 
   stage("Deploy legacy frontend") {

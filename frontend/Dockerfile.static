@@ -1,8 +1,11 @@
-ARG FRONTEND_IMAGE=conikuvat/edegal-frontend
+ARG BACKEND_IMAGE=conikuvat/edegal:latest
+ARG FRONTEND_IMAGE=conikuvat/edegal-frontend:latest
 FROM $FRONTEND_IMAGE
 USER root
 RUN node_modules/.bin/react-scripts-ts build && find build -type f \! -iname '*.gz' -exec gzip -k \{\} +
 
+FROM $BACKEND_IMAGE
+
 FROM nginx:1-alpine
 COPY --from=0 /usr/src/app/build /usr/share/nginx/html
-
+COPY --from=1 /usr/src/app/static /usr/share/nginx/html/static
