@@ -21,9 +21,10 @@ class AppBar extends React.Component<AppBarProps, {}> {
   render() {
     const { path, title, breadcrumb } = this.props;
     const fullBreadcrumb = breadcrumb.concat([{ path, title }]);
-    const rootAlbum = fullBreadcrumb.shift();
 
     document.title = fullBreadcrumb.map(crumb => crumb.title).join(breadcrumbSeparator);
+
+    const rootAlbum = fullBreadcrumb.shift();
 
     return (
       <nav className="navbar navbar-expand-md navbar-dark navbar-fixed-top">
