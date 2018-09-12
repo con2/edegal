@@ -34,7 +34,7 @@ node {
       cd frontend \
         && rm -rf build \
         && mkdir build \
-        && docker run --rm $staticImage -C /usr/share/nginx -c html/ | tar -x -C build/ --strip-components=1 \
+        && docker run --rm $staticImage tar -C /usr/share/nginx -c html/ | tar -x -C build/ --strip-components=1 \
         && rsync -avH --chown root:conikuvat build/ root@nuoli.tracon.fi:/srv/conikuvat.fi/public_html
     """
   }
