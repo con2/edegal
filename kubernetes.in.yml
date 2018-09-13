@@ -305,7 +305,7 @@ metadata:
     service: edegal
 spec:
   ports:
-  - port: 8000
+  - port: 80
     targetPort: 8000
   selector:
     app: edegal
@@ -328,14 +328,18 @@ spec:
         app: edegal
         service: edegal
     spec:
+      securityContext:
+        fsGroup: 1082
       containers:
       - name: master
         image: !Var image
-        imagePullPolicy: Always
         resources: {}
         ports:
         - containerPort: 8000
         env: !Var common_environment
+        volumeMounts:
+        - mountPath: /usr/src/app/media
+          name: edegal-media
       volumes:
       - name: edegal-media
         persistentVolumeClaim:
@@ -351,7 +355,7 @@ metadata:
   name: edegal-media
 spec:
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteMany
   resources:
     requests:
       storage: 1000Mi
@@ -389,14 +393,21 @@ spec:
         app: edegal
         service: celery
     spec:
+      securityContext:
+        fsGroup: 1082
       containers:
       - name: master
         image: !Var image
-        args: ["celery", "-A", "edegal.celery_app:app", "worker"]
-        imagePullPolicy: Always
+        args: ["celery", "-A", "edegal_site.celery:app", "worker"]
         resources: {}
         env: !Var common_environment
-
+        volumeMounts:
+        - mountPath: /usr/src/app/media
+          name: edegal-media
+      volumes:
+      - name: edegal-media
+        persistentVolumeClaim:
+          claimName: edegal-media
 
 ###############################
 # NGINX (Static file serving) #
@@ -437,10 +448,16 @@ spec:
       containers:
       - name: master
         image: !Var static_image
-        imagePullPolicy: Always
         resources: {}
         ports:
         - containerPort: 80
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html/media
+          name: edegal-media
+      volumes:
+      - name: edegal-media
+        persistentVolumeClaim:
+          claimName: edegal-media
 
 
 ###########
@@ -459,15 +476,15 @@ spec:
         - path: /api
           backend:
             serviceName: edegal
-            servicePort: 8000
+            servicePort: 80
         - path: /admin
           backend:
             serviceName: edegal
-            servicePort: 8000
+            servicePort: 80
         - path: /oauth
           backend:
             serviceName: edegal
-            servicePort: 8000
+            servicePort: 80
         - path: /
           backend:
             serviceName: nginx
