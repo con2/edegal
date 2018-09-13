@@ -16,6 +16,17 @@ from .media_spec import MediaSpec
 logger = logging.getLogger(__name__)
 
 
+FORMAT_OPTIONS = dict(
+    jpeg=dict(
+        # progressive=True,
+        optimize=True,
+    ),
+    webp=dict(
+        method=6,
+    )
+)
+
+
 class Media(models.Model):
     picture = models.ForeignKey('edegal.Picture', related_name='media')
     width = models.PositiveIntegerField(default=0)
@@ -35,6 +46,7 @@ class Media(models.Model):
             src=self.src.url,
             original=self.is_original,
             thumbnail=self.is_default_thumbnail,
+            format=self.format,
         )
 
     @property
@@ -49,23 +61,31 @@ class Media(models.Model):
     def path(self):
         return self.src
 
+    @property
+    def format(self):
+        if self.is_original:
+            extension = 'jpeg'  # TODO hardcoded jpeg
+        else:
+            extension = self.spec.format
+
+
     def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
         """
         Returns the canonical path of this medium. This is where the file would be stored
         unless in-place mode was used.
 
-        Originals: /media/pictures/path/to/album/mypicture.jpg
-        Previews: /media/previews/path/to/album/mypicture/640x480q60.jpg
+        Originals: /media/pictures/path/to/album/mypicture.jpeg
+        Previews: /media/previews/path/to/album/mypicture/640x480q60.jpeg
         """
         if self.is_original:
             base_dir = 'pictures'
-            postfix = ''
+            postfix = '.jpeg'  # TODO hardcoded jpeg
         else:
             base_dir = 'previews'
             postfix = '/' + str(self.spec)
 
         # TODO hardcoded jpeg
-        return "{prefix}{base_dir}{path}{postfix}.jpg".format(
+        return "{prefix}{base_dir}{path}{postfix}".format(
             prefix=prefix,
             base_dir=base_dir,
             path=self.picture.path,
@@ -184,7 +204,12 @@ class Media(models.Model):
             makedirs(dirname(scaled_media.get_canonical_path()), exist_ok=True)
             with original_media.as_image() as image:
                 image.thumbnail(spec.size)
-                image.save(scaled_media.get_canonical_path(), 'JPEG', quality=scaled_media.spec.quality)
+                image.save(
+                    scaled_media.get_canonical_path(),
+                    format=scaled_media.spec.format,
+                    quality=scaled_media.spec.quality,
+                    **FORMAT_OPTIONS[scaled_media.spec.format]
+                )
 
             scaled_media.src = scaled_media.get_canonical_path('')
             scaled_media.save()

@@ -8,11 +8,11 @@ from ...utils import log_get_or_create
 logger = logging.getLogger(__name__)
 
 DEFAULT_MEDIA_SPECS = [
-    # w, h, q, is_default_thumbnail
-    (900, 240, 60, True),
-    (1200, 600, 85, False),
-    (1600, 800, 85, False),
-    (2400, 1200, 85, False),
+    # w, h, q, fmt, is_default_thumbnail
+    (900, 240, 60, 'jpeg', True),
+    (1200, 600, 85, 'jpeg', False),
+    (1600, 800, 85, 'jpeg', False),
+    (2400, 1200, 85, 'jpeg', False),
 ]
 
 
