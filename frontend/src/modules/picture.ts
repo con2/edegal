@@ -24,7 +24,7 @@ const initialState: Picture = {
 };
 
 
-type PictureAction = SelectPictureAction | OtherAction;
+export type PictureAction = SelectPictureAction | OtherAction;
 
 
 export default function picture(state: Picture = initialState, action: PictureAction = OtherAction): Picture {

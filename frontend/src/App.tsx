@@ -7,7 +7,7 @@ import MainView from './components/MainView';
 import store, { history } from './store';
 
 
-export default class App extends React.Component {
+export default class App extends React.Component<{}, {}> {
   render() {
     return (
       <Provider store={store}>

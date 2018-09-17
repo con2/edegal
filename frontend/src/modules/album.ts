@@ -1,3 +1,7 @@
+import { ActionCreator, Dispatch } from 'redux';
+import { ThunkAction } from 'redux-thunk';
+
+import { State } from '.';
 import Config from '../Config';
 import AlbumCache from '../helpers/AlbumCache';
 import Album from '../models/Album';
@@ -21,6 +25,9 @@ export interface GetAlbumFailureAction {
   error: true;
   payload: Error;
 }
+
+
+export type AlbumAction = SelectAlbumAction | GetAlbumFailureAction | SelectPictureAction | OtherAction;
 
 
 function makeApiUrl(path: string) {
@@ -73,9 +80,10 @@ function getCached(path: string): Promise<Album> {
  *
  * @param path Path to an Album or Picture.
  */
-export function getAlbum(path: string) {
-  // tslint:disable-next-line
-  return (dispatch: Function) =>
+export const getAlbum: ActionCreator<
+  ThunkAction<Promise<AlbumAction>, State, void, AlbumAction>
+> = (path: string) => {
+  return (dispatch: Dispatch<AlbumAction>) =>
     getCached(path)
       .then((album) => {
         if (album.path === path) {
@@ -108,7 +116,7 @@ export function getAlbum(path: string) {
         error: true,
         payload: err,
       }));
-}
+};
 
 
 const initialState: Album = {
@@ -120,8 +128,6 @@ const initialState: Album = {
   breadcrumb: [],
   thumbnail: nullMedia,
 };
-
-type AlbumAction = SelectAlbumAction | GetAlbumFailureAction | SelectPictureAction | OtherAction;
 
 
 export default function(state: Album = initialState, action: AlbumAction) {

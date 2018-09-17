@@ -1,6 +1,10 @@
 import User from '../models/User';
 import OtherAction from './other';
 
+// TBD
+
+export type UserAction = OtherAction;
+
 
 const anonymousUser: User = {
   email: '',
@@ -9,6 +13,8 @@ const anonymousUser: User = {
 };
 
 
-export default function(state: User = anonymousUser, action: OtherAction = OtherAction) {
+
+
+export default function user(state: User = anonymousUser, action: UserAction = OtherAction) {
   return state;
 }

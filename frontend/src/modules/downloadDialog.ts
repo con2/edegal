@@ -34,7 +34,7 @@ const initialState: DownloadDialogState = {
 };
 
 
-type DownloadDialogAction = OpenDownloadDialogAction
+export type DownloadDialogAction = OpenDownloadDialogAction
   | CloseDownloadDialogAction
   | OtherAction;
 

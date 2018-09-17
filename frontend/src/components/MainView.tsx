@@ -14,6 +14,7 @@ interface MainViewStateProps {
   path: string;
   width: number;
   height: number;
+  ready: boolean;
 }
 interface MainViewDispatchProps {
   getAlbum: typeof getAlbum;
@@ -24,15 +25,17 @@ type MainViewProps = MainViewStateProps & MainViewDispatchProps;
 
 class MainView extends React.Component<MainViewProps, {}> {
   render() {
-    const { mode, path } = this.props;
+    const { mode, path, ready } = this.props;
+
+    if (!ready) {
+      return <Loading />;
+    }
 
     switch (mode) {
       case 'album':
         return <AlbumView key={path} />;
       case 'picture':
         return <PictureView key={path} />;
-      default:
-        return <Loading />;
     }
   }
 
@@ -68,6 +71,7 @@ const mapStateToProps = (state: State) => ({
   mode: state.mainView.mode,
   width: state.mainView.width,
   height: state.mainView.height,
+  ready: state.ready,
   path: state.router.location.pathname,
 });
 
