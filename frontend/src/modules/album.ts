@@ -5,8 +5,9 @@ import { State } from '.';
 import Config from '../Config';
 import AlbumCache from '../helpers/AlbumCache';
 import Album from '../models/Album';
-import { nullMedia } from '../models/Media';
+import { Format } from '../models/Media';
 import Picture from '../models/Picture';
+import { getAsyncConfig } from './initialization';
 import OtherAction from './other';
 import {SelectPicture, SelectPictureAction} from './picture';
 
@@ -30,18 +31,14 @@ export interface GetAlbumFailureAction {
 export type AlbumAction = SelectAlbumAction | GetAlbumFailureAction | SelectPictureAction | OtherAction;
 
 
-function makeApiUrl(path: string) {
-  return `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}`;
-}
-
-
-function getCached(path: string): Promise<Album> {
+function getCached(path: string, format: Format): Promise<Album> {
   const cached = AlbumCache.get(path);
+  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}?format=${format}`;
 
   if (cached) {
     return Promise.resolve(cached);
   } else {
-    return fetch(makeApiUrl(path), {
+    return fetch(url, {
       headers: {
         accept: 'application/json',
       },
@@ -61,8 +58,6 @@ function getCached(path: string): Promise<Album> {
           }
 
           picture.album = album;
-          picture.original = picture.media.find((media) => media.original);
-          picture.thumbnail = picture.media.find((media) => media.thumbnail);
 
           AlbumCache.set(picture.path, album);
           previous = picture;
@@ -83,39 +78,46 @@ function getCached(path: string): Promise<Album> {
 export const getAlbum: ActionCreator<
   ThunkAction<Promise<AlbumAction>, State, void, AlbumAction>
 > = (path: string) => {
-  return (dispatch: Dispatch<AlbumAction>) =>
-    getCached(path)
-      .then((album) => {
-        if (album.path === path) {
-          // path points to album itself
-          return dispatch({
-            type: SelectAlbum,
-            payload: album,
-          });
-        } else {
-          // path points to a picture in album
-          const picture = album.pictures.find(pic => pic.path === path);
+  return async (dispatch: Dispatch<AlbumAction>) => {
+    try {
+      // TODO ugly, do the webp support thing in a more reduxy fashion
+      const asyncConfig = await getAsyncConfig();
+      const format = asyncConfig.webpSupported ? 'webp' : 'jpeg';
+      const album = await getCached(path, format);
 
-          if (!picture) {
-            return dispatch({
-              type: GetAlbumFailure,
-              error: true,
-              payload: new Error(
-                'the album returned to us did not contain the requested path (this shouldn\'t happen)'
-              ),
-            });
-          }
+      if (album.path === path) {
+        // path points to album itself
+        return dispatch({
+          type: SelectAlbum,
+          payload: album,
+        });
+      } else {
+        // path points to a picture in album
+        const picture = album.pictures.find(pic => pic.path === path);
 
+        if (!picture) {
           return dispatch({
-            type: SelectPicture,
-            payload: {album, picture},
+            type: GetAlbumFailure,
+            error: true,
+            payload: new Error(
+              'the album returned to us did not contain the requested path (this shouldn\'t happen)'
+            ),
           });
         }
-      }, (err) => dispatch({
+
+        return dispatch({
+          type: SelectPicture,
+          payload: { album, picture },
+        });
+      }
+    } catch (err) {
+      return dispatch({
         type: GetAlbumFailure,
         error: true,
         payload: err,
-      }));
+      });
+    }
+  };
 };
 
 
@@ -126,7 +128,6 @@ const initialState: Album = {
   subalbums: [],
   pictures: [],
   breadcrumb: [],
-  thumbnail: nullMedia,
 };
 
 

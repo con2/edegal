@@ -23,17 +23,32 @@ class Picture(models.Model):
         else:
             return self.album.terms_and_conditions
 
-    def as_dict(self):
+    def as_dict(self, format='jpeg'):
         return pick_attrs(self,
             'path',
             'title',
             'description',
-            media=[medium.as_dict() for medium in self.media.all()],
+            thumbnail=self.get_media('thumbnail', format).as_dict(),
+            preview=self.get_media('preview', format).as_dict(),
         )
 
     def _make_path(self):
         assert self.album
         return self.album.path + '/' + self.slug
+
+    def get_media(self, role, format):
+        # do this client-side to support prefetch_related and reduce hits to database
+        all_media = sorted(list(self.media.all()), key=lambda medium: -medium.width)
+        role_matching_media = [medium for medium in all_media if medium.role == role]
+        matching_media = [medium for medium in role_matching_media if medium.format == format]
+
+        # progressively increasing desperation
+        if matching_media:
+            return matching_media[0]
+        elif role_matching_media:
+            return role_matching_media[0]
+        else:
+            return all_media[0]
 
     @property
     def original(self):

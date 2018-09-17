@@ -84,7 +84,7 @@ class MediaInline(admin.TabularInline):
     extra = 0
     max_num = 0
     fields = ()
-    readonly_fields = ('spec', 'width', 'height', 'src')
+    readonly_fields = ('role', 'format', 'spec', 'width', 'height', 'src')
     can_delete = False
     show_change_link = False
 
@@ -98,9 +98,8 @@ class PictureAdmin(admin.ModelAdmin):
 
 class MediaSpecAdmin(admin.ModelAdmin):
     model = MediaSpec
-    list_display = ('max_width', 'max_height', 'quality')
-    fields = ('is_default_thumbnail',)
-    readonly_fields = ('max_width', 'max_height', 'quality')
+    list_display = ('role', 'max_width', 'max_height', 'quality', 'format', 'active')
+    readonly_fields = ('role', 'max_width', 'max_height', 'quality', 'format')
 
 
 class TermsAndConditionsAdmin(admin.ModelAdmin):

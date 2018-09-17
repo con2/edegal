@@ -4,7 +4,6 @@ import { applyMiddleware, compose, createStore } from 'redux';
 import thunk from 'redux-thunk';
 
 import rootReducer, { Action, State } from './modules';
-import { initialize } from './modules/initialization';
 
 
 export const history = createBrowserHistory();
@@ -22,9 +21,6 @@ const store = createStore<State, Action, {}, {}> (
     ),
   ),
 );
-
-
-store.dispatch(initialize() as any);
 
 
 export default store;

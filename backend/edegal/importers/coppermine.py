@@ -151,7 +151,7 @@ class CoppermineImporter(object):
         self.connection = connections[connection_name]
         self.root_category = CoppermineAlbum(root_category_id, None, None, None)
         self.mode = mode
-        self.media_specs = MediaSpec.objects.all() if create_previews else MediaSpec.objects.none()
+        self.media_specs = MediaSpec.objects.filter(active=True) if create_previews else MediaSpec.objects.none()
         self.media_root = media_root
         self.description_is_terms_and_conditions = description_is_terms_and_conditions
         self.exclude_category_ids = set(exclude_category_ids)

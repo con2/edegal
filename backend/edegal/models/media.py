@@ -10,7 +10,7 @@ from django.db import models
 from PIL import Image
 
 from ..utils import pick_attrs, log_get_or_create
-from .media_spec import MediaSpec
+from .media_spec import MediaSpec, ROLE_CHOICES, FORMAT_CHOICES
 
 
 logger = logging.getLogger(__name__)
@@ -26,32 +26,43 @@ FORMAT_OPTIONS = dict(
     )
 )
 
+ROLE_CHOICES = ROLE_CHOICES + [
+    ('original', 'Original'),
+]
+
 
 class Media(models.Model):
     picture = models.ForeignKey('edegal.Picture', related_name='media')
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
-    src = models.ImageField(
+    # src = models.ImageField(
+    src = models.FileField(
         null=True,
         max_length=255,
-        width_field='width',
-        height_field='height',
+        # width_field='width',
+        # height_field='height',
     )
     spec = models.ForeignKey(MediaSpec, null=True, blank=True)
+    role = models.CharField(
+        max_length=max(len(ext) for (ext, label) in ROLE_CHOICES),
+        choices=ROLE_CHOICES,
+    )
+    format = models.CharField(
+        max_length=max(len(ext) for (ext, label) in FORMAT_CHOICES),
+        default='jpeg',
+    )
 
     def as_dict(self):
         return pick_attrs(self,
             'width',
             'height',
-            src=self.src.url,
-            original=self.is_original,
-            thumbnail=self.is_default_thumbnail,
-            format=self.format,
-        )
 
-    @property
-    def is_original(self):
-        return self.spec is None
+            # if these are needed, add some include_obvious=False flag
+            # 'role',
+            # 'format',
+
+            src=self.src.url,
+        )
 
     @property
     def is_default_thumbnail(self):
@@ -61,28 +72,21 @@ class Media(models.Model):
     def path(self):
         return self.src
 
-    @property
-    def format(self):
-        if self.is_original:
-            extension = 'jpeg'  # TODO hardcoded jpeg
-        else:
-            extension = self.spec.format
-
-
     def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
         """
         Returns the canonical path of this medium. This is where the file would be stored
         unless in-place mode was used.
 
         Originals: /media/pictures/path/to/album/mypicture.jpeg
-        Previews: /media/previews/path/to/album/mypicture/640x480q60.jpeg
+        Previews: /media/previews/path/to/album/mypicture.preview.jpeg
+        Previews: /media/previews/path/to/album/mypicture.thumbnail.jpeg
         """
-        if self.is_original:
+        if self.role == 'original':
             base_dir = 'pictures'
             postfix = '.jpeg'  # TODO hardcoded jpeg
         else:
             base_dir = 'previews'
-            postfix = '/' + str(self.spec)
+            postfix = f'.{self.spec.role}.{self.spec.format}'
 
         # TODO hardcoded jpeg
         return "{prefix}{base_dir}{path}{postfix}".format(
@@ -109,7 +113,7 @@ class Media(models.Model):
     @classmethod
     def import_local_media(cls, picture, input_filename, mode='inplace', media_specs=None, refresh_album=False):
         if media_specs is None:
-            media_specs = MediaSpec.objects.all()
+            media_specs = MediaSpec.objects.filter(active=True)
 
         if settings.EDEGAL_USE_CELERY:
             from ..tasks import import_local_media
@@ -130,7 +134,7 @@ class Media(models.Model):
 
     @classmethod
     def import_open_file(cls, picture, input_file, media_specs=None, refresh_album=False):
-        original_path = Media(picture=picture).get_canonical_path()
+        original_path = Media(picture=picture, role='original').get_canonical_path()
         makedirs(dirname(original_path), exist_ok=True)
 
         with open(original_path, 'wb') as output_file:
@@ -172,29 +176,36 @@ class Media(models.Model):
 
     @classmethod
     def get_or_create_original_media(cls, picture, input_filename, mode='inplace'):
-        media, created = Media.objects.get_or_create(
+        original_media, created = Media.objects.get_or_create(
             picture=picture,
-            spec=None,
+            role='original',
+            format='jpeg',  # TODO hardcoded jpeg
         )
 
-        log_get_or_create(logger, media, created)
+        log_get_or_create(logger, original_media, created)
 
-        src_missing = not media.src
+        src_missing = not original_media.src
         if src_missing:
-            media.src = cls.process_file_location(media, input_filename, mode)
-            media.save()
+            original_media.src = cls.process_file_location(original_media, input_filename, mode)
 
-        log_get_or_create(logger, media.src, src_missing)
+            with original_media.as_image() as image:
+                original_media.width, original_media.height = image.size
 
-        return media, created
+            original_media.save()
+
+        log_get_or_create(logger, original_media.src, src_missing)
+
+        return original_media, created
 
     @classmethod
     def get_or_create_scaled_media(cls, original_media, spec):
-        assert original_media.is_original
+        assert original_media.role == 'original'
 
         scaled_media, created = Media.objects.get_or_create(
             picture=original_media.picture,
             spec=spec,
+            role=spec.role,
+            format=spec.format,
         )
 
         log_get_or_create(logger, scaled_media, created)
@@ -210,6 +221,8 @@ class Media(models.Model):
                     quality=scaled_media.spec.quality,
                     **FORMAT_OPTIONS[scaled_media.spec.format]
                 )
+
+                scaled_media.width, scaled_media.height = image.size
 
             scaled_media.src = scaled_media.get_canonical_path('')
             scaled_media.save()

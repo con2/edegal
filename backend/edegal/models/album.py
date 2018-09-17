@@ -52,7 +52,7 @@ class Album(MPTTModel):
         blank=True,
     )
 
-    def as_dict(self, include_hidden=False):
+    def as_dict(self, include_hidden=False, format='jpeg'):
         child_criteria = dict()
         if not include_hidden:
             child_criteria.update(is_public=True)
@@ -66,14 +66,13 @@ class Album(MPTTModel):
 
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
             subalbums=[
-                subalbum._make_subalbum()
-                for subalbum in self.subalbums.filter(**child_criteria).prefetch_related('pictures')
+                subalbum._make_subalbum(format=format)
+                for subalbum in self.subalbums.filter(**child_criteria).select_related('cover_picture')
             ],
             pictures=[
-                picture.as_dict()
+                picture.as_dict(format=format)
                 for picture in self.pictures.filter(**child_criteria).prefetch_related('media')
             ],
-            thumbnail=self._make_thumbnail(),
             terms_and_conditions=(
                 self.terms_and_conditions.as_dict()
                 if self.terms_and_conditions
@@ -81,11 +80,10 @@ class Album(MPTTModel):
             ),
         )
 
-    def _make_thumbnail(self):
+    def _make_thumbnail(self, format):
         # TODO what if the thumbnail is hidden?
-
-        if self.cover_picture and self.cover_picture.thumbnail:
-            return self.cover_picture.thumbnail.as_dict()
+        if self.cover_picture:
+            return self.cover_picture.get_media('thumbnail', format=format).as_dict()
         else:
             return None
 
@@ -95,11 +93,11 @@ class Album(MPTTModel):
             'title',
         )
 
-    def _make_subalbum(self):
+    def _make_subalbum(self, format):
         return pick_attrs(self,
             'path',
             'title',
-            thumbnail=self._make_thumbnail(),
+            thumbnail=self._make_thumbnail(format=format),
         )
 
     def _make_path(self):

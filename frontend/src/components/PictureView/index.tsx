@@ -6,7 +6,6 @@ import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-edi
 import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg';
 
 import preloadMedia from '../../helpers/preloadMedia';
-import selectMedia from '../../helpers/selectMedia';
 import Picture from '../../models/Picture';
 import { State } from '../../modules';
 import { openDownloadDialog } from '../../modules/downloadDialog';
@@ -27,8 +26,6 @@ const keyMap: {[keyCode: number]: Direction} = {
 
 interface PictureViewStateProps {
   picture: Picture;
-  width: number;
-  height: number;
 }
 interface PictureViewDispatchProps {
   push: typeof push;
@@ -39,8 +36,8 @@ type PictureViewProps = PictureViewStateProps & PictureViewDispatchProps;
 
 class PictureView extends React.PureComponent<PictureViewProps, {}> {
   render() {
-    const { picture, width, height } = this.props;
-    const preview = selectMedia(picture, width, height);
+    const { picture } = this.props;
+    const { preview } = picture;
 
     return (
       <div className="PictureView">
@@ -135,14 +132,12 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
   preloadPreviousAndNext(picture: Picture) {
     // use setTimeout to not block rendering of current picture – improves visible latency
     setTimeout(() => {
-      const { width, height } = this.props;
-
       if (picture.previous) {
-        preloadMedia(picture.previous, width, height);
+        preloadMedia(picture.previous);
       }
 
       if (picture.next) {
-        preloadMedia(picture.next, width, height);
+        preloadMedia(picture.next);
       }
     }, 0);
 
@@ -172,7 +167,6 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
 const mapStateToProps = (state: State) => ({
   picture: state.picture,
   width: state.mainView.width,
-  height: state.mainView.height,
 });
 
 const mapDispatchToProps = { push, openDownloadDialog };

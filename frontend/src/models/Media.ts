@@ -1,20 +1,24 @@
+export type Format = 'jpeg' | 'webp';
+export type Role = 'original' | 'preview' | 'thumbnail';
+
+
 interface Media {
   src: string;
   width: number;
   height: number;
   quality: number;
-  original: boolean;
-  thumbnail: boolean;
+  format: Format;
+  role: Role;
 }
 
 
-export const nullMedia = {
+export const nullMedia: Media = {
   src: '',
   width: 0,
   height: 0,
   quality: 0,
-  original: false,
-  thumbnail: false,
+  format: 'jpeg',
+  role: 'thumbnail',
 };
 
 

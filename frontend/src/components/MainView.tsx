@@ -10,12 +10,12 @@ import PictureView from './PictureView';
 
 
 interface MainViewStateProps {
+  width: number;
   mode: MainViewMode;
   path: string;
-  width: number;
-  height: number;
   ready: boolean;
 }
+// XXX this method of typing dispatch props is cheating and a black hole
 interface MainViewDispatchProps {
   getAlbum: typeof getAlbum;
   mainViewResized: typeof mainViewResized;
@@ -41,10 +41,9 @@ class MainView extends React.Component<MainViewProps, {}> {
 
   handleResize = () => {
     const newWidth = document.documentElement.clientWidth;
-    const newHeight = document.documentElement.clientHeight;
 
-    if (newWidth !== this.props.width || newHeight !== this.props.height) {
-      this.props.mainViewResized(newWidth, newHeight);
+    if (newWidth !== this.props.width) {
+      this.props.mainViewResized(newWidth);
     }
   }
 
@@ -69,10 +68,9 @@ class MainView extends React.Component<MainViewProps, {}> {
 
 const mapStateToProps = (state: State) => ({
   mode: state.mainView.mode,
-  width: state.mainView.width,
-  height: state.mainView.height,
-  ready: state.ready,
   path: state.router.location.pathname,
+  ready: state.ready,
+  width: state.mainView.width,
 });
 
 const mapDispatchToProps = { getAlbum, mainViewResized };

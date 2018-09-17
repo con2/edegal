@@ -20,7 +20,8 @@ const initialState: Picture = {
   path: '',
   title: '',
   thumbnail: nullMedia,
-  media: []
+  preview: nullMedia,
+  original: nullMedia,
 };
 
 

@@ -6,17 +6,29 @@ FORMAT_CHOICES = [
     ('webp', 'WebP'),
 ]
 
+ROLE_CHOICES = [
+    ('thumbnail', 'Thumbnail'),
+    ('preview', 'Preview'),
+]
+
 
 class MediaSpec(models.Model):
     max_width = models.PositiveIntegerField()
     max_height = models.PositiveIntegerField()
     quality = models.PositiveIntegerField()
+
     format = models.CharField(
         max_length=max(len(ext) for (ext, label) in FORMAT_CHOICES),
         default='jpeg',
     )
 
-    is_default_thumbnail = models.BooleanField(default=False)
+    role = models.CharField(
+        max_length=max(len(ext) for (ext, label) in ROLE_CHOICES),
+        choices=ROLE_CHOICES,
+        default='thumbnail',  # XXX
+    )
+
+    active = models.BooleanField(default=True)
 
     @property
     def size(self):

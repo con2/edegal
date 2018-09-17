@@ -9,7 +9,7 @@ interface Config {
 const Config = {
   backend: {
     baseUrl: process.env.REACT_APP_EDEGAL_BACKEND_URL || '',
-    apiPrefix: '/api/v2',
+    apiPrefix: '/api/v3',
   },
   loginUrl: process.env.REACT_APP_EDEGAL_LOGIN_URL || 'http://localhost:8000/admin/',
 };

@@ -1,15 +1,12 @@
 import Picture from '../models/Picture';
-import selectMedia from './selectMedia';
 
 
 /**
- * Preloads the media for the given image for SPEED. The media to use is selected using
- * the `selectMedia` helper.
+ * Preloads the picture preview for the given image for SPEED.
  *
- * @param picture The picture to preload media for.
+ * @param picture The picture to preload the preview media for.
  */
-export default function preloadMedia(picture: Picture, width: number, height: number) {
-  const media = selectMedia(picture, width, height);
+export default function preloadMedia(picture: Picture) {
   const element = document.createElement('img');
-  element.src = media.src;
+  element.src = picture.preview.src;
 }
