@@ -30,6 +30,7 @@ class Picture(models.Model):
             'description',
             thumbnail=self.get_media('thumbnail', format).as_dict(),
             preview=self.get_media('preview', format).as_dict(),
+            original=self.get_media('original', format).as_dict(),
         )
 
     def _make_path(self):
