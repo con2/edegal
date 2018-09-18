@@ -54,7 +54,6 @@ services:
     image: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./conikuvat-20180917103659.sql:/docker-entrypoint-initdb.d/conikuvat.sql
     environment:
       POSTGRES_USER: edegal
       POSTGRES_PASSWORD: edegal
