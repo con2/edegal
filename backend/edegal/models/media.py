@@ -184,16 +184,20 @@ class Media(models.Model):
 
     @classmethod
     def get_or_create_original_media(cls, picture, input_filename, mode='inplace'):
-        original_media, created = Media.objects.get_or_create(
-            picture=picture,
-            role='original',
-            format='jpeg',  # TODO hardcoded jpeg
-        )
+        try:
+            original_media = Media.objects.get(
+                picture=picture,
+                role='original',
+            )
 
-        log_get_or_create(logger, original_media, created)
+            created = False
+        except Media.DoesNotExist:
+            original_media = Media(
+                picture=picture,
+                role='original',
+                format='jpeg',  # TODO hardcoded jpeg
+            )
 
-        src_missing = not original_media.src
-        if src_missing:
             original_media.src = cls.process_file_location(original_media, input_filename, mode)
 
             with original_media.as_image() as image:
@@ -201,25 +205,30 @@ class Media(models.Model):
 
             original_media.save()
 
-        log_get_or_create(logger, original_media.src, src_missing)
+            created = True
 
+        log_get_or_create(logger, original_media, created)
         return original_media, created
 
     @classmethod
     def get_or_create_scaled_media(cls, original_media, spec):
         assert original_media.role == 'original'
 
-        scaled_media, created = Media.objects.get_or_create(
-            picture=original_media.picture,
-            spec=spec,
-            role=spec.role,
-            format=spec.format,
-        )
+        try:
+            scaled_media = Media.objects.get(
+                picture=original_media.picture,
+                spec=spec,
+            )
 
-        log_get_or_create(logger, scaled_media, created)
+            created = False
+        except Media.DoesNotExist:
+            scaled_media = Media(
+                picture=original_media.picture,
+                spec=spec,
+                role=spec.role,
+                format=spec.format,
+            )
 
-        src_missing = not scaled_media.src
-        if src_missing:
             makedirs(dirname(scaled_media.get_canonical_path()), exist_ok=True)
             with original_media.as_image() as image:
                 image.thumbnail(spec.size)
@@ -235,7 +244,9 @@ class Media(models.Model):
             scaled_media.src = scaled_media.get_canonical_path('')
             scaled_media.save()
 
-        log_get_or_create(logger, scaled_media.src, src_missing)
+            created = True
+
+        log_get_or_create(logger, scaled_media, created)
 
         return scaled_media, created
 

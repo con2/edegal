@@ -1,8 +1,14 @@
+import logging
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from ..utils import slugify, pick_attrs
 from .common import CommonFields
+from .media_spec import MediaSpec
+
+
+logger = logging.getLogger(__name__)
 
 
 class Picture(models.Model):
@@ -50,6 +56,16 @@ class Picture(models.Model):
             return role_matching_media[0]
         else:
             return all_media[0]
+
+    def refresh_media(self, dry_run=False):
+        current_specs = MediaSpec.objects.filter(active=True)
+
+        media_to_remove = self.media.all().exclude(role='original').exclude(spec__in=current_specs)
+
+        assert dry_run, "actually doing this not implemented yet :)"
+
+        for medium in media_to_remove:
+            print('Would remove', medium)
 
     @property
     def original(self):
