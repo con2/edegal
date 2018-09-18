@@ -43,7 +43,7 @@ class Picture(models.Model):
         assert self.album
         return self.album.path + '/' + self.slug
 
-    def get_media(self, role, format):
+    def get_media(self, role, format='jpeg'):
         # do this client-side to support prefetch_related and reduce hits to database
         all_media = sorted(list(self.media.all()), key=lambda medium: -medium.width)
         role_matching_media = [medium for medium in all_media if medium.role == role]

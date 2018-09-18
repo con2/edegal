@@ -222,33 +222,36 @@ class Media(models.Model):
 
             created = False
         except Media.DoesNotExist:
-            scaled_media = Media(
-                picture=original_media.picture,
-                spec=spec,
-                role=spec.role,
-                format=spec.format,
-            )
-
-            makedirs(dirname(scaled_media.get_canonical_path()), exist_ok=True)
-            with original_media.as_image() as image:
-                image.thumbnail(spec.size)
-                image.save(
-                    scaled_media.get_canonical_path(),
-                    format=scaled_media.spec.format,
-                    quality=scaled_media.spec.quality,
-                    **FORMAT_OPTIONS[scaled_media.spec.format]
-                )
-
-                scaled_media.width, scaled_media.height = image.size
-
-            scaled_media.src = scaled_media.get_canonical_path('')
-            scaled_media.save()
-
+            scaled_media = cls.create_scaled_media(original_media, spec)
             created = True
 
         log_get_or_create(logger, scaled_media, created)
 
         return scaled_media, created
+
+    @classmethod
+    def create_scaled_media(cls, original_media, spec):
+        scaled_media = Media(
+            picture=original_media.picture,
+            spec=spec,
+            role=spec.role,
+            format=spec.format,
+        )
+
+        makedirs(dirname(scaled_media.get_canonical_path()), exist_ok=True)
+        with original_media.as_image() as image:
+            image.thumbnail(spec.size)
+            image.save(
+                scaled_media.get_canonical_path(),
+                format=scaled_media.spec.format,
+                quality=scaled_media.spec.quality,
+                **FORMAT_OPTIONS[scaled_media.spec.format]
+            )
+
+            scaled_media.width, scaled_media.height = image.size
+
+        scaled_media.src = scaled_media.get_canonical_path('')
+        scaled_media.save()
 
     def __str__(self):
         return self.src.url if self.src else self.get_canonical_path('')

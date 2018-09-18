@@ -18,12 +18,22 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        assert not options['force'], "not yet implemented"
-        self.check_for_empty_src()
+        self.check_for_empty_src(fix=options['force'])
 
-    def check_for_empty_src(self):
-        for medium in Media.objects.filter(src__isnull=True):
-            print('null media:', medium)
-
+    def check_for_empty_src(self, fix):
         for medium in Media.objects.filter(src=''):
-            print('empty media:', medium)
+            if medium.role == 'original':
+                logger.error('original media with empty src (cannot auto-fix): %s', medium)
+            else:
+                picture = medium.picture
+                original_media = picture.get_media('original_media')
+
+                if original_media:
+                    logger.warn('derived media with empty src: %s', medium)
+
+                    if fix:
+                        spec = medium.spec
+                        medium.delete()
+                        Media.create_scaled_media(original_media, spec)
+                else:
+                    logger.error('derived media with empty src, original missing (cannot auto-fix): %s', medium)
