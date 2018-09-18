@@ -84,7 +84,7 @@ class MediaInline(admin.TabularInline):
     extra = 0
     max_num = 0
     fields = ()
-    readonly_fields = ('role', 'format', 'spec', 'width', 'height', 'src')
+    readonly_fields = ('role', 'format', 'spec', 'width', 'height', 'file_size', 'src')
     can_delete = False
     show_change_link = False
 
@@ -96,10 +96,21 @@ class PictureAdmin(admin.ModelAdmin):
     inlines = (MediaInline,)
 
 
+def activate_media_specs(modeladmin, request, queryset):
+    queryset.update(active=True)
+activate_media_specs.short_description = 'Activate selected media specs'
+
+
+def deactivate_media_specs(modeladmin, request, queryset):
+    queryset.update(active=False)
+deactivate_media_specs.short_description = 'Deactivate selected media specs'
+
+
 class MediaSpecAdmin(admin.ModelAdmin):
     model = MediaSpec
     list_display = ('role', 'max_width', 'max_height', 'quality', 'format', 'active')
     readonly_fields = ('role', 'max_width', 'max_height', 'quality', 'format')
+    actions = [activate_media_specs, deactivate_media_specs]
 
 
 class TermsAndConditionsAdmin(admin.ModelAdmin):

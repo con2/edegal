@@ -2,7 +2,7 @@ import shutil
 import logging
 from contextlib import contextmanager
 from os import makedirs
-from os.path import dirname, abspath
+from os.path import dirname, abspath, getsize
 
 from django.conf import settings
 from django.db import models
@@ -71,6 +71,14 @@ class Media(models.Model):
     @property
     def path(self):
         return self.src
+
+    @property
+    def file_size(self):
+        try:
+            return getsize(self.src.path)
+        except RuntimeError:
+            logger.exception('getsize failed: %s', self.src.path)
+            return None
 
     def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
         """
