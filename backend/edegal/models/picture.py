@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -21,6 +22,11 @@ class Picture(models.Model):
     description = models.TextField(**CommonFields.description)
 
     is_public = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(null=True, auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, auto_now=True)
+
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
 
     @property
     def terms_and_conditions(self):

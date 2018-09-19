@@ -52,6 +52,11 @@ class Album(MPTTModel):
         blank=True,
     )
 
+    created_at = models.DateTimeField(null=True, auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, auto_now=True)
+
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+
     def as_dict(self, include_hidden=False, format='jpeg'):
         child_criteria = dict()
         if not include_hidden:

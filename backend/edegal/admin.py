@@ -44,14 +44,48 @@ class AlbumAdminForm(forms.ModelForm):
 class AlbumAdmin(MultiUploadAdmin):
     model = Album
     form = AlbumAdminForm
-    readonly_fields = ('path',)
+    readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
     list_display = ('path', 'title')
     raw_id_fields = ('cover_picture', 'terms_and_conditions', 'parent')
     search_fields = ('path', 'title')
+    fieldsets = [
+        ('Perustiedot', {
+            'fields': (
+                'title',
+                'description',
+                'parent',
+                'is_public',
+            )
+        }),
+        ('Tekstisisältö', {
+            'classes': ('collapse',),
+            'fields': (
+                'body',
+            )
+        }),
+        ('Tekniset tiedot', {
+            'classes': ('collapse',),
+            'fields': (
+                'cover_picture',
+                'terms_and_conditions',
+                'slug',
+                'path',
+                'created_at',
+                'updated_at',
+                'created_by',
+            )
+        }),
+    ]
     inlines = (PictureInline,)
     multiupload_form = True
     multiupload_list = False
     multiupload_maxfilesize = settings.MAX_UPLOAD_SIZE
+
+    def save_model(self, request, obj, form, change):
+        if obj.pk is None and obj.created_by is None:
+            obj.created_by = request.user
+
+        return super(AlbumAdmin, self).save_model(request, obj, form, change)
 
     def process_uploaded_file(self, uploaded, album, request):
         assert album is not None
@@ -63,6 +97,7 @@ class AlbumAdmin(MultiUploadAdmin):
             album=album,
             defaults=dict(
                 title=plain_name,
+                created_by=request.user,
             )
         )
 
@@ -91,7 +126,7 @@ class MediaInline(admin.TabularInline):
 
 class PictureAdmin(admin.ModelAdmin):
     model = Picture
-    readonly_fields = ('path',)
+    readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
     list_display = ('album', 'path', 'title')
     inlines = (MediaInline,)
 
