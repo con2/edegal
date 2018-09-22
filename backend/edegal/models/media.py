@@ -35,12 +35,9 @@ class Media(models.Model):
     picture = models.ForeignKey('edegal.Picture', related_name='media')
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
-    # src = models.ImageField(
     src = models.FileField(
-        null=True,
-        max_length=255,
-        # width_field='width',
-        # height_field='height',
+        unique=True,
+        max_length=1023,
     )
     spec = models.ForeignKey(MediaSpec, null=True, blank=True)
     role = models.CharField(
