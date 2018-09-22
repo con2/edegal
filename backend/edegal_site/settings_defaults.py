@@ -107,12 +107,12 @@ LOGGING = {
 WSGI_APPLICATION = 'edegal_site.wsgi.application'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-LANGUAGE_CODE = 'fi-fi'
+LANGUAGE_CODE = 'en-gb'
 
 TIME_ZONE = 'Europe/Helsinki'
 
 USE_I18N = True
-USE_L10N = True
+USE_L10N = False
 USE_TZ = True
 
 STATIC_URL = '/static/'
