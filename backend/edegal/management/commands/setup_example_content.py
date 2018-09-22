@@ -12,7 +12,19 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '-f', '--force',
+            default=False,
+            action='store_true',
+            help='Create example content even if there is content already',
+        )
+
     def handle(self, *args, **options):
+        if Album.objects.exists() and not options['force']:
+            logger.info('There is already content in the database – skipping creating example content')
+            return
+
         logger.info('Creating example content')
 
         root, created = Album.objects.get_or_create(
