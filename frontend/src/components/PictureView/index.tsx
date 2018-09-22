@@ -1,5 +1,6 @@
 import { push } from 'connected-react-router';
 import * as React from 'react';
+import { I18n } from 'react-i18next';
 import { connect } from 'react-redux';
 
 import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
@@ -40,76 +41,79 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
     const { preview } = picture;
 
     return (
-      <div className="PictureView">
-        <div
-          className="PictureView-img"
-          style={{
-            backgroundImage: `url(${preview.src})`
-          }}
-        />
+      <I18n ns="PictureView">
+        {(t) => (
+          <div className="PictureView">
+            <div
+              className="PictureView-img"
+              style={{
+                backgroundImage: `url(${preview.src})`
+              }}
+            />
 
-        {picture.previous ? (
-          <div
-            onClick={() => this.goTo('previous')}
-            className="PictureView-nav PictureView-nav-previous"
-            title="Edellinen"
-          >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
-            </svg>
-          </div>
-        ) : null}
+            {picture.previous ? (
+              <div
+                onClick={() => this.goTo('previous')}
+                className="PictureView-nav PictureView-nav-previous"
+                title={t('previousPicture')}
+              >
+                <svg className="PictureView-icon">
+                  <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
+                </svg>
+              </div>
+            ) : null}
 
-        {picture.next ? (
-          <div
-            onClick={() => this.goTo('next')}
-            className="PictureView-nav PictureView-nav-next"
-            title="Seuraava"
-          >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
-            </svg>
-          </div>
-        ) : null}
+            {picture.next ? (
+              <div
+                onClick={() => this.goTo('next')}
+                className="PictureView-nav PictureView-nav-next"
+                title={t('nextPicture')}
+              >
+                <svg className="PictureView-icon">
+                  <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
+                </svg>
+              </div>
+            ) : null}
 
-        <div
-          onClick={() => this.goTo('album')}
-          className="PictureView-action PictureView-action-exit"
-          title="Takaisin albumiin"
-        >
-          <svg className="PictureView-icon">
-            <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
-          </svg>
-        </div>
-
-        {picture.original && (
-          picture.album!.terms_and_conditions ? (
-            <a
-            // <div
-              // onClick={this.props.openDownloadDialog}
-              href={picture.original.src}
-              className="PictureView-action PictureView-action-download"
-              title="Lataa kuva"
+            <div
+              onClick={() => this.goTo('album')}
+              className="PictureView-action PictureView-action-exit"
+              title={t('backToAlbum')}
             >
               <svg className="PictureView-icon">
-                <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+                <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
               </svg>
-              {/* <DownloadDialog /> */}
-            </a>
-          ) : (
-            <a
-              href={picture.original.src}
-              className="PictureView-action PictureView-action-download"
-              title="Lataa kuva"
-            >
-              <svg className="PictureView-icon">
-                <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
-              </svg>
-            </a>
-          )
+            </div>
+
+            {picture.original && (
+              picture.album!.terms_and_conditions ? (
+                <a
+                // <div
+                  // onClick={this.props.openDownloadDialog}
+                  href={picture.original.src}
+                  className="PictureView-action PictureView-action-download"
+                  title={t('downloadOriginal')}
+                >
+                  <svg className="PictureView-icon">
+                    <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+                  </svg>
+                  {/* <DownloadDialog /> */}
+                </a>
+              ) : (
+                <a
+                  href={picture.original.src}
+                  className="PictureView-action PictureView-action-download"
+                  title={t('downloadOriginal')}
+                >
+                  <svg className="PictureView-icon">
+                    <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+                  </svg>
+                </a>
+              )
+            )}
+          </div>
         )}
-
-      </div>
+      </I18n>
     );
   }
 
