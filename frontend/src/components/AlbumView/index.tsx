@@ -6,6 +6,7 @@ import TileItem from '../../models/TileItem';
 import { State } from '../../modules';
 import AppBar from '../AppBar';
 
+import preloadMedia from '../../helpers/preloadMedia';
 import AlbumGrid from './AlbumGrid';
 import './index.css';
 
@@ -28,6 +29,22 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
         <AlbumGrid tiles={this.props.album.pictures} getTitle={(tile: TileItem) => ""} />
       </div>
     );
+  }
+
+  preloadFirstPicture() {
+    const firstPicture = this.props.album.pictures[0];
+
+    if (firstPicture) {
+      preloadMedia(firstPicture);
+    }
+  }
+
+  componentDidMount() {
+    this.preloadFirstPicture();
+  }
+
+  componentDidUpdate() {
+    this.preloadFirstPicture();
   }
 }
 
