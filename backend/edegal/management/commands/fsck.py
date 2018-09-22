@@ -19,21 +19,36 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.check_for_empty_src(fix=options['force'])
+        self.check_for_pictures_without_media(fix=options['force'])
 
     def check_for_empty_src(self, fix):
-        for medium in Media.objects.filter(src=''):
-            if medium.role == 'original':
-                logger.error('original media with empty src (cannot auto-fix): %s', medium)
+        media = Media.objects.filter(src='')
+
+        if media.exists():
+            if fix:
+                parts = ['Media with empty src (deleting):']
             else:
-                picture = medium.picture
-                original_media = picture.get_media('original_media')
+                parts = ['Media with empty src (--force to delete):']
 
-                if original_media:
-                    logger.warn('derived media with empty src: %s', medium)
+            parts.extend(str(medium) for medium in media)
 
-                    if fix:
-                        spec = medium.spec
-                        medium.delete()
-                        Media.create_scaled_media(original_media, spec)
-                else:
-                    logger.error('derived media with empty src, original missing (cannot auto-fix): %s', medium)
+            logger.warning('\n'.join(parts))
+
+            if fix:
+                media.delete()
+
+    def check_for_pictures_without_media(self, fix):
+        pictures = Picture.objects.filter(media__isnull=True)
+
+        if pictures.exists():
+            if fix:
+                parts = ['Pictures without media (deleting):']
+            else:
+                parts = ['Non-original media with empty src (--force to delete):']
+
+            parts.extend(str(picture) for picture in pictures)
+
+            logger.warning('\n'.join(parts))
+
+            if fix:
+                pictures.delete()
