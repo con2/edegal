@@ -20,8 +20,8 @@ class Album(MPTTModel):
         blank=True,
         related_name='subalbums',
         db_index=True,
-        verbose_name='Yläalbumi',
-        help_text='Tämä albumi luodaan valitun albumin alaisuuteen. Juurialbumilla ei ole yläalbumia.'
+        verbose_name='Parent Album',
+        help_text='The album under which this album will reside. The root album (/) has no parent album.'
     )
     path = models.CharField(**CommonFields.path)
 
@@ -31,11 +31,8 @@ class Album(MPTTModel):
     body = models.TextField(
         blank=True,
         default='',
-        verbose_name='Tekstisisältö',
-        help_text=(
-            'Albumilla voi olla tekstisisältöä, jolloin se näytetään albuminäkymän yläosassa '
-            'ennen ala-albumeja ja kuvia.'
-        ),
+        verbose_name='Text content',
+        help_text='Will be displayed at the top of the album view before subalbums and pictures.',
     )
 
     cover_picture = models.ForeignKey('Picture',
@@ -188,6 +185,6 @@ class Album(MPTTModel):
         return f'{settings.EDEGAL_FRONTEND_URL}{self.path}'
 
     class Meta:
-        verbose_name = 'Albumi'
-        verbose_name_plural = 'Albumit'
+        verbose_name = 'Album'
+        verbose_name_plural = 'Albums'
         unique_together = [('parent', 'slug')]
