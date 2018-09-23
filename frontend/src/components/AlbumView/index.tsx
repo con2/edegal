@@ -9,6 +9,7 @@ import AppBar from '../AppBar';
 import preloadMedia from '../../helpers/preloadMedia';
 import AlbumGrid from './AlbumGrid';
 import './index.css';
+import TextContent from './TextContent';
 
 
 interface AlbumViewProps {
@@ -18,15 +19,19 @@ interface AlbumViewProps {
 
 class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
   render() {
+    const { album } = this.props;
+
     return (
       <div>
         <AppBar />
 
+        {album.body ? <TextContent content={album.body} /> : null}
+
         {/* Subalbums */}
-        <AlbumGrid tiles={this.props.album.subalbums} getTitle={(tile: TileItem) => tile.title} />
+        <AlbumGrid tiles={album.subalbums} getTitle={(tile: TileItem) => tile.title} />
 
         {/* Pictures */}
-        <AlbumGrid tiles={this.props.album.pictures} getTitle={(tile: TileItem) => ""} />
+        <AlbumGrid tiles={album.pictures} getTitle={(tile: TileItem) => ""} />
       </div>
     );
   }
