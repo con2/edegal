@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django import forms
 
-from ckeditor.widgets import CKEditorWidget
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from multiupload.admin import MultiUploadAdmin
 
 from .utils import slugify
@@ -30,7 +30,7 @@ class PictureInline(admin.TabularInline):
 
 class AlbumAdminForm(forms.ModelForm):
     body = forms.CharField(
-        widget=CKEditorWidget(),
+        widget=CKEditorUploadingWidget(),
         required=False,
         label=Album._meta.get_field('body').verbose_name,
         help_text=Album._meta.get_field('body').help_text,

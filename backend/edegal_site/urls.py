@@ -6,6 +6,7 @@ from django.views.static import serve as serve_static
 
 urlpatterns = [
     url(r'', include('edegal.urls')),
+    url(r'^admin/ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
 
