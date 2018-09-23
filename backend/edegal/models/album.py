@@ -54,6 +54,10 @@ class Album(MPTTModel):
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
 
+    def __init__(self, *args, **kwargs):
+        super(Album, self).__init__(*args, **kwargs)
+        self.__original_path = self.path
+
     def as_dict(self, include_hidden=False, format='jpeg'):
         child_criteria = dict()
         if not include_hidden:
@@ -132,8 +136,10 @@ class Album(MPTTModel):
             else:
                 self.slug = '-root-album'
 
+        path_changed = False
         if self.slug:
             self.path = self._make_path()
+            path_changed = self.path != self.__original_path
 
         if self.cover_picture is None:
             self.cover_picture = self._select_cover_picture()
@@ -146,8 +152,12 @@ class Album(MPTTModel):
 
         # In case thumbnails or path changed, update whole family with updated information.
         if traverse:
-            for album in self.get_family():
+            if path_changed:
+                family = self.get_family()
+            else:
+                family = self.get_ancestors()
 
+            for album in family:
                 # Cannot use identity or id because self might not be saved yet!
                 if album.path != self.path:
                     logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
