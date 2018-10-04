@@ -83,6 +83,12 @@ export const getAlbum: ActionCreator<
       // TODO ugly, do the webp support thing in a more reduxy fashion
       const asyncConfig = await getAsyncConfig();
       const format = asyncConfig.webpSupported ? 'webp' : 'jpeg';
+
+      // Remove trailing slash
+      if (path !== '/' && path.slice(-1) === '/') {
+        path = path.slice(0, -1);
+      }
+
       const album = await getCached(path, format);
 
       if (album.path === path) {
@@ -96,12 +102,13 @@ export const getAlbum: ActionCreator<
         const picture = album.pictures.find(pic => pic.path === path);
 
         if (!picture) {
+          const message = 'the album returned to us did not contain the requested path (this shouldn\'t happen)';
+          console.error('Failed to fetch album:', message, { album, path });
+
           return dispatch({
             type: GetAlbumFailure,
             error: true,
-            payload: new Error(
-              'the album returned to us did not contain the requested path (this shouldn\'t happen)'
-            ),
+            payload: new Error(message),
           });
         }
 
@@ -111,6 +118,7 @@ export const getAlbum: ActionCreator<
         });
       }
     } catch (err) {
+      console.error('Failed to fetch album:', err);
       return dispatch({
         type: GetAlbumFailure,
         error: true,
