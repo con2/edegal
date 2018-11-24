@@ -1,4 +1,4 @@
-ingress_public_hostname: dev.edegal.eu
+ingress_public_hostname: dev.conikuvat.fi
 
 postgres_managed: false
 postgres_hostname: siilo.tracon.fi
@@ -9,7 +9,7 @@ rabbitmq_vhost: edegaldev
 
 memcached_image: memcached:1.5.11-alpine
 
-edegal_tag: development-125
+edegal_tag: staging
 
 setup_should_run: false
 

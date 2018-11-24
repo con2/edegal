@@ -73,7 +73,7 @@ node {
       sh """
         emrichen kubernetes/template.in.yml \
           -f kubernetes/${environmentName}.vars.yml \
-          -D conikuvat_tag=${tag} | \
+          -D edegal_tag=${tag} | \
         kubectl apply -n conikuvat-${environmentName} -f -
       """
     } else {
