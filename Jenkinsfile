@@ -41,11 +41,11 @@ node {
 // }
 
   stage("Build frontend") {
-    sh "cd frontend && docker build --tag $tempFrontedImage ."
+    sh "cd frontend && docker build --tag $tempFrontendImage ."
   }
 
   stage("Build static") {
-    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$tempFrontedImage --build-arg BACKEND_IMAGE=$tempBackendImage --tag $tempStaticImage ."
+    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$tempFrontendImage --build-arg BACKEND_IMAGE=$tempBackendImage --tag $tempStaticImage ."
   }
 
   stage("Push") {
