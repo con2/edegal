@@ -24,6 +24,8 @@ node {
   stage("Build backend") {
     checkout scm
     sh "cd backend && docker build --tag $tempBackendImage ."
+    sh "cd frontend && docker build --tag $frontendImage ."
+    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --build-arg BACKEND_IMAGE=$tempBackendImage --tag $tempStaticImage ."
   }
 
 // stage("Test") {
@@ -38,14 +40,6 @@ node {
 //     """
 //   }
 // }
-
-  stage("Build frontend") {
-    sh "cd frontend && docker build --tag $frontendImage ."
-  }
-
-  stage("Build static") {
-    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --build-arg BACKEND_IMAGE=$tempBackendImage --tag $tempStaticImage ."
-  }
 
   stage("Push") {
     sh """
