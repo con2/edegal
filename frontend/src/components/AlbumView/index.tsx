@@ -58,4 +58,4 @@ const mapStateToProps = (state: State) => ({
   album: state.album,
 });
 
-export default connect<AlbumViewProps>(mapStateToProps)(AlbumView);
+export default connect(mapStateToProps)(AlbumView);

@@ -1,5 +1,6 @@
-import { RouterState } from 'connected-react-router';
+import { RouterState, connectRouter } from 'connected-react-router';
 import { combineReducers } from 'redux';
+import { History } from 'history';
 
 import Album from '../models/Album';
 import Picture from '../models/Picture';
@@ -33,7 +34,8 @@ export interface State {
 }
 
 
-export default combineReducers({
+export default (history: History) => combineReducers({
+  router: connectRouter(history),
   album,
   downloadDialog,
   mainView,

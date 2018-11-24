@@ -97,4 +97,4 @@ const mapStateToProps = (state: State) => ({
   width: state.mainView.width,
 });
 
-export default connect<AlbumGridStateProps, {}, AlbumGridOwnProps>(mapStateToProps)(AlbumGrid);
+export default connect(mapStateToProps)(AlbumGrid);

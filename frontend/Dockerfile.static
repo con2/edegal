@@ -9,3 +9,4 @@ FROM $BACKEND_IMAGE
 FROM nginx:1-alpine
 COPY --from=0 /usr/src/app/build /usr/share/nginx/html
 COPY --from=1 /usr/src/app/static /usr/share/nginx/html/static
+COPY nginx_default.conf /etc/nginx/conf.d/default.conf

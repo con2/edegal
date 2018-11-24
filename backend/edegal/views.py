@@ -8,6 +8,11 @@ from .models.media_spec import FORMAT_CHOICES
 SUPPORTED_FORMATS = {format for (format, disp) in FORMAT_CHOICES}
 
 
+class StatusView(View):
+    def get(self, request):
+        return JsonResponse(dict(status='OK'))
+
+
 class ApiV3View(View):
     http_method_names = ['get', 'head']
 
@@ -36,3 +41,4 @@ class ApiV3View(View):
 
 
 api_v3_view = ApiV3View.as_view()
+status_view = StatusView.as_view()

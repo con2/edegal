@@ -1,11 +1,30 @@
-def image = "conikuvat/edegal:build-${env.BUILD_NUMBER}"
-def frontendImage = "conikuvat/edegal-frontend:build-${env.BUILD_NUMBER}"
-def staticImage = "conikuvat/edegal-static:build-${env.BUILD_NUMBER}"
+def imageMap = [
+  "development": "staging",
+  "master": "latest"
+]
+
+def environmentNameMap = [
+  "master": "production",
+  "development": "staging"
+]
+
+def tag = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+def environmentName = environmentNameMap[env.BRANCH_NAME]
+
+def tempBackendImage = "conikuvat/edegal-backend:${tag}"
+def finalBackendImage = "conikuvat/edegal-backend:${imageMap[env.BRANCH_NAME]}"
+
+def tempFrontendImage = "conikuvat/edegal-frontend:${tag}"
+def finalFrontendImage = "conikuvat/edegal-frontend:${imageMap[env.BRANCH_NAME]}"
+
+def tempStaticImage = "conikuvat/edegal-static:${tag}"
+def finalStaticImage = "conikuvat/edegal-static:${imageMap[env.BRANCH_NAME]}"
+
 
 node {
   stage("Build backend") {
     checkout scm
-    sh "cd backend && docker build --tag $image ."
+    sh "cd backend && docker build --tag $tempBackendImage ."
   }
 
 // stage("Test") {
@@ -15,58 +34,67 @@ node {
 //         --rm \
 //         --link jenkins.conikuvat.fi-postgres:postgres \
 //         --env-file ~/.edegal.env \
-//         $image \
+//         $tempBackendImage \
 //         python manage.py test --keepdb
 //     """
 //   }
 // }
 
   stage("Build frontend") {
-    sh "cd frontend && docker build --tag $frontendImage ."
+    sh "cd frontend && docker build --tag $tempFrontedImage ."
   }
 
   stage("Build static") {
-    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --build-arg BACKEND_IMAGE=$image --tag $staticImage ."
-  }
-
-  stage("Deploy legacy frontend") {
-    sh """
-      cd frontend \
-        && rm -rf build \
-        && mkdir build \
-        && docker run --rm $staticImage tar -C /usr/share/nginx -c html/ | tar -x -C build/ --strip-components=1 \
-        && rsync -avH --chown root:conikuvat build/ root@nuoli.tracon.fi:/srv/conikuvat.fi/public_html
-    """
+    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$tempFrontedImage --build-arg BACKEND_IMAGE=$tempBackendImage --tag $tempStaticImage ."
   }
 
   stage("Push") {
     sh """
-      docker tag $image conikuvat/edegal:latest && \
-        docker push conikuvat/edegal:latest && \
-        docker push $image && \
-        docker rmi $image && \
+      docker tag $tempBackendImage $finalBackendImage && \
+        docker push $finalBackendImage && \
+        docker push $tempBackendImage && \
+        docker rmi $tempBackendImage && \
 
-      docker tag $frontendImage conikuvat/edegal-frontend:latest && \
-        docker push conikuvat/edegal-frontend:latest && \
-        docker push $frontendImage && \
-        docker rmi $frontendImage && \
+      docker tag $tempFrontendImage $finalFrontendImage && \
+        docker push $finalFrontendImage && \
+        docker push $tempFrontendImage && \
+        docker rmi $tempFrontendImage && \
 
-      docker tag $staticImage conikuvat/edegal-static:latest && \
-        docker push conikuvat/edegal-static:latest && \
-        docker push $staticImage && \
-        docker rmi $staticImage
+      docker tag $tempStaticImage $finalStaticImage && \
+        docker push $finalStaticImage && \
+        docker push $tempStaticImage && \
+        docker rmi $tempStaticImage
     """
   }
 
-  stage("Deploy legacy") {
-    git url: "git@github.com:tracon/ansible-tracon"
-    sh """
-      ansible-playbook \
-        --vault-password-file=~/.vault_pass.txt \
-        --user root \
-        --limit nuoli.tracon.fi \
-        --tags edegal-deploy \
-        tracon.yml
-    """
+  stage("Deploy") {
+    if (env.BRANCH_NAME == "development") {
+      // Kubernetes deployment
+      sh """
+        emrichen kubernetes/template.in.yml \
+          -f kubernetes/${environmentName}.vars.yml \
+          -D conikuvat_tag=${tag} | \
+        kubectl apply -n conikuvat-${environmentName} -f -
+      """
+    } else {
+      // Legacy deployment
+      sh """
+        cd frontend \
+          && rm -rf build \
+          && mkdir build \
+          && docker run --rm $finalStaticImage tar -C /usr/share/nginx -c html/ | tar -x -C build/ --strip-components=1 \
+          && rsync -avH --chown root:conikuvat build/ root@nuoli.tracon.fi:/srv/conikuvat.fi/public_html
+      """
+
+      git url: "git@github.com:tracon/ansible-tracon"
+      sh """
+        ansible-playbook \
+          --vault-password-file=~/.vault_pass.txt \
+          --user root \
+          --limit nuoli.tracon.fi \
+          --tags edegal-deploy \
+          tracon.yml
+      """
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { push } from 'connected-react-router';
 import * as React from 'react';
-import { I18n } from 'react-i18next';
+import { NamespacesConsumer } from 'react-i18next';
 import { connect } from 'react-redux';
 
 import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
@@ -41,7 +41,7 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
     const { preview } = picture;
 
     return (
-      <I18n ns="PictureView">
+      <NamespacesConsumer ns="PictureView">
         {(t) => (
           <div className="PictureView">
             <div
@@ -113,7 +113,7 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
             )}
           </div>
         )}
-      </I18n>
+      </NamespacesConsumer>
     );
   }
 
@@ -176,7 +176,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = { push, openDownloadDialog };
 
 
-export default connect<PictureViewStateProps, PictureViewDispatchProps, {}>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
 )(PictureView);

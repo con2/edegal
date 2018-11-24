@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      stack: edegal
+      component: postgres
+  template:
+    metadata:
+      labels:
+        stack: edegal
+        component: postgres
+    spec:
+      containers:
+      - name: master
+        image: !Var postgres_image
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: !Var postgres_database
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres
+              key: password
+        volumeMounts:
+        - mountPath: /var/lib/postgresql
+          name: postgres-data
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - edegal
+          initialDelaySeconds: 15
+          periodSeconds: 30
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - edegal
+          initialDelaySeconds: 30
+          periodSeconds: 30
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-data

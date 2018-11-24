@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import { I18n } from 'react-i18next';
+import { NamespacesConsumer } from 'react-i18next';
 import Config from '../Config';
 import Breadcrumb from '../models/Breadcrumb';
 import { State } from '../modules';
@@ -28,7 +28,7 @@ class AppBar extends React.Component<AppBarProps, {}> {
     const rootAlbum = fullBreadcrumb.shift();
 
     return (
-      <I18n ns={['AppBar']}>
+      <NamespacesConsumer ns={['AppBar']}>
         {(t) => (
           <nav className="navbar navbar-expand-md navbar-dark navbar-fixed-top">
             <Link className="navbar-brand" to={rootAlbum!.path}>{rootAlbum!.title}</Link>
@@ -51,7 +51,7 @@ class AppBar extends React.Component<AppBarProps, {}> {
             </div>
           </nav>
         )}
-      </I18n>
+      </NamespacesConsumer>
     );
   }
 }
@@ -64,4 +64,4 @@ const mapStateToProps = (state: State) => ({
 });
 
 
-export default connect<AppBarProps>(mapStateToProps)(AppBar);
+export default connect(mapStateToProps)(AppBar);

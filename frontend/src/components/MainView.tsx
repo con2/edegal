@@ -17,8 +17,8 @@ interface MainViewStateProps {
 }
 // XXX this method of typing dispatch props is cheating and a black hole
 interface MainViewDispatchProps {
-  getAlbum: typeof getAlbum;
-  mainViewResized: typeof mainViewResized;
+  getAlbum: any;
+  mainViewResized: any;
 }
 type MainViewProps = MainViewStateProps & MainViewDispatchProps;
 
@@ -76,7 +76,4 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = { getAlbum, mainViewResized };
 
 
-export default connect<MainViewStateProps, MainViewDispatchProps, {}>(
-  mapStateToProps,
-  mapDispatchToProps,
-)(MainView);
+export default connect(mapStateToProps, mapDispatchToProps)(MainView);

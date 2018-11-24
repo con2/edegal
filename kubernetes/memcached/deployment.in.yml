@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memcached
+spec:
+  selector:
+    matchLabels:
+      stack: edegal
+      component: memcached
+  template:
+    metadata:
+      labels:
+        stack: edegal
+        component: memcached
+    spec:
+      containers:
+      - name: master
+        image: !Var memcached_image
+        ports:
+        - containerPort: 6379

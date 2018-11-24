@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery
+spec:
+  selector:
+    matchLabels:
+      stack: edegal
+      component: celery
+  template:
+    metadata:
+      labels:
+        stack: edegal
+        component: celery
+    spec:
+      containers:
+      - name: master
+        image: !Var edegal_image
+        args: ["celery", "-A", "edegal_site.celery:app", "worker"]
+        env: !Var environment

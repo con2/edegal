@@ -1,0 +1,17 @@
+ingress_public_hostname: dev.edegal.eu
+
+postgres_managed: false
+postgres_hostname: siilo.tracon.fi
+postgres_database: edegaldev
+
+rabbitmq_image: rabbitmq:3.7.8
+rabbitmq_vhost: edegaldev
+
+memcached_image: memcached:1.5.11-alpine
+
+edegal_tag: development-125
+
+setup_should_run: false
+
+ingress_letsencrypt_enabled: true
+ingress_letsencrypt_cluster_issuer: letsencrypt-prod

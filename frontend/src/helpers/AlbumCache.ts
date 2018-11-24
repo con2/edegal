@@ -15,7 +15,7 @@ function makeAlbumCache(): AlbumCache {
     return new Map<string, Album>();
   }
 
-  const cache = {};
+  const cache: {[path: string]: Album} = {};
   return {
     get: (path: string) => cache[path] as Album | undefined,
     set: (path: string, album: Album) => cache[path] = album,
