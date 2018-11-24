@@ -40,7 +40,7 @@ class MainView extends React.Component<MainViewProps, {}> {
   }
 
   handleResize = () => {
-    const newWidth = document.documentElement.clientWidth;
+    const newWidth = document.documentElement!.clientWidth;
 
     if (newWidth !== this.props.width) {
       this.props.mainViewResized(newWidth);
