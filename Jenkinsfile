@@ -11,8 +11,8 @@ def environmentNameMap = [
 def tag = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
 def environmentName = environmentNameMap[env.BRANCH_NAME]
 
-def tempBackendImage = "conikuvat/edegal-backend:${tag}"
-def finalBackendImage = "conikuvat/edegal-backend:${imageMap[env.BRANCH_NAME]}"
+def tempBackendImage = "conikuvat/edegal:${tag}"
+def finalBackendImage = "conikuvat/edegal:${imageMap[env.BRANCH_NAME]}"
 
 def tempFrontendImage = "conikuvat/edegal-frontend:${tag}"
 def finalFrontendImage = "conikuvat/edegal-frontend:${imageMap[env.BRANCH_NAME]}"
