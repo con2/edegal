@@ -1,8 +1,8 @@
 !Defaults
 
 edegal_tag: staging
-edegal_image: !Format tracon/edegal:{edegal_tag}
-edegal_static_image: !Format tracon/edegal-static:{edegal_tag}
+edegal_image: !Format conikuvat/edegal:{edegal_tag}
+edegal_static_image: !Format conikuvat/edegal-static:{edegal_tag}
 edegal_enable_volumes: true
 
 ingress_public_hostname: edegal.127.0.0.1.xip.io
