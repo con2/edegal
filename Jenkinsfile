@@ -14,8 +14,7 @@ def environmentName = environmentNameMap[env.BRANCH_NAME]
 def tempBackendImage = "conikuvat/edegal:${tag}"
 def finalBackendImage = "conikuvat/edegal:${imageMap[env.BRANCH_NAME]}"
 
-def tempFrontendImage = "conikuvat/edegal-frontend:${tag}"
-def finalFrontendImage = "conikuvat/edegal-frontend:${imageMap[env.BRANCH_NAME]}"
+def frontendImage = "conikuvat/edegal-frontend:${tag}"
 
 def tempStaticImage = "conikuvat/edegal-static:${tag}"
 def finalStaticImage = "conikuvat/edegal-static:${imageMap[env.BRANCH_NAME]}"
@@ -41,11 +40,11 @@ node {
 // }
 
   stage("Build frontend") {
-    sh "cd frontend && docker build --tag $tempFrontendImage ."
+    sh "cd frontend && docker build --tag $frontendImage ."
   }
 
   stage("Build static") {
-    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$tempFrontendImage --build-arg BACKEND_IMAGE=$tempBackendImage --tag $tempStaticImage ."
+    sh "cd frontend && docker build --file Dockerfile.static --build-arg FRONTEND_IMAGE=$frontendImage --build-arg BACKEND_IMAGE=$tempBackendImage --tag $tempStaticImage ."
   }
 
   stage("Push") {
@@ -54,11 +53,6 @@ node {
         docker push $finalBackendImage && \
         docker push $tempBackendImage && \
         docker rmi $tempBackendImage && \
-
-      docker tag $tempFrontendImage $finalFrontendImage && \
-        docker push $finalFrontendImage && \
-        docker push $tempFrontendImage && \
-        docker rmi $tempFrontendImage && \
 
       docker tag $tempStaticImage $finalStaticImage && \
         docker push $finalStaticImage && \
