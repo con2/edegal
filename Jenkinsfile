@@ -21,7 +21,7 @@ def finalStaticImage = "conikuvat/edegal-static:${imageMap[env.BRANCH_NAME]}"
 
 
 node {
-  stage("Build backend") {
+  stage("Build") {
     checkout scm
     sh "cd backend && docker build --tag $tempBackendImage ."
     sh "cd frontend && docker build --tag $frontendImage ."
@@ -53,6 +53,20 @@ node {
         docker push $tempStaticImage && \
         docker rmi $tempStaticImage
     """
+  }
+
+  stage("Setup") {
+    if (env.BRANCH_NAME == "development") {
+      sh """
+        kubectl delete job/setup \
+          -n conikuvat-${environmentName} \
+          --ignore-not-found && \
+        emrichen kubernetes/jobs/setup.in.yml \
+          -f kubernetes/${environmentName}.vars.yml \
+          -D edegal_tag=${tag} | \
+        kubectl apply -n conikuvat-${environmentName} -f -
+      """
+    }
   }
 
   stage("Deploy") {
