@@ -1,0 +1,10 @@
+{
+    // Use workspace version of TypeScript compiler
+    "typescript.tsdk": "./node_modules/typescript/lib",
+
+    // Leonidas standard editor config
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+}
