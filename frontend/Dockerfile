@@ -11,4 +11,4 @@ COPY src /usr/src/app/src
 
 USER node
 
-CMD ["node_modules/.bin/react-scripts-ts", "start"]
+CMD ["node_modules/.bin/react-scripts", "start"]

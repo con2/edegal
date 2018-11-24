@@ -1,5 +1,5 @@
 import Album from './Album';
-import Media from './Media';
+import { Media } from './Media';
 import TileItem from './TileItem';
 
 
