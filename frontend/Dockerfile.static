@@ -2,7 +2,7 @@ ARG BACKEND_IMAGE=conikuvat/edegal:latest
 ARG FRONTEND_IMAGE=conikuvat/edegal-frontend:latest
 FROM $FRONTEND_IMAGE
 USER root
-RUN node_modules/.bin/react-scripts-ts build && find build -type f \! -iname '*.gz' -exec gzip -k \{\} +
+RUN node_modules/.bin/react-scripts build && find build -type f \! -iname '*.gz' -exec gzip -k \{\} +
 
 FROM $BACKEND_IMAGE
 
