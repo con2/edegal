@@ -64,5 +64,11 @@ class CommonFields(object):
     is_public = dict(
         default=True,
         verbose_name='Public',
-        help_text='Items that are not public are only displayed to admin users.',
+        help_text='Items that are not public are only accessible to admin users.',
+    )
+
+    is_visible = dict(
+        default=True,
+        verbose_name='Visible',
+        help_text='Items that are not visible are not displayed in listings, but they can still be accessed via exact URL.',
     )

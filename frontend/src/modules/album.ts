@@ -1,7 +1,6 @@
-import { ActionCreator, Dispatch } from 'redux';
-import { ThunkAction } from 'redux-thunk';
+import { push, RouterAction } from 'connected-react-router';
+import { Dispatch } from 'redux';
 
-import { State } from '.';
 import Config from '../Config';
 import AlbumCache from '../helpers/AlbumCache';
 import Album from '../models/Album';
@@ -9,7 +8,7 @@ import { Format } from '../models/Media';
 import Picture from '../models/Picture';
 import { getAsyncConfig } from './initialization';
 import OtherAction from './other';
-import {SelectPicture, SelectPictureAction} from './picture';
+import { SelectPicture, SelectPictureAction } from './picture';
 
 
 export type SelectAlbum = 'edegal/album/SelectAlbum';
@@ -75,10 +74,8 @@ function getCached(path: string, format: Format): Promise<Album> {
  *
  * @param path Path to an Album or Picture.
  */
-export const getAlbum: ActionCreator<
-  ThunkAction<Promise<AlbumAction>, State, void, AlbumAction>
-> = (path: string) => {
-  return async (dispatch: Dispatch<AlbumAction>) => {
+export const getAlbum = (path: string) => {
+  return async (dispatch: Dispatch<AlbumAction | RouterAction>) => {
     try {
       // TODO ugly, do the webp support thing in a more reduxy fashion
       const asyncConfig = await getAsyncConfig();
@@ -93,10 +90,14 @@ export const getAlbum: ActionCreator<
 
       if (album.path === path) {
         // path points to album itself
-        return dispatch({
-          type: SelectAlbum,
-          payload: album,
-        });
+        if (album.redirect_url) {
+          return dispatch(push(album.redirect_url));
+        } else {
+          return dispatch({
+            type: SelectAlbum,
+            payload: album,
+          });
+        }
       } else {
         // path points to a picture in album
         const picture = album.pictures.find(pic => pic.path === path);
@@ -133,6 +134,7 @@ const initialState: Album = {
   path: '',
   title: '',
   body: '',
+  redirect_url: '',
   subalbums: [],
   pictures: [],
   breadcrumb: [],
