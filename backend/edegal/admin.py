@@ -55,6 +55,7 @@ class AlbumAdmin(MultiUploadAdmin):
                 'description',
                 'parent',
                 'is_public',
+                'is_visible',
             )
         }),
         ('Tekstisisältö', {
@@ -70,6 +71,7 @@ class AlbumAdmin(MultiUploadAdmin):
                 'terms_and_conditions',
                 'slug',
                 'path',
+                'redirect_url',
                 'created_at',
                 'updated_at',
                 'created_by',

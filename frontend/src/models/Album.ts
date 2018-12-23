@@ -11,6 +11,7 @@ interface Album {
   subalbums: Subalbum[];
   pictures: Picture[];
   breadcrumb: Breadcrumb[];
+  redirect_url: string;
   terms_and_conditions?: TermsAndConditions;
 }
 

@@ -35,6 +35,13 @@ class Album(MPTTModel):
         help_text='Will be displayed at the top of the album view before subalbums and pictures.',
     )
 
+    redirect_url = models.CharField(
+        max_length=1023,
+        blank=True,
+        verbose_name='Redirect URL',
+        help_text='If set, users that stumble upon this album will be redirected to this URL.',
+    )
+
     cover_picture = models.ForeignKey('Picture',
         on_delete=models.SET_NULL,
         null=True,
@@ -43,6 +50,7 @@ class Album(MPTTModel):
     )
 
     is_public = models.BooleanField(**CommonFields.is_public)
+    is_visible = models.BooleanField(**CommonFields.is_visible)
 
     terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions',
         null=True,
@@ -69,11 +77,12 @@ class Album(MPTTModel):
             'title',
             'description',
             'body',
+            'redirect_url',
 
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
             subalbums=[
                 subalbum._make_subalbum(format=format)
-                for subalbum in self.subalbums.filter(**child_criteria).select_related('cover_picture')
+                for subalbum in self.subalbums.filter(is_visible=True, **child_criteria).select_related('cover_picture')
             ],
             pictures=[
                 picture.as_dict(format=format)
