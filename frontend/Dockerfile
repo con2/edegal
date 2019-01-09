@@ -2,7 +2,6 @@ FROM node:10
 
 WORKDIR /usr/src/app
 EXPOSE 8080
-ENV REACT_APP_EDEGAL_LOGIN_URL https://conikuvat.fi/admin/oauth2/login/?next=/admin/
 
 COPY package.json package-lock.json tsconfig.json tslint.json /usr/src/app/
 RUN npm install
