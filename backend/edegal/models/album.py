@@ -4,8 +4,6 @@ from django.conf import settings
 from django.db import models
 from django.shortcuts import get_object_or_404
 
-from mptt.models import MPTTModel, TreeForeignKey
-
 from ..utils import slugify, pick_attrs
 from .common import CommonFields
 
@@ -13,11 +11,12 @@ from .common import CommonFields
 logger = logging.getLogger(__name__)
 
 
-class Album(MPTTModel):
+class Album(models.Model):
     slug = models.CharField(**CommonFields.slug)
-    parent = TreeForeignKey('self',
+    parent = models.ForeignKey('self',
         null=True,
         blank=True,
+        on_delete=models.CASCADE,
         related_name='subalbums',
         db_index=True,
         verbose_name='Parent Album',
@@ -162,15 +161,13 @@ class Album(MPTTModel):
         # In case thumbnails or path changed, update whole family with updated information.
         if traverse:
             if path_changed:
-                family = self.get_family()
+                family = self.get_family(include_self=False)
             else:
-                family = self.get_ancestors()
+                family = self.get_ancestors(include_self=False)
 
             for album in family:
-                # Cannot use identity or id because self might not be saved yet!
-                if album.path != self.path:
-                    logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
-                    album.save(traverse=False)
+                logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
+                album.save(traverse=False)
 
         return return_value
 
@@ -202,6 +199,48 @@ class Album(MPTTModel):
 
     def get_absolute_url(self):
         return f'{settings.EDEGAL_FRONTEND_URL}{self.path}'
+
+    def get_descendants(self, include_self=False):
+        ids = []
+        self._get_descendants_into(ids)
+
+        if include_self:
+            ids.insert(0, self)
+
+        return Album.objects.filter(id__in=ids)
+
+    def get_ancestors(self, include_self=False):
+        ids = []
+        self._get_ancestors_into(ids)
+
+        if include_self:
+            ids.insert(0, self.id)
+
+        return Album.objects.filter(id__in=ids)
+
+    def get_family(self, include_self=False):
+        ids = []
+
+        self._get_ancestors_into(ids)
+
+        if include_self:
+            ids.insert(0, self.id)
+
+        self._get_descendants_into(ids)
+
+        return Album.objects.filter(id__in=ids)
+
+    def _get_descendants_into(self, accumulator):
+        subalbums = Album.objects.filter(parent=self).only('id')
+        for subalbum in subalbums:
+            accumulator.append(subalbum.id)
+            subalbum._get_descendants(accumulator)
+
+    def _get_ancestors_into(self, accumulator):
+        album = self
+        while album.parent_id:
+            accumulator.append(album.parent_id)
+            album = Album.objects.filter(id=album.parent_id).only('parent_id').get()
 
     class Meta:
         verbose_name = 'Album'
