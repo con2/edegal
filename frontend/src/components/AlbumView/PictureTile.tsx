@@ -41,8 +41,8 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
       </a>
     ) : (
       <Link className="PictureTile" to={path}>
-        {src ? <Thumbnail src={src} width={width} height={height} />: null}
-        <div className="PictureTile-title">{title}</div>
+        {src ? <Thumbnail src={src} width={width} height={height} /> : null}
+        {title ? <div className="PictureTile-title">{title}</div> : null}
       </Link>
     );
   }
