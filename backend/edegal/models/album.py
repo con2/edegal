@@ -112,6 +112,7 @@ class Album(MPTTModel):
         return pick_attrs(self,
             'path',
             'title',
+            'redirect_url',
             thumbnail=self._make_thumbnail(format=format),
         )
 

@@ -49,6 +49,7 @@ class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
                 height={row.height}
                 title={getTitle(item)}
                 src={item.thumbnail ? item.thumbnail.src : undefined}
+                externalLink={item.redirect_url}
               />
             ))}
           </div>
