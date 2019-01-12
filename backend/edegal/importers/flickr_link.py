@@ -10,11 +10,6 @@ from ..models import Album, Media, MediaSpec, Picture
 
 
 def import_flickr_link(path, flickr_url, override_title=None, override_slug=None):
-    parent = Album.objects.get(path=path)
-
-    thumbnail_media_specs = MediaSpec.objects.filter(active=True, role='thumbnail')
-    assert thumbnail_media_specs.exists()
-
     response = requests.get(flickr_url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -31,6 +26,11 @@ def import_flickr_link(path, flickr_url, override_title=None, override_slug=None
     cover_picture_file = BytesIO(cover_picture_response.content)
 
     with transaction.atomic():
+        parent = Album.objects.get(path=path)
+
+        thumbnail_media_specs = MediaSpec.objects.filter(active=True, role='thumbnail')
+        assert thumbnail_media_specs.exists()
+
         album = Album.objects.create(
             parent=parent,
             title=album_title,
@@ -38,13 +38,15 @@ def import_flickr_link(path, flickr_url, override_title=None, override_slug=None
             redirect_url=album_url,
             **album_overrides,
         )
+
         picture = Picture.objects.create(
             album=album,
             title=cover_picture_title,
         )
-        Media.import_open_file(
-            picture=picture,
-            input_file=cover_picture_file,
-            media_specs=thumbnail_media_specs,
-            refresh_album=True,
-        )
+
+    Media.import_open_file(
+        picture=picture,
+        input_file=cover_picture_file,
+        media_specs=thumbnail_media_specs,
+        refresh_album=True,
+    )
