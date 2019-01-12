@@ -250,6 +250,8 @@ class Media(models.Model):
         scaled_media.src = scaled_media.get_canonical_path('')
         scaled_media.save()
 
+        return scaled_media
+
     def __str__(self):
         return self.src.url if self.src else self.get_canonical_path('')
 
