@@ -82,6 +82,7 @@ class AlbumAdmin(MultiUploadAdmin):
     multiupload_form = True
     multiupload_list = False
     multiupload_maxfilesize = settings.MAX_UPLOAD_SIZE
+    multiupload_limitconcurrentuploads = settings.MAX_CONCURRENT_UPLOADS
 
     def save_model(self, request, obj, form, change):
         if obj.pk is None and obj.created_by is None:
