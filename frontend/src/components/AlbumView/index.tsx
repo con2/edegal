@@ -10,10 +10,35 @@ import preloadMedia from '../../helpers/preloadMedia';
 import AlbumGrid from './AlbumGrid';
 import './index.css';
 import TextContent from './TextContent';
+import Subalbum from '../../models/Subalbum';
 
 
 interface AlbumViewProps {
   album: Album;
+}
+
+
+interface Year {
+  year: string | null;
+  subalbums: Subalbum[];
+}
+
+function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
+  let currentYear: Year | null = null;
+  const years: Year[] = [];
+
+  subalbums.forEach((subalbum) => {
+    const year = subalbum.date ? subalbum.date.split('-')[0] : null;
+
+    if (!currentYear || currentYear.year !== year) {
+      currentYear = { year, subalbums: [] };
+      years.push(currentYear);
+    }
+
+    currentYear.subalbums.push(subalbum);
+  });
+
+  return years;
 }
 
 
@@ -28,7 +53,20 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
         {album.body ? <TextContent content={album.body} /> : null}
 
         {/* Subalbums */}
-        <AlbumGrid tiles={album.subalbums} getTitle={(tile: TileItem) => tile.title} />
+        { album.layout == 'yearly' ? (
+          <div className='YearlyView'>
+            {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
+              return (
+                <div>
+                  <h2>{year ? year : 'Unknown year'}</h2>
+                  <AlbumGrid tiles={subalbums} getTitle={(tile: TileItem) => tile.title} />
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <AlbumGrid tiles={album.subalbums} getTitle={(tile: TileItem) => tile.title} />
+        )}
 
         {/* Pictures */}
         <AlbumGrid tiles={album.pictures} getTitle={(tile: TileItem) => ""} />

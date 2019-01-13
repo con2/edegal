@@ -31,6 +31,7 @@ class Command(BaseCommand):
             path='/',
             defaults=dict(
                 title='My Swell Picture Gallery',
+                layout='yearly',
             ),
         )
 

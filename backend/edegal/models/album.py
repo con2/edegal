@@ -30,6 +30,11 @@ GUESS_DATE_REGEXEN = (
     # Not supporting slashful formats because the order can be anything (Y/D/M, Y/M/D, M/D/Y, D/M/Y…)
 )
 
+LAYOUT_CHOICES = [
+    ('simple', 'Simple'),
+    ('yearly', 'Yearly'),
+]
+
 
 class Album(MPTTModel):
     slug = models.CharField(**CommonFields.slug)
@@ -58,6 +63,12 @@ class Album(MPTTModel):
         blank=True,
         verbose_name='Redirect URL',
         help_text='If set, users that stumble upon this album will be redirected to this URL.',
+    )
+
+    layout = models.CharField(
+        max_length=max(len(key) for (key, label) in LAYOUT_CHOICES),
+        default=LAYOUT_CHOICES[0][0],
+        choices=LAYOUT_CHOICES,
     )
 
     cover_picture = models.ForeignKey('Picture',
@@ -98,12 +109,13 @@ class Album(MPTTModel):
             'description',
             'body',
             'redirect_url',
+            'layout',
 
             date=self.date.isoformat() if self.date else '',
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
             subalbums=[
                 subalbum._make_subalbum(format=format)
-                for subalbum in self.subalbums.filter(is_visible=True, **child_criteria).select_related('cover_picture').order_by('-date', 'tree_id')
+                for subalbum in self._get_subalbums(is_visible=True, **child_criteria)
             ],
             pictures=[
                 picture.as_dict(format=format)
@@ -114,6 +126,23 @@ class Album(MPTTModel):
                 if self.terms_and_conditions
                 else None
             ),
+        )
+
+    def _get_subalbums(self, **child_criteria):
+        return (
+            self.subalbums.filter(**child_criteria)
+                .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
+                .select_related('cover_picture')
+                .order_by('-date', 'tree_id')
+        )
+
+    def _make_subalbum(self, format):
+        return pick_attrs(self,
+            'path',
+            'title',
+            'redirect_url',
+            date=self.date.isoformat() if self.date else '',
+            thumbnail=self._make_thumbnail(format=format),
         )
 
     def _make_thumbnail(self, format):
@@ -127,14 +156,6 @@ class Album(MPTTModel):
         return pick_attrs(self,
             'path',
             'title',
-        )
-
-    def _make_subalbum(self, format):
-        return pick_attrs(self,
-            'path',
-            'title',
-            'redirect_url',
-            thumbnail=self._make_thumbnail(format=format),
         )
 
     def _make_path(self):

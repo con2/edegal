@@ -139,6 +139,7 @@ const initialState: Album = {
   subalbums: [],
   pictures: [],
   breadcrumb: [],
+  layout: 'simple',
 };
 
 

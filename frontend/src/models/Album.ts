@@ -4,6 +4,9 @@ import Subalbum from './Subalbum';
 import TermsAndConditions from './TermsAndConditions';
 
 
+export type Layout = 'yearly' | 'simple';
+
+
 interface Album {
   path: string;
   title: string;
@@ -13,6 +16,7 @@ interface Album {
   breadcrumb: Breadcrumb[];
   redirect_url: string;
   date: string;
+  layout: Layout;
   terms_and_conditions?: TermsAndConditions;
 }
 

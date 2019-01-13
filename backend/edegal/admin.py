@@ -73,6 +73,7 @@ class AlbumAdmin(MultiUploadAdmin):
                 'slug',
                 'path',
                 'redirect_url',
+                'layout',
                 'created_at',
                 'updated_at',
                 'created_by',
