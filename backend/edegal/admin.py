@@ -36,7 +36,10 @@ class AlbumAdminForm(forms.ModelForm):
         label=Album._meta.get_field('body').verbose_name,
         help_text=Album._meta.get_field('body').help_text,
     )
-    date = forms.DateField(initial=lambda: datetime.date.today())
+    date = forms.DateField(
+        initial=lambda: datetime.date.today(),
+        help_text=Album._meta.get_field('date').help_text,
+    )
 
     class Meta:
         fields = ('title', 'description', 'body', 'cover_picture', 'terms_and_conditions', 'parent', 'slug', 'is_public')

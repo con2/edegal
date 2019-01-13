@@ -87,7 +87,10 @@ class Album(MPTTModel):
         blank=True,
     )
 
-    date = models.DateField(null=True)
+    date = models.DateField(
+        null=True,
+        help_text='When did the events portrayed in this album happen? Note that this may differ from album creation date which is tracked automatically.'
+    )
 
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
