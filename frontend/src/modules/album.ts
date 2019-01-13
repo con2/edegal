@@ -135,6 +135,7 @@ const initialState: Album = {
   title: '',
   body: '',
   redirect_url: '',
+  date: '',
   subalbums: [],
   pictures: [],
   breadcrumb: [],
