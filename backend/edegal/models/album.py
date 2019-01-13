@@ -103,7 +103,7 @@ class Album(MPTTModel):
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
             subalbums=[
                 subalbum._make_subalbum(format=format)
-                for subalbum in self.subalbums.filter(is_visible=True, **child_criteria).select_related('cover_picture')
+                for subalbum in self.subalbums.filter(is_visible=True, **child_criteria).select_related('cover_picture').order_by('-date', 'tree_id')
             ],
             pictures=[
                 picture.as_dict(format=format)
