@@ -54,6 +54,7 @@ class AlbumAdmin(MultiUploadAdmin):
                 'title',
                 'description',
                 'parent',
+                'date',
                 'is_public',
                 'is_visible',
             )
