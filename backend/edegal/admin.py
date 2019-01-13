@@ -1,3 +1,4 @@
+import datetime
 from os.path import splitext
 
 from django.conf import settings
@@ -35,6 +36,7 @@ class AlbumAdminForm(forms.ModelForm):
         label=Album._meta.get_field('body').verbose_name,
         help_text=Album._meta.get_field('body').help_text,
     )
+    date = forms.DateField(initial=lambda: datetime.date.today())
 
     class Meta:
         fields = ('title', 'description', 'body', 'cover_picture', 'terms_and_conditions', 'parent', 'slug', 'is_public')
