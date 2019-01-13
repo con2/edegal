@@ -1,6 +1,7 @@
 import shutil
 import logging
 from contextlib import contextmanager
+from datetime import datetime
 from os import makedirs
 from os.path import dirname, abspath, getsize
 
@@ -29,6 +30,9 @@ FORMAT_OPTIONS = dict(
 ROLE_CHOICES = ROLE_CHOICES + [
     ('original', 'Original'),
 ]
+
+EXIF_DATETIME_ORIGINAL = 0x9003
+EXIF_DATETIME_FORMAT = '%Y:%m:%d %H:%M:%S'
 
 
 class Media(models.Model):
@@ -76,6 +80,10 @@ class Media(models.Model):
         except RuntimeError:
             logger.exception('getsize failed: %s', self.src.path)
             return None
+
+    def get_exif_datetime(self):
+        with self.as_image() as image:
+            return datetime.strptime(image._getexif()[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT)
 
     def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
         """

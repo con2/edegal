@@ -12,6 +12,7 @@ interface Album {
   pictures: Picture[];
   breadcrumb: Breadcrumb[];
   redirect_url: string;
+  date: string;
   terms_and_conditions?: TermsAndConditions;
 }
 

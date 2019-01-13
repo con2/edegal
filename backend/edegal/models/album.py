@@ -1,4 +1,6 @@
 import logging
+import re
+from datetime import date
 
 from django.conf import settings
 from django.db import models
@@ -11,6 +13,22 @@ from .common import CommonFields
 
 
 logger = logging.getLogger(__name__)
+
+# Presets for Album._guess_date.
+# Could use datetime.strptime(…).date, but then would have to spell the same thing twice as we do not know
+# at which point in title/description the date is present (if at all).
+YEAR = r'(?P<year>\d{4})'
+MONTH = r'(?P<month>[01]?\d)'
+DAY = r'(?P<day>[0-3]?\d)'
+GUESS_DATE_REGEXEN = (
+    # ISO format
+    re.compile(f'{YEAR}-{MONTH}-{DAY}'),
+
+    # Finnish format
+    re.compile(f'{DAY}.{MONTH}.{YEAR}'),
+
+    # Not supporting slashful formats because the order can be anything (Y/D/M, Y/M/D, M/D/Y, D/M/Y…)
+)
 
 
 class Album(MPTTModel):
@@ -57,6 +75,8 @@ class Album(MPTTModel):
         blank=True,
     )
 
+    date = models.DateField(null=True)
+
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
 
@@ -79,6 +99,7 @@ class Album(MPTTModel):
             'body',
             'redirect_url',
 
+            date=self.date.isoformat() if self.date else '',
             breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
             subalbums=[
                 subalbum._make_subalbum(format=format)
@@ -137,6 +158,38 @@ class Album(MPTTModel):
 
         return None
 
+    def _guess_date(self):
+        """
+        Tries to guess a date for the album from the following sources:
+
+        1. Cover picture EXIF data
+        2. Known date formats in description or title
+
+        Description is preferred to title because some events might have a fictional date in their title.
+        """
+        try:
+            d = self.cover_picture.original.get_exif_datetime().date()
+            logger.debug('Guessed date %s from cover picture EXIF for %s', d.isoformat(), self)
+            return d
+        except (RuntimeError, LookupError, TypeError, ValueError, AttributeError):
+            logger.exception('Failed to guess date from cover picture EXIF for %s', self)
+
+        for regex in GUESS_DATE_REGEXEN:
+            match = regex.search(self.description) or regex.search(self.title)
+            if match:
+                try:
+                    d = date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
+                except (ValueError, TypeError):
+                    logger.exception(
+                        'The format was good but the data was bad (year=%s, month=%s, day=%s)',
+                        match.group('year'), match.group('month'), match.group('day'),
+                    )
+                else:
+                    logger.debug('Guessed date %s from description/title for %s', d.isoformat(), self)
+                    return d
+
+        logger.warning('No method of date guessing worked for %s', self)
+
     def save(self, *args, **kwargs):
         traverse = kwargs.pop('traverse', True)
 
@@ -151,8 +204,11 @@ class Album(MPTTModel):
             self.path = self._make_path()
             path_changed = self.path != self.__original_path
 
-        if self.cover_picture is None:
+        if not self.cover_picture:
             self.cover_picture = self._select_cover_picture()
+
+        if not self.date:
+            self.date = self._guess_date()
 
         return_value = super(Album, self).save(*args, **kwargs)
 
