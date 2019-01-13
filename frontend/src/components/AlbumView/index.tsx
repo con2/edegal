@@ -11,6 +11,7 @@ import AlbumGrid from './AlbumGrid';
 import './index.css';
 import TextContent from './TextContent';
 import Subalbum from '../../models/Subalbum';
+import { NamespacesConsumer } from 'react-i18next';
 
 
 interface AlbumViewProps {
@@ -47,30 +48,34 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
     const { album } = this.props;
 
     return (
-      <div>
-        <AppBar />
+      <NamespacesConsumer ns={['AlbumView']}>
+        {(t) => (
+          <div>
+            <AppBar />
 
-        {album.body ? <TextContent content={album.body} /> : null}
+            {album.body ? <TextContent content={album.body} /> : null}
 
-        {/* Subalbums */}
-        { album.layout == 'yearly' ? (
-          <div className='YearlyView'>
-            {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
-              return (
-                <div>
-                  <h2>{year ? year : 'Unknown year'}</h2>
-                  <AlbumGrid tiles={subalbums} getTitle={(tile: TileItem) => tile.title} />
-                </div>
-              );
-            })}
+            {/* Subalbums */}
+            { album.layout == 'yearly' ? (
+              <div className='YearlyView'>
+                {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
+                  return (
+                    <div>
+                      <h2>{year ? year : t('unknownYear')}</h2>
+                      <AlbumGrid tiles={subalbums} getTitle={(tile: TileItem) => tile.title} />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <AlbumGrid tiles={album.subalbums} getTitle={(tile: TileItem) => tile.title} />
+            )}
+
+            {/* Pictures */}
+            <AlbumGrid tiles={album.pictures} getTitle={(tile: TileItem) => ""} />
           </div>
-        ) : (
-          <AlbumGrid tiles={album.subalbums} getTitle={(tile: TileItem) => tile.title} />
         )}
-
-        {/* Pictures */}
-        <AlbumGrid tiles={album.pictures} getTitle={(tile: TileItem) => ""} />
-      </div>
+      </NamespacesConsumer>
     );
   }
 

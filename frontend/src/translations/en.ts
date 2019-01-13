@@ -1,6 +1,9 @@
 import { Translations } from '.';
 
 const translations: Translations = {
+  AlbumView: {
+    unknownYear: 'Unknown year',
+  },
   AppBar: {
     adminLink: 'Admin',
   },
