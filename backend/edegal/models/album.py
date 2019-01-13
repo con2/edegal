@@ -4,6 +4,7 @@ from datetime import date
 
 from django.conf import settings
 from django.db import models
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 
 from mptt.models import MPTTModel, TreeForeignKey
@@ -133,7 +134,7 @@ class Album(MPTTModel):
             self.subalbums.filter(**child_criteria)
                 .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
                 .select_related('cover_picture')
-                .order_by('-date', 'tree_id')
+                .order_by(F('date').desc(nulls_last=True), 'tree_id')
         )
 
     def _make_subalbum(self, format):
