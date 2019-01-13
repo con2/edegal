@@ -172,7 +172,7 @@ class Album(MPTTModel):
             logger.debug('Guessed date %s from cover picture EXIF for %s', d.isoformat(), self)
             return d
         except (RuntimeError, LookupError, TypeError, ValueError, AttributeError):
-            logger.exception('Failed to guess date from cover picture EXIF for %s', self)
+            logger.warning('Failed to guess date from cover picture EXIF for %s', self)
 
         for regex in GUESS_DATE_REGEXEN:
             match = regex.search(self.description) or regex.search(self.title)
@@ -180,7 +180,7 @@ class Album(MPTTModel):
                 try:
                     d = date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
                 except (ValueError, TypeError):
-                    logger.exception(
+                    logger.warning(
                         'The format was good but the data was bad (year=%s, month=%s, day=%s)',
                         match.group('year'), match.group('month'), match.group('day'),
                     )
