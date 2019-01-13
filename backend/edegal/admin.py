@@ -54,23 +54,18 @@ class AlbumAdmin(MultiUploadAdmin):
     raw_id_fields = ('cover_picture', 'terms_and_conditions', 'parent')
     search_fields = ('path', 'title')
     fieldsets = [
-        ('Perustiedot', {
+        ('Basic info', {
             'fields': (
                 'title',
-                'description',
-                'parent',
                 'date',
+                'parent',
+                'description',
+                'body',
                 'is_public',
                 'is_visible',
             )
         }),
-        ('Tekstisisältö', {
-            'classes': ('collapse',),
-            'fields': (
-                'body',
-            )
-        }),
-        ('Tekniset tiedot', {
+        ('Technical details', {
             'classes': ('collapse',),
             'fields': (
                 'cover_picture',
