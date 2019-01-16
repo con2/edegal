@@ -1,7 +1,5 @@
 # Work in progress
 
-[![Sponsored by Leonidas](https://img.shields.io/badge/sponsored%20by-leonidas-389fc1.svg)](https://leonidasoy.fi/opensource)
-
 Please hold tight as we rewrite the backend in Python 3 and the frontend in TypeScript.
 
 The "legacy" branch, with a Node.js backend and MongoDB as the database, can still be found at [japsu/edegal-legacy](https://github.com/japsu/edegal-legacy). See a demo of `edegal-legacy` at [uusi.kuvat.aniki.fi](http://uusi.kuvat.aniki.fi/).
@@ -56,13 +54,11 @@ For developing the backend or frontend components without Docker Compose, please
 * "Edegal <3"
 * "This sounds really good from the perspective of our operations team"
 
-The work of Santtu Pajukanta on Edegal has been partially sponsored by [Leonidas Oy](https://leonidasoy.fi/opensource).
-
 ## License
 
     The MIT License (MIT)
 
-    Copyright © 2010–2017 Santtu Pajukanta
+    Copyright © 2010–2019 Santtu Pajukanta
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
