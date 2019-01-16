@@ -1,9 +1,3 @@
-# Work in progress
-
-Please hold tight as we rewrite the backend in Python 3 and the frontend in TypeScript.
-
-The "legacy" branch, with a Node.js backend and MongoDB as the database, can still be found at [japsu/edegal-legacy](https://github.com/japsu/edegal-legacy). See a demo of `edegal-legacy` at [uusi.kuvat.aniki.fi](http://uusi.kuvat.aniki.fi/).
-
 # Edegal – A web picture gallery
 
 Edegal is a web picture gallery written in Python 3 and TypeScript and designed with performance and scalability in mind.
@@ -16,15 +10,10 @@ This is the "version 2" reboot of the Edegal project. It incorporates the follow
 
 High performance is achieved through the usage of a dead simple REST JSON API in which most cache misses only result in two database queries.
 
-Edegal is a work in progress.
+See it live:
 
-## Goals
-
-* Successfully replace Coppermine Image Gallery at [kuvat.aniki.fi](http://kuvat.aniki.fi)
-  * 92,571 pictures in 1,314 albums, 8,546,875 total views over the course of 13 years. (as of 3rd April 2017)
-* Provide picture galleries for the members of [Kapsi Internet-käyttäjät ry](http://www.kapsi.fi) requestable via a web self-service portal
-* Drop some jaws with stunning visuals and flawless usability
-* Become the number one choice for a self-hosted image gallery for serious hobbyist photographers
+* [Conikuvat.fi](https://conikuvat.fi) – pictures from anime & cosplay conventions in Finland
+* [Larppikuvat.fi](https://larppikuvat.fi) – pictures from LARPs in Finland
 
 ## Getting started
 
@@ -53,6 +42,31 @@ For developing the backend or frontend components without Docker Compose, please
 * "Edegal seems exactly what I've been looking for!"
 * "Edegal <3"
 * "This sounds really good from the perspective of our operations team"
+
+## Deployment
+
+### Ansible & Docker
+
+**DEPRECATED**: Will stop being maintained once we move Conikuvat.fi and Larppikuvat.fi to Kubernetes.
+
+See [here](https://github.com/tracon/ansible-tracon/tree/master/roles/edegal/).
+
+### Kubernetes
+
+The following services are required:
+
+* [kubernetes-secret-generator](https://github.com/mittwald/kubernetes-secret-generator)
+* [ingress-nginx](https://github.com/kubernetes/ingress-nginx) or some other ingress controller
+* [cert-manager](https://github.com/jetstack/cert-manager)
+
+The Kubernetes templates use [emrichen](https://github.com/con2/emrichen) for substituting variables and reducing repetition.
+
+To deploy in a K8s cluster:
+
+    kubectl create namespace edegal
+    emrichen kubernetes/template.in.yml | kubectl apply -n edegal -f -
+
+For production, you may want to use an external PostgreSQL (and maybe memcached and RabbitMQ).
 
 ## License
 
