@@ -15,8 +15,9 @@ public
 rev-manifest.json
 tmp/
 virtualenv/
-gallery/static/**
+backend/static/**
 *.log
 docker-compose.secret.yml
 .env
 *.sql
+.vscode
