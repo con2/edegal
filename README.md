@@ -45,12 +45,6 @@ For developing the backend or frontend components without Docker Compose, please
 
 ## Deployment
 
-### Ansible & Docker
-
-**DEPRECATED**: Will stop being maintained once we move Conikuvat.fi and Larppikuvat.fi to Kubernetes.
-
-See [here](https://github.com/tracon/ansible-tracon/tree/master/roles/edegal/).
-
 ### Kubernetes
 
 The following services are required:
@@ -59,7 +53,7 @@ The following services are required:
 * [ingress-nginx](https://github.com/kubernetes/ingress-nginx) or some other ingress controller
 * [cert-manager](https://github.com/jetstack/cert-manager)
 
-The Kubernetes templates use [emrichen](https://github.com/con2/emrichen) for substituting variables and reducing repetition.
+The Kubernetes templates use [emrichen](https://github.com/con2/emrichen) for substituting variables and reducing repetition (`pip3 install emrichen`).
 
 To deploy in a K8s cluster:
 
@@ -67,6 +61,12 @@ To deploy in a K8s cluster:
     emrichen kubernetes/template.in.yml | kubectl apply -n edegal -f -
 
 For production, you may want to use an external PostgreSQL (and maybe memcached and RabbitMQ).
+
+### Ansible & Docker
+
+**DEPRECATED**: Will stop being maintained once we move Conikuvat.fi and Larppikuvat.fi to Kubernetes.
+
+See [here](https://github.com/tracon/ansible-tracon/tree/master/roles/edegal/).
 
 ## License
 
