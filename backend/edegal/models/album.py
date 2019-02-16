@@ -134,7 +134,7 @@ class Album(MPTTModel):
 
     def _get_subalbums(self, **child_criteria):
         return (
-            self.subalbums.filter(**child_criteria)
+            self.subalbums.filter(cover_picture__isnull=False, **child_criteria)
                 .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
                 .select_related('cover_picture')
                 .order_by(F('date').desc(nulls_last=True), 'tree_id')
@@ -263,9 +263,9 @@ class Album(MPTTModel):
         try:
             picture = Picture.objects.only('album_id').get(path=path)
         except Picture.DoesNotExist:
-            query = dict(path=path, **extra_criteria)
+            query = dict(path=path, cover_picture__isnull=False, **extra_criteria)
         else:
-            query = dict(id=picture.album_id, **extra_criteria)
+            query = dict(id=picture.album_id, cover_picture__isnull=False, **extra_criteria)
 
         queryset = (
             cls.objects.filter(**query)
