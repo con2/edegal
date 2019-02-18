@@ -47,7 +47,8 @@ if env('EMAIL_HOST', default=''):
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='spam@example.com')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='root@localhost')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 EDEGAL_FRONTEND_URL = env('EDEGAL_FRONTEND_URL', default='http://localhost:3000')
 
