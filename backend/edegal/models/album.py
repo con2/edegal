@@ -123,7 +123,7 @@ class Album(MPTTModel):
             ],
             pictures=[
                 picture.as_dict(format=format)
-                for picture in self.pictures.filter(**child_criteria).prefetch_related('media')
+                for picture in self._get_pictures(**child_criteria)
             ],
             terms_and_conditions=(
                 self.terms_and_conditions.as_dict()
@@ -134,10 +134,18 @@ class Album(MPTTModel):
 
     def _get_subalbums(self, **child_criteria):
         return (
-            self.subalbums.filter(cover_picture__isnull=False, **child_criteria)
+            self.subalbums.filter(cover_picture__media__role='thumbnail', **child_criteria)
                 .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
+                .distinct()
                 .select_related('cover_picture')
                 .order_by(F('date').desc(nulls_last=True), 'tree_id')
+        )
+
+    def _get_pictures(self, **child_criteria):
+        return (
+            self.pictures.filter(media__role='thumbnail', **child_criteria)
+                .distinct()
+                .prefetch_related('media')
         )
 
     def _make_subalbum(self, format):
@@ -173,7 +181,7 @@ class Album(MPTTModel):
             return pth
 
     def _select_cover_picture(self):
-        first_subalbum = self.subalbums.filter(cover_picture__isnull=False).first()
+        first_subalbum = self.subalbums.filter(cover_picture__media__role='thumbnail').first()
         if first_subalbum is not None:
             return first_subalbum.cover_picture
 
@@ -263,9 +271,9 @@ class Album(MPTTModel):
         try:
             picture = Picture.objects.only('album_id').get(path=path)
         except Picture.DoesNotExist:
-            query = dict(path=path, cover_picture__isnull=False, **extra_criteria)
+            query = dict(path=path, cover_picture__media__role='thumbnail', **extra_criteria)
         else:
-            query = dict(id=picture.album_id, cover_picture__isnull=False, **extra_criteria)
+            query = dict(id=picture.album_id, cover_picture__media__role='thumbnail', **extra_criteria)
 
         queryset = (
             cls.objects.filter(**query)
