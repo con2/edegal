@@ -1,4 +1,4 @@
-import { replace as replaceState } from 'connected-react-router';
+import { replace as replaceState, push as pushState, goBack } from 'connected-react-router';
 import * as React from 'react';
 import { NamespacesConsumer } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -27,9 +27,12 @@ const keyMap: {[keyCode: number]: Direction} = {
 
 interface PictureViewStateProps {
   picture: Picture;
+  fromAlbumView: boolean;
 }
 interface PictureViewDispatchProps {
   replaceState: typeof replaceState;
+  pushState: typeof pushState;
+  goBack: typeof goBack;
   openDownloadDialog: typeof openDownloadDialog;
 }
 type PictureViewProps = PictureViewStateProps & PictureViewDispatchProps;
@@ -159,10 +162,21 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
   }
 
   goTo(direction: Direction) {
-    const { picture } = this.props;
+    const { picture, fromAlbumView } = this.props;
     const destination = picture[direction];
     if (destination) {
-      this.props.replaceState(destination.path);
+      if (direction === 'album') {
+        if (fromAlbumView) {
+          // arrived from album view
+          // act as the browser back button
+          this.props.goBack();
+        } else {
+          // arrived using direct link
+          this.props.pushState(destination.path);
+        }
+      } else {
+        this.props.replaceState(destination.path);
+      }
     }
   }
 }
@@ -171,9 +185,10 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
 const mapStateToProps = (state: State) => ({
   picture: state.picture,
   width: state.mainView.width,
+  fromAlbumView: state.router.location.state ? state.router.location.state.fromAlbumView : false,
 });
 
-const mapDispatchToProps = { replaceState, openDownloadDialog };
+const mapDispatchToProps = { replaceState, pushState, goBack, openDownloadDialog };
 
 
 export default connect(
