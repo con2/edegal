@@ -1,4 +1,4 @@
-import { push } from 'connected-react-router';
+import { replace as replaceState } from 'connected-react-router';
 import * as React from 'react';
 import { NamespacesConsumer } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -29,7 +29,7 @@ interface PictureViewStateProps {
   picture: Picture;
 }
 interface PictureViewDispatchProps {
-  push: typeof push;
+  replaceState: typeof replaceState;
   openDownloadDialog: typeof openDownloadDialog;
 }
 type PictureViewProps = PictureViewStateProps & PictureViewDispatchProps;
@@ -162,7 +162,7 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
     const { picture } = this.props;
     const destination = picture[direction];
     if (destination) {
-      this.props.push(destination.path);
+      this.props.replaceState(destination.path);
     }
   }
 }
@@ -173,7 +173,7 @@ const mapStateToProps = (state: State) => ({
   width: state.mainView.width,
 });
 
-const mapDispatchToProps = { push, openDownloadDialog };
+const mapDispatchToProps = { replaceState, openDownloadDialog };
 
 
 export default connect(
