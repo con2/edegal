@@ -32,10 +32,10 @@ class AppBar extends React.Component<AppBarProps, {}> {
         {(t) => (
           <nav className="navbar navbar-expand-md navbar-dark navbar-fixed-top">
             <Link className="navbar-brand" to={rootAlbum!.path}>{rootAlbum!.title}</Link>
-            <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#AppBar-navbar" aria-controls="AppBar-navbar" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon" />
             </button>
-            <div className="collapse navbar-collapse">
+            <div className="collapse navbar-collapse" id="AppBar-navbar">
               <ul className="navbar-nav mr-auto">
                 {fullBreadcrumb.map((item) => (
                   <li key={item.path} className="nav-item">
