@@ -133,6 +133,7 @@ class PictureAdmin(admin.ModelAdmin):
     model = Picture
     readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
     list_display = ('album', 'path', 'title')
+    search_fields = ('path', 'title')
     inlines = (MediaInline,)
 
 
