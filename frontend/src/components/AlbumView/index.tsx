@@ -60,7 +60,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
               <div className='YearlyView'>
                 {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
                   return (
-                    <div>
+                    <div key={year ? year : 'unknownYear'}>
                       <h2>{year ? year : t('unknownYear')}</h2>
                       <AlbumGrid tiles={subalbums} getTitle={(tile: TileItem) => tile.title} />
                     </div>
