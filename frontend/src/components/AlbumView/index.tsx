@@ -58,10 +58,12 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
             {/* Text body and previous/next links */}
             {showBody ? (
               <div className="TextContent">
-                <div className="container d-flex">
-                  {album.next_in_series ? <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link> : null}
-                  {album.previous_in_series ? <Link className='ml-auto' to={album.previous_in_series.path}>{album.previous_in_series.title} &raquo;</Link> : null}
-                </div>
+                {album.next_in_series || album.previous_in_series ? (
+                  <div className="container d-flex mb-3">
+                    {album.next_in_series ? <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link> : null}
+                    {album.previous_in_series ? <Link className='ml-auto' to={album.previous_in_series.path}>{album.previous_in_series.title} &raquo;</Link> : null}
+                  </div>
+                ) : null}
                 <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />
               </div>
             ) : null}
