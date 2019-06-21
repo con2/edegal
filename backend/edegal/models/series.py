@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F
 
-from ..utils import pick_attrs
+from ..utils import pick_attrs, slugify
 
 from .album_mixin import AlbumMixin
 from .common import CommonFields
@@ -32,6 +32,9 @@ class Series(AlbumMixin, models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
 
     def save(self, *args, **kwargs):
+        if self.title and not self.slug:
+            self.slug = slugify(self.title)
+
         if self.slug and not self.path:
             self.path = f'/{self.slug}'
 
