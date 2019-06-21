@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.test import TestCase
 
 from .models import Album, Picture, MediaSpec, Media
@@ -49,6 +51,8 @@ class AlbumTestCase(TestCase):
             picture=picture1,
             spec=None,
             defaults=dict(
+                src=str(uuid4()),
+                role='original',
                 width=800,
                 height=600,
             )
@@ -64,6 +68,8 @@ class AlbumTestCase(TestCase):
             picture=picture1,
             spec=spec,
             defaults=dict(
+                src=str(uuid4()),
+                role='thumbnail',
                 width=spec.max_width,
                 height=spec.max_height,
             )
@@ -85,7 +91,7 @@ class AlbumTestCase(TestCase):
         picture1 = Picture.objects.get(path='/album-2/picture-1')
 
         original = picture1.original
-        self.assertEqual(original.get_canonical_path(prefix=''), 'pictures/album-2/picture-1.jpg')
+        self.assertEqual(original.get_canonical_path(prefix=''), 'pictures/album-2/picture-1.jpeg')
 
         derived = picture1.media.get(spec__max_width=640, spec__max_height=480)
-        self.assertEqual(derived.get_canonical_path(prefix=''), 'previews/album-2/picture-1/640x480q60.jpg')
+        self.assertEqual(derived.get_canonical_path(prefix=''), 'previews/album-2/picture-1.thumbnail.jpeg')

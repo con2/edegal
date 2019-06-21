@@ -1,9 +1,10 @@
 import logging
+from datetime import date
 from glob import glob
 
 from django.core.management import BaseCommand
 
-from ...models import Album, TermsAndConditions, Picture
+from ...models import Album, TermsAndConditions, Picture, Series
 from ...importers.filesystem import FilesystemImporter
 from ...utils import log_get_or_create
 
@@ -37,22 +38,47 @@ class Command(BaseCommand):
 
         log_get_or_create(logger, root, created)
 
+        series, created = Series.objects.get_or_create(
+            slug='test-series',
+            defaults=dict(
+                title='Test series',
+            )
+        )
+
+        log_get_or_create(logger, series, created)
+
         album1, created = Album.objects.get_or_create(
             path='/album-1',
             defaults=dict(
                 title='Album, the First of his Name',
                 slug='album-1',
                 parent=root,
+                series=series,
+                date=date(2019, 1, 1),
             )
         )
 
         log_get_or_create(logger, album1, created)
 
-        FilesystemImporter(
-            path=album1.path,
-            input_filenames=glob('example_content/*.jpg'),
-            mode='copy',
-        ).run()
+        album2, created = Album.objects.get_or_create(
+            path='/album-2',
+            defaults=dict(
+                title='Album, the Second of his Name',
+                slug='album-2',
+                parent=root,
+                series=series,
+                date=date(2019, 1, 2),
+            )
+        )
+
+        log_get_or_create(logger, album2, created)
+
+        for album in [album1, album2]:
+            FilesystemImporter(
+                path=album.path,
+                input_filenames=glob('example_content/*.jpg'),
+                mode='copy',
+            ).run()
 
         tac, unused = TermsAndConditions.get_or_create(
             text='For personal use only. All rights reserved.',

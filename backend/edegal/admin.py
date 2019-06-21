@@ -15,6 +15,7 @@ from .models import (
     Media,
     MediaSpec,
     Picture,
+    Series,
     TermsAndConditions,
 )
 
@@ -90,7 +91,7 @@ class AlbumAdmin(MultiUploadAdmin):
         if obj.pk is None and obj.created_by is None:
             obj.created_by = request.user
 
-        return super(AlbumAdmin, self).save_model(request, obj, form, change)
+        return super().save_model(request, obj, form, change)
 
     def process_uploaded_file(self, uploaded, album, request):
         assert album is not None
@@ -154,6 +155,32 @@ class MediaSpecAdmin(admin.ModelAdmin):
     actions = [activate_media_specs, deactivate_media_specs]
 
 
+class SeriesAdminForm(forms.ModelForm):
+    body = forms.CharField(
+        widget=CKEditorUploadingWidget(),
+        required=False,
+        label=Series._meta.get_field('body').verbose_name,
+        help_text=Series._meta.get_field('body').help_text,
+    )
+
+    class Meta:
+        fields = ('title', 'description', 'body', 'slug', 'is_public')
+        model = Series
+
+
+class SeriesAdmin(admin.ModelAdmin):
+    model = Series
+    form = SeriesAdminForm
+    readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
+    list_display = ('path', 'title', 'is_public', 'is_visible')
+
+    def save_model(self, request, obj, form, change):
+        if obj.pk is None and obj.created_by is None:
+            obj.created_by = request.user
+
+        return super().save_model(request, obj, form, change)
+
+
 class TermsAndConditionsAdmin(admin.ModelAdmin):
     model = TermsAndConditions
     list_display = ('admin_get_abridged_text', 'url', 'is_public')
@@ -165,4 +192,5 @@ class TermsAndConditionsAdmin(admin.ModelAdmin):
 admin.site.register(Album, AlbumAdmin)
 admin.site.register(Picture, PictureAdmin)
 admin.site.register(MediaSpec, MediaSpecAdmin)
+admin.site.register(Series, SeriesAdmin)
 admin.site.register(TermsAndConditions, TermsAndConditionsAdmin)

@@ -9,9 +9,9 @@ import AppBar from '../AppBar';
 import preloadMedia from '../../helpers/preloadMedia';
 import AlbumGrid from './AlbumGrid';
 import './index.css';
-import TextContent from './TextContent';
 import Subalbum from '../../models/Subalbum';
 import { NamespacesConsumer } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 
 interface AlbumViewProps {
@@ -47,13 +47,24 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
   render() {
     const { album } = this.props;
 
+    const showBody = album.body || album.previous_in_series || album.next_in_series;
+
     return (
       <NamespacesConsumer ns={['AlbumView']}>
         {(t) => (
           <div>
             <AppBar />
 
-            {album.body ? <TextContent content={album.body} /> : null}
+            {/* Text body and previous/next links */}
+            {showBody ? (
+              <div className="TextContent">
+                <div className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />
+                <div className="container d-flex">
+                  {album.next_in_series ? <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link> : null}
+                  {album.previous_in_series ? <Link className='ml-auto' to={album.previous_in_series.path}>{album.previous_in_series.title} &raquo;</Link> : null}
+                </div>
+              </div>
+            ) : null}
 
             {/* Subalbums */}
             { album.layout == 'yearly' ? (

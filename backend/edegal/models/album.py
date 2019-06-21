@@ -10,7 +10,11 @@ from django.shortcuts import get_object_or_404
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ..utils import slugify, pick_attrs
+
+from .album_mixin import AlbumMixin
 from .common import CommonFields
+from .picture import Picture
+from .series import Series
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +41,7 @@ LAYOUT_CHOICES = [
 ]
 
 
-class Album(MPTTModel):
+class Album(AlbumMixin, MPTTModel):
     slug = models.CharField(**CommonFields.slug)
     parent = TreeForeignKey('self',
         null=True,
@@ -52,12 +56,7 @@ class Album(MPTTModel):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
-    body = models.TextField(
-        blank=True,
-        default='',
-        verbose_name='Text content',
-        help_text='Will be displayed at the top of the album view before subalbums and pictures.',
-    )
+    body = models.TextField(**CommonFields.body)
 
     redirect_url = models.CharField(
         max_length=1023,
@@ -82,20 +81,23 @@ class Album(MPTTModel):
     is_public = models.BooleanField(**CommonFields.is_public)
     is_visible = models.BooleanField(**CommonFields.is_visible)
 
-    terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions',
-        null=True,
-        blank=True,
-    )
+    terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions', null=True, blank=True, on_delete=models.SET_NULL)
 
     date = models.DateField(
         null=True,
         help_text='When did the events portrayed in this album happen? Note that this may differ from album creation date which is tracked automatically.'
     )
 
-    created_at = models.DateTimeField(null=True, auto_now_add=True)
-    updated_at = models.DateTimeField(null=True, auto_now=True)
+    created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+
+    series = models.ForeignKey('edegal.Series', blank=True, null=True, on_delete=models.SET_NULL, related_name='albums')
+
+    # denormalized from `series`
+    previous_in_series = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
+    next_in_series = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
 
     def __init__(self, *args, **kwargs):
         super(Album, self).__init__(*args, **kwargs)
@@ -116,7 +118,7 @@ class Album(MPTTModel):
             'layout',
 
             date=self.date.isoformat() if self.date else '',
-            breadcrumb=[ancestor._make_breadcrumb() for ancestor in self.get_ancestors()],
+            breadcrumb=self._make_breadcrumbs(),
             subalbums=[
                 subalbum._make_subalbum(format=format)
                 for subalbum in self._get_subalbums(is_visible=True, **child_criteria)
@@ -128,6 +130,16 @@ class Album(MPTTModel):
             terms_and_conditions=(
                 self.terms_and_conditions.as_dict()
                 if self.terms_and_conditions
+                else None
+            ),
+            previous_in_series=(
+                self.previous_in_series._make_breadcrumb()
+                if self.previous_in_series
+                else None
+            ),
+            next_in_series=(
+                self.next_in_series._make_breadcrumb()
+                if self.next_in_series
                 else None
             ),
         )
@@ -164,12 +176,6 @@ class Album(MPTTModel):
         else:
             return None
 
-    def _make_breadcrumb(self):
-        return pick_attrs(self,
-            'path',
-            'title',
-        )
-
     def _make_path(self):
         if self.parent is None:
             return '/'
@@ -179,6 +185,14 @@ class Album(MPTTModel):
             if pth.startswith('//'):
                 pth = pth[1:]
             return pth
+
+    def _make_breadcrumbs(self):
+        breadcrumbs = [ancestor._make_breadcrumb() for ancestor in self.get_ancestors()]
+
+        if self.series:
+            breadcrumbs.insert(1, self.series._make_breadcrumb())
+
+        return breadcrumbs
 
     def _select_cover_picture(self):
         first_subalbum = self.subalbums.filter(cover_picture__media__role='thumbnail').first()
@@ -262,12 +276,37 @@ class Album(MPTTModel):
                     logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
                     album.save(traverse=False)
 
+            if self.series:
+                previous_album = None
+
+                # iterated oldest first
+                for album in self.series.get_albums().reverse():
+                    logger.debug('Setting predecessor (older) in series %s of %s to %s', self.series, album, previous_album)
+                    album.previous_in_series = previous_album
+
+                    if previous_album:
+                        logger.debug('Setting successor (newer) in series %s of %s to %s', self.series, previous_album, album)
+                        previous_album.next_in_series = album
+                        previous_album.save(traverse=False)
+
+                    previous_album = album
+
+                if previous_album:
+                    logger.debug('Setting successor (newer) in series %s of %s to None', self.series, previous_album)
+                    previous_album.next_in_series = None
+                    previous_album.save(traverse=False)
+
         return return_value
 
     @classmethod
     def get_album_by_path(cls, path, or_404=False, **extra_criteria):
-        # Is it a picture?
-        from .picture import Picture
+        # Is it a Series?
+        try:
+            return Series.objects.get(path=path)
+        except Series.DoesNotExist:
+            pass
+
+        # Is it a Picture?
         try:
             picture = Picture.objects.only('album_id').get(path=path)
         except Picture.DoesNotExist:
@@ -275,10 +314,13 @@ class Album(MPTTModel):
         else:
             query = dict(id=picture.album_id, cover_picture__media__role='thumbnail', **extra_criteria)
 
+        # TODO Can we limit fetched fields in select_related?
         queryset = (
             cls.objects.filter(**query)
             .distinct()
             .select_related('terms_and_conditions')
+            .select_related('previous_in_series')
+            .select_related('next_in_series')
             .prefetch_related('cover_picture__media')
         )
 
@@ -286,12 +328,6 @@ class Album(MPTTModel):
             return get_object_or_404(queryset)
         else:
             return queryset.get()
-
-    def __str__(self):
-        return self.path
-
-    def get_absolute_url(self):
-        return f'{settings.EDEGAL_FRONTEND_URL}{self.path}'
 
     class Meta:
         verbose_name = 'Album'

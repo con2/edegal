@@ -52,6 +52,13 @@ class CommonFields(object):
         default='',
     )
 
+    body = dict(
+        blank=True,
+        default='',
+        verbose_name='Text content',
+        help_text='Will be displayed at the top of the album view before subalbums and pictures.',
+    )
+
     order = dict(
         default=0,
         verbose_name='Ordering',

@@ -3,7 +3,7 @@ services:
   backend:
     build: backend
     init: true
-    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --strict rabbitmq:5672 -- python manage.py docker_start
+    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict rabbitmq:5672 -- python manage.py docker_start
     ports:
       - 8000:8000
     links:
@@ -23,7 +23,7 @@ services:
   worker:
     build: backend
     init: true
-    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --strict rabbitmq:5672 -- celery -A edegal_site.celery:app worker
+    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict rabbitmq:5672 -- celery -A edegal_site.celery:app worker
     links:
       - rabbitmq
       - postgres
