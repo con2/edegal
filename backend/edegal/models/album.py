@@ -187,10 +187,12 @@ class Album(AlbumMixin, MPTTModel):
             return pth
 
     def _make_breadcrumbs(self):
-        breadcrumbs = [ancestor._make_breadcrumb() for ancestor in self.get_ancestors()]
+        ancestors = self.get_ancestors().only('path', 'title', 'series')
+        series = next((album.series for album in ancestors if album.series), None)
+        breadcrumbs = [ancestor._make_breadcrumb() for ancestor in ancestors]
 
-        if self.series:
-            breadcrumbs.insert(1, self.series._make_breadcrumb())
+        if series:
+            breadcrumbs.insert(1, series._make_breadcrumb())
 
         return breadcrumbs
 
