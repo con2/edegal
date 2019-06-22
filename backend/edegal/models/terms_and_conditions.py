@@ -3,6 +3,7 @@ import logging
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
 from ..utils import pick_attrs
@@ -51,7 +52,7 @@ class TermsAndConditions(models.Model, DedupMixin):
     )
 
     is_public = models.BooleanField(
-        default=True,
+        default=False,
         verbose_name=_('Public'),
         help_text=_(
             'Public T&Cs can be selected by any user at upload time. Use public T&Cs for eg. '
@@ -72,6 +73,14 @@ class TermsAndConditions(models.Model, DedupMixin):
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+
+    @classmethod
+    def get_for_user(cls, user):
+        if user.is_superuser:
+            return cls.objects.all()
+        else:
+            q = Q(is_public=True) | Q(user=user)
+            return cls.objects.filter(q)
 
     def admin_get_abridged_text(self, max_chars=80):
         if len(self.text) <= max_chars:

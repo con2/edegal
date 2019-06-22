@@ -14,6 +14,13 @@ class Photographer(models.Model):
     """
     slug = models.CharField(**CommonFields.slug)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    email = models.EmailField(
+        blank=True,
+        help_text=(
+            'This e-mail address will be offered as a contact point for users who want to request permission to use '
+            'your photos for purposes other than those covered by the terms and conditions.'
+        ),
+    )
     display_name = models.CharField(max_length=255, db_index=True)
     homepage_url = models.CharField(max_length=255, blank=True)
     twitter_handle = models.CharField(max_length=15, blank=True)
