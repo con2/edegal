@@ -2,6 +2,7 @@ import Breadcrumb from './Breadcrumb';
 import Picture from './Picture';
 import Subalbum from './Subalbum';
 import TermsAndConditions from './TermsAndConditions';
+import Credits from './Credits';
 
 
 export type Layout = 'yearly' | 'simple';
@@ -20,6 +21,7 @@ interface Album {
   terms_and_conditions?: TermsAndConditions;
   next_in_series?: Breadcrumb;
   previous_in_series?: Breadcrumb;
+  credits: Credits;
 }
 
 
