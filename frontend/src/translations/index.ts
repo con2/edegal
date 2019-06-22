@@ -5,18 +5,7 @@ import en from './en';
 import fi from './fi';
 
 
-export interface Translations {
-  [index: string]: i18n.ResourceKey;
-  AppBar: {
-    adminLink: string;
-  };
-  PictureView: {
-    backToAlbum: string;
-    downloadOriginal: string;
-    nextPicture: string;
-    previousPicture: string;
-  };
-}
+export type Translations = typeof en;
 
 const resources: i18n.Resource = { fi, en };
 

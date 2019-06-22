@@ -7,6 +7,10 @@ const translations: Translations = {
   AppBar: {
     adminLink: 'Hallinta',
   },
+  DownloadDialog: {
+    termsAndConditions: 'Käyttääksesi tätä kuvaa sinun tulee hyväksyä seuraavat ehdot:',
+    creditInstructions: 'Kun käytät kuvaa, ilmoita tekijän/tekijöiden nimi seuraavasti:',
+  },
   PictureView: {
     backToAlbum: 'Takaisin albumiin',
     downloadOriginal: 'Lataa alkuperäinen kuva',
