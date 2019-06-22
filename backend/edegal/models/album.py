@@ -212,9 +212,9 @@ class Album(AlbumMixin, MPTTModel):
         credits = {}
 
         if self.photographer:
-            credits['photographer'] = self.photographer.as_dict(role='photographer')
+            credits['photographer'] = self.photographer.as_dict()
         if self.director:
-            credits['director'] = self.director.as_dict(role='director')
+            credits['director'] = self.director.as_dict()
 
         return credits
 
