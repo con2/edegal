@@ -25,18 +25,3 @@ class Command(BaseCommand):
 
         for pargs, opts in management_commands:
             call_command(*pargs, **opts)
-
-        if settings.DEBUG:
-            user, created = get_user_model().objects.get_or_create(
-                username='mahti',
-                first_name='Markku',
-                last_name='Mahtinen',
-                is_staff=True,
-                is_superuser=True,
-            )
-
-            if created:
-                user.set_password('mahti')
-                user.save()
-
-            log_get_or_create(logger, user, created)

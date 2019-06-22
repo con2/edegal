@@ -81,11 +81,22 @@ class Album(AlbumMixin, MPTTModel):
     is_public = models.BooleanField(**CommonFields.is_public)
     is_visible = models.BooleanField(**CommonFields.is_visible)
 
+    photographer = models.ForeignKey('edegal.Photographer', null=True, blank=True, on_delete=models.SET_NULL, related_name='albums')
+    director = models.ForeignKey(
+        'edegal.Photographer',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='directed_albums',
+    )
     terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions', null=True, blank=True, on_delete=models.SET_NULL)
 
     date = models.DateField(
         null=True,
-        help_text='When did the events portrayed in this album happen? Note that this may differ from album creation date which is tracked automatically.'
+        help_text=(
+            'When did the events portrayed in this album happen? '
+            'Note that this may differ from album creation date which is tracked automatically.'
+        ),
     )
 
     created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
@@ -117,6 +128,7 @@ class Album(AlbumMixin, MPTTModel):
             'redirect_url',
             'layout',
 
+            credits=self._make_credits(),
             date=self.date.isoformat() if self.date else '',
             breadcrumb=self._make_breadcrumbs(),
             subalbums=[
@@ -196,6 +208,16 @@ class Album(AlbumMixin, MPTTModel):
 
         return breadcrumbs
 
+    def _make_credits(self):
+        credits = {}
+
+        if self.photographer:
+            credits['photographer'] = self.photographer.as_dict(role='photographer')
+        if self.director:
+            credits['director'] = self.director.as_dict(role='director')
+
+        return credits
+
     def _select_cover_picture(self):
         first_subalbum = self.subalbums.filter(cover_picture__media__role='thumbnail').first()
         if first_subalbum is not None:
@@ -240,6 +262,13 @@ class Album(AlbumMixin, MPTTModel):
         logger.warning('No method of date guessing worked for %s', self)
 
     def save(self, *args, **kwargs):
+        """
+        One extra keyword argument is supported: `traverse` controls whether any changes
+        that affect other albums as well should be propagated.
+
+        The default for `traverse` is True. However, when `Album.save(traverse=True)` saves other
+        albums, those saves are done `save=False` in order to stop recursion.
+        """
         traverse = kwargs.pop('traverse', True)
 
         if self.title and not self.slug:
@@ -265,40 +294,34 @@ class Album(AlbumMixin, MPTTModel):
         for picture in self.pictures.all():
             picture.save()
 
-        # In case thumbnails or path changed, update whole family with updated information.
         if traverse:
-            if path_changed:
-                family = self.get_family()
-            else:
-                family = self.get_ancestors()
-
-            for album in family:
-                # Cannot use identity or id because self might not be saved yet!
-                if album.path != self.path:
-                    logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
-                    album.save(traverse=False)
+            self._update_family(path_changed)
 
             if self.series:
-                previous_album = None
-
-                # iterated oldest first
-                for album in self.series.get_albums().reverse():
-                    logger.debug('Setting predecessor (older) in series %s of %s to %s', self.series, album, previous_album)
-                    album.previous_in_series = previous_album
-
-                    if previous_album:
-                        logger.debug('Setting successor (newer) in series %s of %s to %s', self.series, previous_album, album)
-                        previous_album.next_in_series = album
-                        previous_album.save(traverse=False)
-
-                    previous_album = album
-
-                if previous_album:
-                    logger.debug('Setting successor (newer) in series %s of %s to None', self.series, previous_album)
-                    previous_album.next_in_series = None
-                    previous_album.save(traverse=False)
+                self.series.resequence()
 
         return return_value
+
+    def _update_family(self, path_changed):
+        """
+        Called during `Album.save(traverse=True)` to update dependent Albums.
+
+        If the `path` field is unchanged, it suffices to update any albums *above* this one
+        in order to propagate `cover_picture` changes.
+
+        If the `path` field is changed, we also need to update any albums *below* this one
+        because their path is dependent on ours.
+        """
+        if path_changed:
+            family = self.get_family()
+        else:
+            family = self.get_ancestors()
+
+        for album in family:
+            # Cannot use identity or id because self might not be saved yet!
+            if album.path != self.path:
+                logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
+                album.save(traverse=False)
 
     @classmethod
     def get_album_by_path(cls, path, or_404=False, **extra_criteria):
@@ -320,9 +343,13 @@ class Album(AlbumMixin, MPTTModel):
         queryset = (
             cls.objects.filter(**query)
             .distinct()
-            .select_related('terms_and_conditions')
-            .select_related('previous_in_series')
-            .select_related('next_in_series')
+            .select_related(
+                'previous_in_series',
+                'next_in_series',
+                'photographer',
+                'director',
+                'terms_and_conditions',
+            )
             .prefetch_related('cover_picture__media')
         )
 

@@ -14,6 +14,7 @@ from .models import (
     Album,
     Media,
     MediaSpec,
+    Photographer,
     Picture,
     Series,
     TermsAndConditions,
@@ -43,7 +44,22 @@ class AlbumAdminForm(forms.ModelForm):
     )
 
     class Meta:
-        fields = ('title', 'description', 'body', 'cover_picture', 'terms_and_conditions', 'parent', 'slug', 'is_public')
+        fields = (
+            'body',
+            'cover_picture',
+            'date',
+            'description',
+            'director',
+            'is_public',
+            'is_visible',
+            'layout',
+            'parent',
+            'photographer',
+            'redirect_url',
+            'slug',
+            'terms_and_conditions',
+            'title',
+        )
         model = Album
 
 
@@ -60,21 +76,31 @@ class AlbumAdmin(MultiUploadAdmin):
                 'title',
                 'date',
                 'parent',
-                'description',
-                'body',
-                'is_public',
                 'is_visible',
             )
+        }),
+        ('Credits', {
+            'fields': (
+                'photographer',
+                'director',
+                'terms_and_conditions',
+            ),
+        }),
+        ('Text content', {
+            'fields': (
+                'description',
+                'body',
+            ),
         }),
         ('Technical details', {
             'classes': ('collapse',),
             'fields': (
                 'cover_picture',
-                'terms_and_conditions',
                 'slug',
                 'path',
                 'redirect_url',
                 'layout',
+                'is_public',
                 'created_at',
                 'updated_at',
                 'created_by',
@@ -88,8 +114,9 @@ class AlbumAdmin(MultiUploadAdmin):
     multiupload_limitconcurrentuploads = settings.MAX_CONCURRENT_UPLOADS
 
     def save_model(self, request, obj, form, change):
-        if obj.pk is None and obj.created_by is None:
-            obj.created_by = request.user
+        if obj.pk is None:
+            if obj.created_by is None:
+                obj.created_by = request.user
 
         return super().save_model(request, obj, form, change)
 
@@ -117,7 +144,18 @@ class AlbumAdmin(MultiUploadAdmin):
         )
 
     def get_changeform_initial_data(self, request):
-        return dict(parent=Album.objects.filter(path='/').first())
+        try:
+            photographer = request.user.photographer
+            terms_and_conditions = photographer.default_terms_and_conditions
+        except Photographer.DoesNotExist:
+            photographer = None
+            terms_and_conditions = None
+
+        return dict(
+            parent=Album.objects.filter(path='/').first(),
+            photographer=photographer,
+            terms_and_conditions=terms_and_conditions,
+        )
 
 
 class MediaInline(admin.TabularInline):
@@ -135,6 +173,7 @@ class PictureAdmin(admin.ModelAdmin):
     readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
     list_display = ('album', 'path', 'title')
     search_fields = ('path', 'title')
+    raw_id_fields = ('album',)
     inlines = (MediaInline,)
 
 
@@ -153,6 +192,12 @@ class MediaSpecAdmin(admin.ModelAdmin):
     list_display = ('role', 'max_width', 'max_height', 'quality', 'format', 'active')
     readonly_fields = ('role', 'max_width', 'max_height', 'quality', 'format')
     actions = [activate_media_specs, deactivate_media_specs]
+
+
+class PhotographerAdmin(admin.ModelAdmin):
+    model = Photographer
+    list_display = ('display_name', 'user', 'twitter_handle', 'instagram_handle', 'facebook_handle')
+    raw_id_fields = ('default_terms_and_conditions',)
 
 
 class SeriesAdminForm(forms.ModelForm):
@@ -184,13 +229,19 @@ class SeriesAdmin(admin.ModelAdmin):
 class TermsAndConditionsAdmin(admin.ModelAdmin):
     model = TermsAndConditions
     list_display = ('admin_get_abridged_text', 'url', 'is_public')
-    fields = ('text', 'url', 'is_public')
+    fields = ('text', 'url', 'is_public', 'user')
     readonly_fields = ('digest',)
     search_fields = ('text', 'url')
+    raw_id_fields = ('user',)
 
 
 admin.site.register(Album, AlbumAdmin)
-admin.site.register(Picture, PictureAdmin)
 admin.site.register(MediaSpec, MediaSpecAdmin)
+admin.site.register(Photographer, PhotographerAdmin)
+admin.site.register(Picture, PictureAdmin)
 admin.site.register(Series, SeriesAdmin)
 admin.site.register(TermsAndConditions, TermsAndConditionsAdmin)
+
+admin.site.site_header = 'Edegal Admin'
+admin.site.site_title = 'Edegal Admin'
+admin.site.index_title = ''

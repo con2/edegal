@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.db import models
 from django.db.models import F
@@ -8,12 +10,23 @@ from .album_mixin import AlbumMixin
 from .common import CommonFields
 
 
+logger = logging.getLogger(__name__)
+
+
 class Series(AlbumMixin, models.Model):
     """
     A Series is a chronological series of albums.
 
     Consider, for example, a site that hosts pictures for lots of events that happen annually over the year.
     The same events of different years form a Series.
+
+    This allows us to browse all events chronologically on the front page while also enabling us to browse
+    occurrences of a specific event.
+
+    The Series is made part of the breadcrumb navigation but not the URL. The rationale for this is that
+    often events contain the year or an ordinal as part of their names (such as Tracon X, Desucon 2019 etc.)
+    Having /desucon as the Series URL and /desucon-2019 as the Album URL saves space while remaining just as
+    informative as /desucon/desucon-2019.
     """
     title = models.CharField(**CommonFields.title)
     slug = models.CharField(**CommonFields.slug)
@@ -77,6 +90,29 @@ class Series(AlbumMixin, models.Model):
             .select_related('cover_picture')
             .order_by(F('date').desc(nulls_last=True), 'tree_id')
         )
+
+    def resequence(self):
+        """
+        Called during Album.save to update `previous_in_series` and `next_in_seriesà.
+        """
+        previous_album = None
+
+        # iterated oldest first
+        for album in self.get_albums().reverse():
+            logger.debug('Setting predecessor (older) in series %s of %s to %s', self, album, previous_album)
+            album.previous_in_series = previous_album
+
+            if previous_album:
+                logger.debug('Setting successor (newer) in series %s of %s to %s', self, previous_album, album)
+                previous_album.next_in_series = album
+                previous_album.save(traverse=False)
+
+            previous_album = album
+
+        if previous_album:
+            logger.debug('Setting successor (newer) in series %s of %s to None', self, previous_album)
+            previous_album.next_in_series = None
+            previous_album.save(traverse=False)
 
     class Meta:
         verbose_name = 'Series'

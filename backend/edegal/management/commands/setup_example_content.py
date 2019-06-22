@@ -2,9 +2,11 @@ import logging
 from datetime import date
 from glob import glob
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.management import BaseCommand
 
-from ...models import Album, TermsAndConditions, Picture, Series
+from ...models import Album, TermsAndConditions, Photographer, Picture, Series
 from ...importers.filesystem import FilesystemImporter
 from ...utils import log_get_or_create
 
@@ -22,11 +24,38 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        assert settings.DEBUG, "Please don't use setup_example_content in production"
+
+        User = get_user_model()
+
+        user, created = User.objects.get_or_create(
+            username='mahti',
+            first_name='Markku',
+            last_name='Mahtinen',
+            is_staff=True,
+            is_superuser=True,
+        )
+
+        if created:
+            user.set_password('mahti')
+            user.save()
+
+        log_get_or_create(logger, user, created)
+
         if Album.objects.exists() and not options['force']:
             logger.info('There is already content in the database – skipping creating example content')
             return
 
         logger.info('Creating example content')
+
+        photographer, created = Photographer.objects.get_or_create(
+            user=User.objects.first(),
+            defaults=dict(
+                display_name='Example Photographer',
+            ),
+        )
+
+        log_get_or_create(logger, photographer, created)
 
         root, created = Album.objects.get_or_create(
             path='/',
@@ -55,6 +84,7 @@ class Command(BaseCommand):
                 parent=root,
                 series=series,
                 date=date(2019, 1, 1),
+                photographer=photographer,
             )
         )
 
@@ -68,6 +98,7 @@ class Command(BaseCommand):
                 parent=root,
                 series=series,
                 date=date(2019, 1, 2),
+                photographer=photographer,
             )
         )
 
