@@ -140,6 +140,7 @@ const initialState: Album = {
   pictures: [],
   breadcrumb: [],
   layout: 'simple',
+  credits: {},
 };
 
 
