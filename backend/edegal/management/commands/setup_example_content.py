@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import BaseCommand
 
-from ...models import Album, TermsAndConditions, Photographer, Picture, Series
+from ...models import Album, TermsAndConditions, Photographer, Series
 from ...importers.filesystem import FilesystemImporter
 from ...utils import log_get_or_create
 
@@ -48,13 +48,20 @@ class Command(BaseCommand):
 
         logger.info('Creating example content')
 
+        tac, unused = TermsAndConditions.get_or_create(
+            text='For personal use only. All rights reserved.',
+        )
+        log_get_or_create(logger, tac, created)
+
         photographer, created = Photographer.objects.get_or_create(
             user=User.objects.first(),
             defaults=dict(
                 display_name='Example Photographer',
+                email='example@example.com',
+                twitter_handle='example',
+                instagram_handle='example',
             ),
         )
-
         log_get_or_create(logger, photographer, created)
 
         root, created = Album.objects.get_or_create(
@@ -64,7 +71,6 @@ class Command(BaseCommand):
                 layout='yearly',
             ),
         )
-
         log_get_or_create(logger, root, created)
 
         series, created = Series.objects.get_or_create(
@@ -73,7 +79,6 @@ class Command(BaseCommand):
                 title='Test series',
             )
         )
-
         log_get_or_create(logger, series, created)
 
         album1, created = Album.objects.get_or_create(
@@ -85,9 +90,9 @@ class Command(BaseCommand):
                 series=series,
                 date=date(2019, 1, 1),
                 photographer=photographer,
+                terms_and_conditions=tac,
             )
         )
-
         log_get_or_create(logger, album1, created)
 
         album2, created = Album.objects.get_or_create(
@@ -99,9 +104,9 @@ class Command(BaseCommand):
                 series=series,
                 date=date(2019, 1, 2),
                 photographer=photographer,
+                terms_and_conditions=tac,
             )
         )
-
         log_get_or_create(logger, album2, created)
 
         for album in [album1, album2]:
@@ -110,12 +115,3 @@ class Command(BaseCommand):
                 input_filenames=glob('example_content/*.jpg'),
                 mode='copy',
             ).run()
-
-        tac, unused = TermsAndConditions.get_or_create(
-            text='For personal use only. All rights reserved.',
-        )
-
-        if created:
-            picture = Picture.objects.filter(album=album1).first()
-            picture.override_terms_and_conditions = tac
-            picture.save()

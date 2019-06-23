@@ -56,8 +56,6 @@ function getCached(path: string, format: Format): Promise<Album> {
             picture.previous = previous;
           }
 
-          picture.album = album;
-
           AlbumCache.set(picture.path, album);
           previous = picture;
         });

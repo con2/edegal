@@ -7,12 +7,12 @@ import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-edi
 import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg';
 
 import preloadMedia from '../../helpers/preloadMedia';
+import Album from '../../models/Album';
 import Picture from '../../models/Picture';
 import { State } from '../../modules';
-import { openDownloadDialog } from '../../modules/downloadDialog';
-// import DownloadDialog from '../DownloadDialog';
 
 import './index.css';
+import DownloadDialog from './DownloadDialog';
 
 
 type Direction = 'next' | 'previous' | 'album';
@@ -26,22 +26,31 @@ const keyMap: {[keyCode: number]: Direction} = {
 
 
 interface PictureViewStateProps {
+  album: Album;
   picture: Picture;
   fromAlbumView: boolean;
 }
+
 interface PictureViewDispatchProps {
   replaceState: typeof replaceState;
   pushState: typeof pushState;
   goBack: typeof goBack;
-  openDownloadDialog: typeof openDownloadDialog;
 }
+
 type PictureViewProps = PictureViewStateProps & PictureViewDispatchProps;
 
+interface PictureViewState {
+  downloadDialogOpen: boolean;
+}
 
-class PictureView extends React.PureComponent<PictureViewProps, {}> {
+
+class PictureView extends React.Component<PictureViewProps, PictureViewState> {
+  state: PictureViewState = { downloadDialogOpen: false };
+
   render() {
-    const { picture } = this.props;
+    const { album, picture } = this.props;
     const { preview } = picture;
+    const { downloadDialogOpen } = this.state;
 
     return (
       <Translation ns="PictureView">
@@ -89,30 +98,16 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
             </div>
 
             {picture.original && (
-              picture.album!.terms_and_conditions ? (
-                <a
-                // <div
-                  // onClick={this.props.openDownloadDialog}
-                  href={picture.original.src}
-                  className="PictureView-action PictureView-action-download"
-                  title={t('downloadOriginal')}
-                >
-                  <svg className="PictureView-icon">
-                    <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
-                  </svg>
-                  {/* <DownloadDialog /> */}
-                </a>
-              ) : (
-                <a
-                  href={picture.original.src}
-                  className="PictureView-action PictureView-action-download"
-                  title={t('downloadOriginal')}
-                >
-                  <svg className="PictureView-icon">
-                    <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
-                  </svg>
-                </a>
-              )
+              <div
+                onClick={this.openDownloadDialog}
+                className="PictureView-action PictureView-action-download"
+                title={t('downloadOriginal')}
+              >
+                <svg className="PictureView-icon">
+                  <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+                </svg>
+                {downloadDialogOpen ? <DownloadDialog album={album} picture={picture} onClose={this.closeDownloadDialog} /> : null}
+              </div>
             )}
           </div>
         )}
@@ -162,8 +157,9 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
   }
 
   goTo(direction: Direction) {
-    const { picture, fromAlbumView } = this.props;
-    const destination = picture[direction];
+    // TODO hairy due to refactoring .album away from picture, ameliorate
+    const { album, picture, fromAlbumView } = this.props;
+    const destination = direction === 'album' ? album : picture[direction];
     if (destination) {
       if (direction === 'album') {
         if (fromAlbumView) {
@@ -179,16 +175,26 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
       }
     }
   }
+
+  openDownloadDialog = () => {
+    this.setState({ downloadDialogOpen: true });
+  }
+
+  closeDownloadDialog = () => {
+    // XXX Whytf is setTimeout required here?
+    setTimeout(() => this.setState({ downloadDialogOpen: false }), 0);
+  }
 }
 
 
 const mapStateToProps = (state: State) => ({
+  album: state.album,
   picture: state.picture,
   width: state.mainView.width,
   fromAlbumView: state.router.location.state ? state.router.location.state.fromAlbumView : false,
 });
 
-const mapDispatchToProps = { replaceState, pushState, goBack, openDownloadDialog };
+const mapDispatchToProps = { replaceState, pushState, goBack };
 
 
 export default connect(
