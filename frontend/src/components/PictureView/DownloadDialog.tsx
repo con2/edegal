@@ -38,7 +38,7 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, picture, onClose
 
               <div className="modal-body">
                 <p><strong>{t('termsAndConditions')}</strong></p>
-                <Linebreaks text={text} />
+                <Linebreaks text={text || t('defaultTerms')} />
 
                 {photographer && photographer.email ? <p><strong>{t('contact')}</strong> {photographer.email}</p> : null}
 

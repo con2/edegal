@@ -21,6 +21,7 @@ const translations: Translations = {
     photographer: 'Kuvaaja',
     director: 'Ohjaaja',
     acceptTermsAndConditions: 'Hyväksyn ehdot',
+    defaultTerms: 'Kuvan käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvan käyttöön.',
   },
   PictureView: {
     backToAlbum: 'Takaisin albumiin',
