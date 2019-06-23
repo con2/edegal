@@ -2,6 +2,7 @@ import React from 'react';
 import Album from '../../models/Album';
 import Picture from '../../models/Picture';
 import { Translation } from 'react-i18next';
+import Linebreaks from '../Linebreaks';
 
 
 interface DownloadDialogProps {
@@ -37,7 +38,7 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, picture, onClose
 
               <div className="modal-body">
                 <p><strong>{t('termsAndConditions')}</strong></p>
-                <p>{text}</p>
+                <Linebreaks text={text} />
 
                 {photographer && photographer.email ? <p><strong>{t('contact')}</strong> {photographer.email}</p> : null}
 
