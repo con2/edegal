@@ -1,6 +1,6 @@
 // https://davidwalsh.name/detect-webp
 export default async function supportsWebp(): Promise<boolean> {
-  if (!self.createImageBitmap) {
+  if (!window.createImageBitmap) {
     return false;
   }
 

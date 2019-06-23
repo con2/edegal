@@ -72,7 +72,7 @@ class TermsAndConditions(models.Model, DedupMixin):
         ),
     )
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 
     @classmethod
     def get_for_user(cls, user):

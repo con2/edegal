@@ -29,13 +29,13 @@ interface AlbumGridStateProps {
 }
 interface AlbumGridOwnProps {
   tiles: TileItem[];
-  getTitle(tile: TileItem): string;
+  showTitle: boolean;
 }
 type AlbumGridProps = AlbumGridStateProps & AlbumGridOwnProps;
 
 class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
   render() {
-    const { tiles, getTitle } = this.props;
+    const { tiles, showTitle } = this.props;
 
     return (
       <div>
@@ -47,7 +47,8 @@ class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
                 path={item.path}
                 width={item.thumbnail ? item.thumbnail.width * row.scaleFactor : defaultThumbnailWidth * row.scaleFactor}
                 height={row.height}
-                title={getTitle(item)}
+                title={item.title}
+                showTitle={showTitle}
                 src={item.thumbnail ? item.thumbnail.src : undefined}
                 externalLink={item.redirect_url}
               />

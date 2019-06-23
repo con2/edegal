@@ -23,8 +23,6 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = (
-    'cavalry.middleware.cavalry',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

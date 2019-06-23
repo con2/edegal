@@ -8,14 +8,24 @@ interface PictureTileProps {
   height: number;
   width: number;
   title?: string;
+  showTitle?: boolean;
   src?: string;
   externalLink?: string;
 }
 
 
-const Thumbnail = ({ src, width, height }: { src: string, width: number, height: number }) => (
+interface ThumbnailProps {
+  src: string;
+  width: number;
+  height: number;
+  title?: string;
+}
+
+
+const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
   <img
     src={src}
+    alt={title}
     style={{
       display: "block",
       width: Math.floor(width),
@@ -27,11 +37,11 @@ const Thumbnail = ({ src, width, height }: { src: string, width: number, height:
 
 export default class PictureTile extends React.PureComponent<PictureTileProps> {
   render() {
-    const { path, width, height, src, title, externalLink } = this.props;
+    const { path, width, height, src, title, externalLink, showTitle } = this.props;
 
     return externalLink ? (
-      <a className="PictureTile" href={externalLink} target="_blank">
-        {src ? <Thumbnail src={src} width={width} height={height} /> : null}
+      <a className="PictureTile" href={externalLink} target="_blank" rel="noopener noreferrer">
+        {src ? <Thumbnail src={src} width={width} height={height} title={title} /> : null}
         <div className="PictureTile-title">
           {title}
           <svg className="PictureTile-icon">
@@ -41,8 +51,8 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
       </a>
     ) : (
       <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true }}}>
-        {src ? <Thumbnail src={src} width={width} height={height} /> : null}
-        {title ? <div className="PictureTile-title">{title}</div> : null}
+        {src ? <Thumbnail src={src} width={width} height={height} title={title} /> : null}
+        {showTitle && title ? <div className="PictureTile-title">{title}</div> : null}
       </Link>
     );
   }

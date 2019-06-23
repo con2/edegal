@@ -2,7 +2,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import Album from '../../models/Album';
-import TileItem from '../../models/TileItem';
 import { State } from '../../modules';
 import AppBar from '../AppBar';
 
@@ -10,7 +9,7 @@ import preloadMedia from '../../helpers/preloadMedia';
 import AlbumGrid from './AlbumGrid';
 import './index.css';
 import Subalbum from '../../models/Subalbum';
-import { NamespacesConsumer } from 'react-i18next';
+import { Translation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 
@@ -50,7 +49,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
     const showBody = album.body || album.previous_in_series || album.next_in_series;
 
     return (
-      <NamespacesConsumer ns={['AlbumView']}>
+      <Translation ns={['AlbumView']}>
         {(t) => (
           <div>
             <AppBar />
@@ -69,26 +68,26 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
             ) : null}
 
             {/* Subalbums */}
-            { album.layout == 'yearly' ? (
+            { album.layout === 'yearly' ? (
               <div className='YearlyView'>
                 {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
                   return (
                     <div key={year ? year : 'unknownYear'}>
                       <h2>{year ? year : t('unknownYear')}</h2>
-                      <AlbumGrid tiles={subalbums} getTitle={(tile: TileItem) => tile.title} />
+                      <AlbumGrid tiles={subalbums} showTitle={true} />
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <AlbumGrid tiles={album.subalbums} getTitle={(tile: TileItem) => tile.title} />
+              <AlbumGrid tiles={album.subalbums} showTitle={true} />
             )}
 
             {/* Pictures */}
-            <AlbumGrid tiles={album.pictures} getTitle={(tile: TileItem) => ""} />
+            <AlbumGrid tiles={album.pictures} showTitle={false} />
           </div>
         )}
-      </NamespacesConsumer>
+      </Translation>
     );
   }
 

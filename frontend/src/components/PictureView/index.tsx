@@ -1,6 +1,6 @@
 import { replace as replaceState, push as pushState, goBack } from 'connected-react-router';
 import * as React from 'react';
-import { NamespacesConsumer } from 'react-i18next';
+import { Translation } from 'react-i18next';
 import { connect } from 'react-redux';
 
 import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
@@ -44,7 +44,7 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
     const { preview } = picture;
 
     return (
-      <NamespacesConsumer ns="PictureView">
+      <Translation ns="PictureView">
         {(t) => (
           <div className="PictureView">
             <div
@@ -116,7 +116,7 @@ class PictureView extends React.PureComponent<PictureViewProps, {}> {
             )}
           </div>
         )}
-      </NamespacesConsumer>
+      </Translation>
     );
   }
 

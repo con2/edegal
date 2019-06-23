@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import { NamespacesConsumer } from 'react-i18next';
+import { Translation } from 'react-i18next';
 import Config from '../Config';
 import Breadcrumb from '../models/Breadcrumb';
 import { State } from '../modules';
@@ -28,7 +28,7 @@ class AppBar extends React.Component<AppBarProps, {}> {
     const rootAlbum = fullBreadcrumb.shift();
 
     return (
-      <NamespacesConsumer ns={['AppBar']}>
+      <Translation ns={['AppBar']}>
         {(t) => (
           <nav className="navbar navbar-expand-md navbar-dark navbar-fixed-top">
             <Link className="navbar-brand" to={rootAlbum!.path}>{rootAlbum!.title}</Link>
@@ -51,7 +51,7 @@ class AppBar extends React.Component<AppBarProps, {}> {
             </div>
           </nav>
         )}
-      </NamespacesConsumer>
+      </Translation>
     );
   }
 }

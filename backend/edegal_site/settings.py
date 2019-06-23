@@ -12,7 +12,6 @@ if os.path.isfile('.env'):
 
 
 DEBUG = env.bool('DEBUG', default=False)
-CAVALRY_ENABLED = DEBUG
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='').split()
 

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Picture(models.Model):
     slug = models.CharField(**CommonFields.slug)
-    album = models.ForeignKey('edegal.Album', related_name='pictures')
+    album = models.ForeignKey('edegal.Album', related_name='pictures', on_delete=models.CASCADE)
     order = models.IntegerField(**CommonFields.order)
     path = models.CharField(**CommonFields.path)
 
@@ -26,7 +26,7 @@ class Picture(models.Model):
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
 
     @property
     def terms_and_conditions(self):
