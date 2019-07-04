@@ -67,7 +67,8 @@ class AlbumAdmin(MultiUploadAdmin):
     model = Album
     form = AlbumAdminForm
     readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
-    list_display = ('path', 'title', 'date', 'is_public', 'is_visible')
+    list_display = ('path', 'title', 'date', 'series', 'is_public', 'is_visible')
+    list_filter = ('series', 'is_public', 'is_visible')
     raw_id_fields = ('cover_picture', 'terms_and_conditions', 'parent')
     search_fields = ('path', 'title')
     fieldsets = [
@@ -95,6 +96,7 @@ class AlbumAdmin(MultiUploadAdmin):
         ('Technical details', {
             'classes': ('collapse',),
             'fields': (
+                'series',
                 'cover_picture',
                 'slug',
                 'path',
