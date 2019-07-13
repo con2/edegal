@@ -21,6 +21,8 @@ class Picture(models.Model):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
+    tags = models.ManyToManyField('edegal.Tag', through='edegal.PictureTag', related_name='pictures')
+
     is_public = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(null=True, auto_now_add=True)
@@ -43,6 +45,7 @@ class Picture(models.Model):
             thumbnail=self.get_media('thumbnail', format).as_dict(),
             preview=self.get_media('preview', format).as_dict(),
             original=self.get_media('original', format).as_dict(),
+            tags=list(self.tags.all().values_list('slug', flat=True)),
         )
 
     def _make_path(self):

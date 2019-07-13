@@ -17,6 +17,7 @@ from .models import (
     Photographer,
     Picture,
     Series,
+    Tag,
     TermsAndConditions,
 )
 
@@ -229,6 +230,13 @@ class SeriesAdmin(admin.ModelAdmin):
             obj.created_by = request.user
 
         return super().save_model(request, obj, form, change)
+
+
+class TagAdmin(admin.ModelAdmin):
+    model = Tag
+    list_display = ('slug', 'title', 'is_sensitive', 'is_visible')
+    list_filter = ('is_sensitive', 'is_visible')
+    readonly_fields = ('created_by', 'created_at', 'updated_at')
 
 
 class TermsAndConditionsAdmin(admin.ModelAdmin):

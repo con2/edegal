@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.core.validators import RegexValidator
+from django.db import models
 
 
 validate_slug = RegexValidator(
@@ -78,4 +80,23 @@ class CommonFields(object):
         default=True,
         verbose_name='Visible',
         help_text='Items that are not visible are not displayed in listings, but they can still be accessed via exact URL.',
+    )
+
+    created_by = dict(
+        to=settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
+    created_at = dict(
+        null=True,
+        blank=True,
+        auto_now_add=True,
+    )
+
+    updated_at = dict(
+        null=True,
+        blank=True,
+        auto_now=True,
     )

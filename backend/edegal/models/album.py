@@ -2,7 +2,6 @@ import logging
 import re
 from datetime import date
 
-from django.conf import settings
 from django.db import models
 from django.db.models import F
 from django.shortcuts import get_object_or_404
@@ -99,10 +98,10 @@ class Album(AlbumMixin, MPTTModel):
         ),
     )
 
-    created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
-    updated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
+    created_at = models.DateTimeField(**CommonFields.created_at)
+    updated_at = models.DateTimeField(**CommonFields.updated_at)
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(**CommonFields.created_by)
 
     series = models.ForeignKey('edegal.Series', blank=True, null=True, on_delete=models.SET_NULL, related_name='albums')
 
@@ -170,6 +169,7 @@ class Album(AlbumMixin, MPTTModel):
             self.pictures.filter(media__role='thumbnail', **child_criteria)
                 .distinct()
                 .prefetch_related('media')
+                .prefetch_related('tags')
         )
 
     def _make_subalbum(self, format):
