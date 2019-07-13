@@ -3,6 +3,7 @@ from os.path import splitext
 
 from django.conf import settings
 from django.contrib import admin
+from django.db.models import Count
 from django import forms
 
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
@@ -67,7 +68,7 @@ class AlbumAdmin(MultiUploadAdmin):
     model = Album
     form = AlbumAdminForm
     readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
-    list_display = ('path', 'title', 'date', 'series', 'is_public', 'is_visible')
+    list_display = ('path', 'title', 'date', 'series', 'admin_get_num_pictures', 'is_public', 'is_visible')
     list_filter = ('series', 'is_public', 'is_visible')
     raw_id_fields = ('cover_picture', 'terms_and_conditions', 'parent')
     search_fields = ('path', 'title')
@@ -158,6 +159,14 @@ class AlbumAdmin(MultiUploadAdmin):
             photographer=photographer,
             terms_and_conditions=terms_and_conditions,
         )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(num_pictures=Count('pictures'))
+
+    def admin_get_num_pictures(self, obj):
+        return obj.num_pictures
+    admin_get_num_pictures.short_description = 'Pictures'
 
 
 class MediaInline(admin.TabularInline):
