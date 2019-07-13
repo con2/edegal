@@ -110,7 +110,7 @@ class AlbumAdmin(MultiUploadAdmin):
             )
         }),
     ]
-    inlines = (PictureInline,)
+    # inlines = (PictureInline,)
     multiupload_form = True
     multiupload_list = False
     multiupload_maxfilesize = settings.MAX_UPLOAD_SIZE
