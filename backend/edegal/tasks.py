@@ -6,7 +6,7 @@ from django.core.management import call_command
 
 from celery import shared_task
 
-from .models import Media, Picture, MediaSpec
+from .models import Album, Media, Picture, MediaSpec
 
 
 logger = logging.getLogger(__name__)
@@ -32,3 +32,9 @@ def import_local_media(picture_id, input_filename, mode, media_specs_ids, refres
     assert media_specs.count() == len(media_specs_ids)
 
     Media._import_local_media(picture, input_filename, mode, media_specs, refresh_album)
+
+
+@shared_task(ignore_result=True)
+def album_ensure_download(album_id):
+    album = Album.objects.get(id=album_id)
+    album._ensure_download()

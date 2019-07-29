@@ -1,11 +1,14 @@
 import logging
 import re
+import os
 from datetime import date
+from zipfile import ZipFile
 
 from django.conf import settings
 from django.db import models
 from django.db.models import F
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -131,6 +134,7 @@ class Album(AlbumMixin, MPTTModel):
             credits=self._make_credits(),
             date=self.date.isoformat() if self.date else '',
             breadcrumb=self._make_breadcrumbs(),
+            download=self.download_file_url,
             subalbums=[
                 subalbum._make_subalbum(format=format)
                 for subalbum in self._get_subalbums(is_visible=True, **child_criteria)
@@ -357,6 +361,57 @@ class Album(AlbumMixin, MPTTModel):
             return get_object_or_404(queryset)
         else:
             return queryset.get()
+
+    def get_download_file_path(self, prefix=settings.MEDIA_ROOT + '/'):
+        return f'{prefix}downloads{self.path}.zip'
+
+    @property
+    def is_download_ready(self):
+        return os.path.exists(self.get_download_file_path())
+
+    @property
+    def download_file_url(self):
+        if self.is_download_ready:
+            return self.get_download_file_path(prefix='/media/')
+        else:
+            return None
+
+    @property
+    def readme_file_content(self):
+        return render_to_string('download_readme.txt', {'album': self})
+
+    def ensure_download(self):
+        if not self.is_download_ready:
+            from ..tasks import album_ensure_download
+            album_ensure_download.delay(self.id)
+
+    def _ensure_download(self):
+        if self.is_download_ready:
+            logger.warn('Album._ensure_download %s called while download file already exists', self)
+            return
+
+        zip_file_path = self.get_download_file_path()
+        logger.info('Creating zip file %s', zip_file_path)
+
+        os.makedirs(os.path.dirname(zip_file_path), exist_ok=True)
+        with ZipFile(zip_file_path, 'x') as zip_file:
+            with zip_file.open('README.txt', 'w') as readme_file:
+                logger.info('Writing README.txt')
+                readme_file.write(self.readme_file_content.encode('UTF-8'))
+
+            for picture in self.pictures.filter(is_public=True):
+                original = picture.original
+                if not original:
+                    logger.warn('Not adding %s to zip because it has no original media', self, picture)
+                    continue
+
+                picture_file_name = f'{picture.slug}.jpg'
+                logger.info('Writing %s', picture_file_name)
+                with zip_file.open(picture_file_name, 'w') as zip_picture_file:
+                    with original.open() as original_picture_file:
+                        zip_picture_file.write(original_picture_file.read())
+
+        logger.info('Successfully wrote zip file %s', zip_file_path)
 
     class Meta:
         verbose_name = 'Album'

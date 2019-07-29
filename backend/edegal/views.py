@@ -34,10 +34,16 @@ class ApiV3View(View):
             extra_criteria.update(is_public=True)
 
         album = Album.get_album_by_path(path, or_404=True, **extra_criteria)
-        return JsonResponse(album.as_dict(
+        response = JsonResponse(album.as_dict(
             include_hidden=request.user.is_staff,
             format=format,
         ))
+
+        download = request.GET.get('download', 'false')
+        if download.lower() not in ('false', 'no', '0'):
+            album.ensure_download()
+
+        return response
 
 
 api_v3_view = ApiV3View.as_view()

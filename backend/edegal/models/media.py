@@ -102,12 +102,7 @@ class Media(models.Model):
             postfix = f'.{self.spec.role}.{self.spec.format}'
 
         # TODO hardcoded jpeg
-        return "{prefix}{base_dir}{path}{postfix}".format(
-            prefix=prefix,
-            base_dir=base_dir,
-            path=self.picture.path,
-            postfix=postfix,
-        )
+        return f'{prefix}{base_dir}{self.picture.path}{postfix}'
 
     def get_absolute_uri(self):
         return self.src.url
@@ -122,6 +117,11 @@ class Media(models.Model):
             yield image
         finally:
             image.close()
+
+    @contextmanager
+    def open(self, mode='rb'):
+        with open(self.src.path, mode, encoding=None) as picture_file:
+            yield picture_file
 
     @classmethod
     def import_local_media(cls, picture, input_filename, mode='inplace', media_specs=None, refresh_album=False):
