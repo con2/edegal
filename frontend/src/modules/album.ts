@@ -30,38 +30,38 @@ export interface GetAlbumFailureAction {
 export type AlbumAction = SelectAlbumAction | GetAlbumFailureAction | SelectPictureAction | OtherAction;
 
 
-function getCached(path: string, format: Format): Promise<Album> {
+async function getCached(path: string, format: Format): Promise<Album> {
   const cached = AlbumCache.get(path);
-  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}?format=${format}`;
-
   if (cached) {
-    return Promise.resolve(cached);
-  } else {
-    return fetch(url, {
-      headers: {
-        accept: 'application/json',
-      },
-      credentials: 'same-origin',
-    })
-      .then((response: Response) => response.json())
-      .then((data: any) => { // tslint:disable-line:no-any
-        // TODO: validate response
-        const album: Album = data;
-
-        AlbumCache.set(path, album);
-        let previous: Picture;
-        album.pictures.forEach((picture) => {
-          if (previous) {
-            previous.next = picture;
-            picture.previous = previous;
-          }
-
-          AlbumCache.set(picture.path, album);
-          previous = picture;
-        });
-        return album;
-      });
+    return cached;
   }
+
+  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}?format=${format}`;
+  const response = await fetch(url, {
+    headers: {
+      accept: 'application/json',
+    },
+    credentials: 'same-origin',
+  });
+
+  // TODO: validate response
+  const album: Album = await response.json();
+
+  AlbumCache.set(path, album);
+
+  // Cache the Album for Pictures and set .previous and .next
+  let previous: Picture;
+  album.pictures.forEach((picture) => {
+    if (previous) {
+      previous.next = picture;
+      picture.previous = previous;
+    }
+
+    AlbumCache.set(picture.path, album);
+    previous = picture;
+  });
+
+  return album;
 }
 
 
@@ -72,59 +72,57 @@ function getCached(path: string, format: Format): Promise<Album> {
  *
  * @param path Path to an Album or Picture.
  */
-export const getAlbum = (path: string) => {
-  return async (dispatch: Dispatch<AlbumAction | RouterAction>) => {
-    try {
-      // TODO ugly, do the webp support thing in a more reduxy fashion
-      const asyncConfig = await getAsyncConfig();
-      const format = asyncConfig.webpSupported ? 'webp' : 'jpeg';
+export const getAlbum = (path: string) => async (dispatch: Dispatch<AlbumAction | RouterAction>) => {
+  try {
+    // TODO ugly, do the webp support thing in a more reduxy fashion
+    const asyncConfig = await getAsyncConfig();
+    const format = asyncConfig.webpSupported ? 'webp' : 'jpeg';
 
-      // Remove trailing slash
-      if (path !== '/' && path.slice(-1) === '/') {
-        path = path.slice(0, -1);
-      }
+    // Remove trailing slash
+    if (path !== '/' && path.slice(-1) === '/') {
+      path = path.slice(0, -1);
+    }
 
-      const album = await getCached(path, format);
+    const album = await getCached(path, format);
 
-      if (album.path === path) {
-        // path points to album itself
-        if (album.redirect_url) {
-          return dispatch(push(album.redirect_url));
-        } else {
-          return dispatch({
-            type: SelectAlbum,
-            payload: album,
-          });
-        }
+    if (album.path === path) {
+      // path points to album itself
+      if (album.redirect_url) {
+        return dispatch(push(album.redirect_url));
       } else {
-        // path points to a picture in album
-        const picture = album.pictures.find(pic => pic.path === path);
-
-        if (!picture) {
-          const message = 'the album returned to us did not contain the requested path (this shouldn\'t happen)';
-          console.error('Failed to fetch album:', message, { album, path });
-
-          return dispatch({
-            type: GetAlbumFailure,
-            error: true,
-            payload: new Error(message),
-          });
-        }
-
         return dispatch({
-          type: SelectPicture,
-          payload: { album, picture },
+          type: SelectAlbum,
+          payload: album,
         });
       }
-    } catch (err) {
-      console.error('Failed to fetch album:', err);
+    } else {
+      // path points to a picture in album
+      const picture = album.pictures.find(pic => pic.path === path);
+
+      if (!picture) {
+        const message = 'the album returned to us did not contain the requested path (this shouldn\'t happen)';
+        console.error('Failed to fetch album:', message, { album, path });
+
+        return dispatch({
+          type: GetAlbumFailure,
+          error: true,
+          payload: new Error(message),
+        });
+      }
+
       return dispatch({
-        type: GetAlbumFailure,
-        error: true,
-        payload: err,
+        type: SelectPicture,
+        payload: { album, picture },
       });
     }
-  };
+  } catch (err) {
+    console.error('Failed to fetch album:', err);
+    return dispatch({
+      type: GetAlbumFailure,
+      error: true,
+      payload: err,
+    });
+  }
 };
 
 
@@ -142,7 +140,7 @@ const initialState: Album = {
 };
 
 
-export default function(state: Album = initialState, action: AlbumAction) {
+export default function (state: Album = initialState, action: AlbumAction) {
   switch (action.type) {
     case SelectAlbum:
       return action.payload;
