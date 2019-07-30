@@ -15,6 +15,7 @@ const translations: Translations = {
     creditInstructions: 'Kun käytät näitä kuvia, ilmoita tekijän/tekijöiden nimi seuraavasti:',
     closeButtonText: 'Sulje',
     downloadButtonText: 'Lataa albumi',
+    preparingDownloadButtonText: 'Latausta valmistellaan',
     twitterCredit: 'Jos käytät näitä kuvia Twitterissä, ilmoita tekijä seuraavasti:',
     instagramCredit: 'Jos käytät näitä kuvia Instagramissa, ilmoita tekijä seuraavasti:',
     genericCredit: 'Jos käytät näitä kuvia muualla, ilmoita tekijä seuraavasti:',

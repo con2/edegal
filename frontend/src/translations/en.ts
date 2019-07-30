@@ -13,6 +13,7 @@ const translations = {
     creditInstructions: 'When using these pictures, credit the authors as follows:',
     closeButtonText: 'Close',
     downloadButtonText: 'Download album',
+    preparingDownloadButtonText: 'Preparing download',
     twitterCredit: 'If you use these pictures in Twitter, please credit the author as follows:',
     instagramCredit: 'If you use these pictures in Instagram, please credit the author as follows:',
     genericCredit: 'If you use these pictures anywhere else, please credit the author as follows:',

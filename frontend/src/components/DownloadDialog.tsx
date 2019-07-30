@@ -89,7 +89,7 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, onAccept, onClos
                   onClick={handleAccept}
                 >
                   {preparing ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden={true} /> : null}
-                  {' ' + t('downloadButtonText')}
+                  {` ${preparing ? t('preparingDownloadButtonText') + '…' : t('downloadButtonText')}`}
                 </button>
                 <button type="button" className="btn btn-secondary" onClick={onClose}>{t('closeButtonText')}</button>
               </div>
