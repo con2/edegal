@@ -151,13 +151,16 @@ class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
   downloadAlbum = async () => {
     let { album } = this.props;
 
-    this.setState({ downloadDialogPreparing: true });
+    if (!album.download_url) {
+      this.setState({ downloadDialogPreparing: true });
 
-    while (!album.download_url) {
-      album = await getCached(album.path, 'jpeg', true, true);
+      // Trigger zip creation
+      album = await getCached(album.path, 'jpeg', true, true)
 
-      if (!album.download_url) {
+      // Poll for zip creation to finish
+      while (!album.download_url) {
         await sleep(downloadAlbumPollingDelay);
+        album = await getCached(album.path, 'jpeg', true);
       }
     }
 

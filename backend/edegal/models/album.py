@@ -8,7 +8,6 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -421,32 +420,56 @@ class Album(AlbumMixin, MPTTModel):
             album_ensure_download.delay(self.id)
 
     def _ensure_download(self):
+        if not self.is_downloadable:
+            logger.warn('Tried to Album._ensure_download an undownloadable album %s', self)
+            return
         if self.is_download_ready:
             logger.warn('Album._ensure_download %s called while download file already exists', self)
             return
 
         zip_file_path = self.get_download_file_path()
-        logger.info('Creating zip file %s', zip_file_path)
+        zip_file_dir = os.path.dirname(zip_file_path)
+        zip_file_basename = os.path.basename(zip_file_path)
+
+        # Won't use NamedTemporaryFile etc. because we will be moving into place so need an actual file
+        # on the same FS as the final file. Also conveniently locks this album so that no two processes
+        # will try to generate the same file at the same time (ZipFile(mode='x') will error on collision).
+        # Our slugs do not contain underscores so no collision danger there.
+        temp_file_basename = f'_{zip_file_basename}'
+        temp_file_path = os.path.join(zip_file_dir, temp_file_basename)
+
+        logger.info('Creating zip file into temporary path %s', temp_file_path)
 
         os.makedirs(os.path.dirname(zip_file_path), exist_ok=True)
-        with ZipFile(zip_file_path, 'x') as zip_file:
-            with zip_file.open('README.txt', 'w') as readme_file:
-                logger.info('Writing README.txt')
-                readme_file.write(self.readme_file_content.encode('UTF-8'))
 
-            for picture in self.pictures.filter(is_public=True):
-                original = picture.original
-                if not original:
-                    logger.warn('Not adding %s to zip because it has no original media', self, picture)
-                    continue
+        try:
+            with ZipFile(temp_file_path, 'x') as zip_file:
+                with zip_file.open('README.txt', 'w') as readme_file:
+                    logger.info('Writing README.txt')
+                    readme_file.write(self.readme_file_content.encode('UTF-8'))
 
-                picture_file_name = f'{picture.slug}.jpg'
-                logger.info('Writing %s', picture_file_name)
-                with zip_file.open(picture_file_name, 'w') as zip_picture_file:
-                    with original.open() as original_picture_file:
-                        zip_picture_file.write(original_picture_file.read())
+                for picture in self.pictures.filter(is_public=True):
+                    original = picture.original
+                    if not original:
+                        logger.warn('Not adding %s to zip because it has no original media', self, picture)
+                        continue
 
-        logger.info('Successfully wrote zip file %s', zip_file_path)
+                    picture_file_name = f'{picture.slug}.jpg'
+                    logger.info('Writing %s', picture_file_name)
+                    with zip_file.open(picture_file_name, 'w') as zip_picture_file:
+                        with original.open() as original_picture_file:
+                            zip_picture_file.write(original_picture_file.read())
+        except Exception:
+            try:
+                logger.exception('Creating zip file failed. Trying to delete temporary file.')
+                os.unlink(temp_file_path)
+            except Exception:
+                logger.exception('Removing temp file failed.')
+
+            raise
+
+        os.rename(temp_file_path, zip_file_path)
+        logger.info('Successfully created zip file %s', zip_file_path)
 
     class Meta:
         verbose_name = 'Album'
