@@ -166,7 +166,7 @@ class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
 
     this.setState({ downloadDialogPreparing: false });
 
-    window.open(album.download_url);
+    window.location.href = album.download_url;
   }
 }
 
