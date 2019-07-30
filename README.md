@@ -30,6 +30,10 @@ To run tests:
     alias dc-test="docker-compose --file=docker-compose.test.yml up --abort-on-container-exit --exit-code-from=test"
     dc-test
 
+#### Caveats
+
+* Due to deep magic performed by the `react-scripts` proxy, picture & album downloads do not work in local dev and you are offered `index.html` instead.
+
 ### The Traditional Way
 
 For developing the backend or frontend components without Docker Compose, please see the set-up instructions in their respective README files under `backend/` and `frontend/`.
@@ -44,6 +48,20 @@ For developing the backend or frontend components without Docker Compose, please
 * "This sounds really good from the perspective of our operations team"
 
 ## Deployment
+
+Rules of thumb for rolling your own deployment:
+
+* Everyhing should be served from one hostname for now. Separate media host/CDN is currently not a priority but can be considered if the need arises.
+* Only `/api` and `/admin` prefixes should be proxied to the backend. Everything else should be served from static files.
+* Static files directories should be served by `nginx` or some other fast web server and organized as follows:
+  * `/`: Read-only. Contents of `frontend/build` after `npm run build`.
+  * `/static`: Read-only. Merged contents of `frontend/build/static` (after `npm run build`) and `backend/static` (after `python manage.py collectstatic`).
+  * `/media`: Read-write.
+    * `/media/downloads`: Download cache. Can be nuked whenever you feel like it – the worker will generate zip files upon request.
+    * `/media/pictures`: Original pictures. Safeguard with your life (backups!).
+    * `/media/previews`: Generated previews and thumbnails in JPEG and WebP. Can be regenerated if lost, but it takes time and CPU cycles.
+    * `/media/uploads`: Admin-uploaded images for HTML content. Should also be carefully backed up.
+* Serve `/index.html` when the request is not backed up by an actual file (`try_files $uri /index.html`).
 
 ### Kubernetes
 

@@ -3,24 +3,32 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 import { Translation } from 'react-i18next';
-import Config from '../Config';
-import Breadcrumb from '../models/Breadcrumb';
-import { State } from '../modules';
+import Config from '../../Config';
+import Breadcrumb from '../../models/Breadcrumb';
+import { State } from '../../modules';
 
+import './index.css';
 
 const breadcrumbSeparator = ' » ';
+
+
+export interface AppBarAction {
+  label: string;
+  onClick?(): void;
+}
 
 
 interface AppBarProps {
   breadcrumb: Breadcrumb[];
   path: string;
   title: string;
+  actions?: AppBarAction[];
 }
 
 
 class AppBar extends React.Component<AppBarProps, {}> {
   render() {
-    const { path, title, breadcrumb } = this.props;
+    const { path, title, breadcrumb, actions } = this.props;
     const fullBreadcrumb = breadcrumb.concat([{ path, title }]);
 
     document.title = fullBreadcrumb.map(crumb => crumb.title).join(breadcrumbSeparator);
@@ -30,7 +38,7 @@ class AppBar extends React.Component<AppBarProps, {}> {
     return (
       <Translation ns={['AppBar']}>
         {(t) => (
-          <nav className="navbar navbar-expand-md navbar-dark navbar-fixed-top">
+          <nav className="AppBar navbar navbar-expand-md navbar-dark navbar-fixed-top">
             <Link className="navbar-brand" to={rootAlbum!.path}>{rootAlbum!.title}</Link>
             <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#AppBar-navbar" aria-controls="AppBar-navbar" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon" />
@@ -44,8 +52,13 @@ class AppBar extends React.Component<AppBarProps, {}> {
                 ))}
               </ul>
               <ul className="navbar-nav">
-                <li className="navbar-item">
-                  <a href={Config.loginUrl} className="nav-link">{t('adminLink')}</a>
+                {(actions || []).map(action => (
+                  <li key={action.label} className="nav-item">
+                    <button className="btn btn-link nav-link" onClick={action.onClick}>{action.label}</button>
+                  </li>
+                ))}
+                <li className="nav-item">
+                  <a href={Config.loginUrl} className="nav-link AppBar-adminLink">{t('adminLink')}</a>
                 </li>
               </ul>
             </div>

@@ -11,16 +11,30 @@ import './index.css';
 import Subalbum from '../../models/Subalbum';
 import { Translation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import DownloadDialog from '../DownloadDialog';
+import { getCached } from '../../modules/album';
 
 
 interface AlbumViewProps {
   album: Album;
 }
 
+interface AlbumViewState {
+  downloadDialogOpen: boolean;
+  downloadDialogPreparing: boolean;
+}
+
 
 interface Year {
   year: string | null;
   subalbums: Subalbum[];
+}
+
+
+const downloadAlbumPollingDelay = 3000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
@@ -42,9 +56,16 @@ function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
 }
 
 
-class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
+class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
+  state = {
+    downloadDialogOpen: false,
+    downloadDialogPreparing: false,
+  }
+
   render() {
     const { album } = this.props;
+    const { downloadDialogOpen, downloadDialogPreparing } = this.state;
+    const canDownload = album.is_downloadable && album.pictures.length;
 
     const showBody = album.body || album.previous_in_series || album.next_in_series;
 
@@ -52,7 +73,12 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
       <Translation ns={['AlbumView']}>
         {(t) => (
           <div>
-            <AppBar />
+            <AppBar actions={canDownload ? [
+              {
+                label: t('downloadAlbumLink') + '…',
+                onClick: this.openDownloadDialog,
+              },
+            ] : []} />
 
             {/* Text body and previous/next links */}
             {showBody ? (
@@ -85,6 +111,17 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
 
             {/* Pictures */}
             <AlbumGrid tiles={album.pictures} showTitle={false} />
+
+            {/* Download dialog */}
+            {downloadDialogOpen ? (
+              <DownloadDialog
+                ns="DownloadAlbumDialog"
+                album={album}
+                onAccept={this.downloadAlbum}
+                onClose={this.closeDownloadDialog}
+                preparing={downloadDialogPreparing}
+              />
+            ) : null}
           </div>
         )}
       </Translation>
@@ -105,6 +142,28 @@ class AlbumView extends React.PureComponent<AlbumViewProps, {}> {
 
   componentDidUpdate() {
     this.preloadFirstPicture();
+  }
+
+  // XXX Whytf is setTimeout required here?
+  closeDownloadDialog = () => { setTimeout(() => this.setState({ downloadDialogOpen: false }), 0); }
+  openDownloadDialog = () => { this.setState({ downloadDialogOpen: true }); }
+
+  downloadAlbum = async () => {
+    let { album } = this.props;
+
+    this.setState({ downloadDialogPreparing: true });
+
+    while (!album.download_url) {
+      album = await getCached(album.path, 'jpeg', true, true);
+
+      if (!album.download_url) {
+        await sleep(downloadAlbumPollingDelay);
+      }
+    }
+
+    this.setState({ downloadDialogPreparing: false });
+
+    window.open(album.download_url);
   }
 }
 

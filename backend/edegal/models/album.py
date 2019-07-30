@@ -83,6 +83,9 @@ class Album(AlbumMixin, MPTTModel):
 
     is_public = models.BooleanField(**CommonFields.is_public)
     is_visible = models.BooleanField(**CommonFields.is_visible)
+    is_downloadable = models.BooleanField(default=True, help_text=(
+        'Controls whether or not site visitors can download original photos from this album, or the whole album as a zip file.'
+    ))
 
     photographer = models.ForeignKey('edegal.Photographer', null=True, blank=True, on_delete=models.SET_NULL, related_name='albums')
     director = models.ForeignKey(
@@ -130,11 +133,12 @@ class Album(AlbumMixin, MPTTModel):
             'body',
             'redirect_url',
             'layout',
+            'is_downloadable',
 
             credits=self._make_credits(),
             date=self.date.isoformat() if self.date else '',
             breadcrumb=self._make_breadcrumbs(),
-            download=self.download_file_url,
+            download_url=self.download_url or '',
             subalbums=[
                 subalbum._make_subalbum(format=format)
                 for subalbum in self._get_subalbums(is_visible=True, **child_criteria)
@@ -370,7 +374,7 @@ class Album(AlbumMixin, MPTTModel):
         return os.path.exists(self.get_download_file_path())
 
     @property
-    def download_file_url(self):
+    def download_url(self):
         if self.is_download_ready:
             return self.get_download_file_path(prefix='/media/')
         else:
@@ -378,7 +382,38 @@ class Album(AlbumMixin, MPTTModel):
 
     @property
     def readme_file_content(self):
-        return render_to_string('download_readme.txt', {'album': self})
+        lines = [
+            self.title,
+            self.get_absolute_url(),
+            '',
+        ]
+
+        if self.photographer:
+            lines.append(f'Photographer: {self.photographer.display_name}')
+            if self.photographer.twitter_handle:
+                lines.append(f'Twitter: @{self.photographer.twitter_handle}')
+            if self.photographer.instagram_handle:
+                lines.append(f'Instagram: @{self.photographer.instagram_handle}')
+            lines.append('')
+
+        if self.director:
+            lines.append(f'Director: {self.director.display_name}')
+            if self.director.twitter_handle:
+                lines.append(f'Twitter: @{self.director.twitter_handle}')
+            if self.director.instagram_handle:
+                lines.append(f'Instagram: @{self.director.instagram_handle}')
+            lines.append('')
+
+        if self.description:
+            lines.extend((self.description, ''))
+
+        if self.terms_and_conditions:
+            lines.extend((self.terms_and_conditions.text, ''))
+
+            if self.terms_and_conditions.url:
+                lines.extend((self.terms_and_conditions.url, ''))
+
+        return '\n'.join(lines).strip() + '\n'
 
     def ensure_download(self):
         if not self.is_download_ready:

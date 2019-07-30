@@ -30,13 +30,18 @@ export interface GetAlbumFailureAction {
 export type AlbumAction = SelectAlbumAction | GetAlbumFailureAction | SelectPictureAction | OtherAction;
 
 
-async function getCached(path: string, format: Format): Promise<Album> {
+export async function getCached(path: string, format: Format, bypassCache = false, download = false): Promise<Album> {
   const cached = AlbumCache.get(path);
-  if (cached) {
+  if (cached && !bypassCache) {
     return cached;
   }
 
-  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}?format=${format}`;
+  const params = new URLSearchParams({ format });
+  if (download) {
+    params.set('download', '1');
+  }
+
+  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}?${params.toString()}`;
   const response = await fetch(url, {
     headers: {
       accept: 'application/json',
@@ -131,12 +136,14 @@ const initialState: Album = {
   title: '',
   body: '',
   redirect_url: '',
+  download_url: '',
   date: '',
   subalbums: [],
   pictures: [],
   breadcrumb: [],
   layout: 'simple',
   credits: {},
+  is_downloadable: false,
 };
 
 

@@ -91,6 +91,7 @@ class Command(BaseCommand):
                 date=date(2019, 1, 1),
                 photographer=photographer,
                 terms_and_conditions=tac,
+                is_downloadable=False,
             )
         )
         log_get_or_create(logger, album1, created)

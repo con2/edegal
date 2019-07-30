@@ -1,20 +1,23 @@
 import React from 'react';
-import Album from '../../models/Album';
-import Picture from '../../models/Picture';
+import Album from '../models/Album';
 import { Translation } from 'react-i18next';
-import Linebreaks from '../Linebreaks';
+import Linebreaks from './Linebreaks';
 
 
 interface DownloadDialogProps {
-  picture: Picture;
+  ns: string;
   album: Album;
+  preparing?: boolean;
   onClose(): void;
+  onAccept(): void;
 }
 
 
-const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, picture, onClose }) => {
+const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, onAccept, onClose, ns, preparing }) => {
   const [isTermsAndConditionsAccepted, setTermsAndConditionsAccepted] = React.useState(false);
+  const [downloadButtonClicked, setDownloadButtonClicked] = React.useState(false);
   const toggleTermsAndConditionsAccepted = () => setTermsAndConditionsAccepted(!isTermsAndConditionsAccepted);
+  const handleAccept = () => { setDownloadButtonClicked(true); onAccept(); }
 
   const text = album && album.terms_and_conditions ? album.terms_and_conditions.text : '';
   const { photographer, director } = album.credits;
@@ -24,7 +27,7 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, picture, onClose
   const haveCredit = (photographer && photographer.display_name) || (director && director.display_name);
 
   return (
-    <Translation ns="DownloadDialog">
+    <Translation ns={ns}>
       {(t) => (
         <div className="DownloadDialog modal fade show" style={{ display: "block" }} role="dialog">
           <div className="modal-dialog" role="document">
@@ -46,8 +49,8 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, picture, onClose
                   <>
                     <p><strong>{t('twitterCredit')}</strong></p>
                     <p>
-                      {photographer ? <>📸{photographer.twitter_handle ? `@${photographer.twitter_handle}` : photographer.display_name} </> : null}
-                      {director ? <>📸{director.twitter_handle ? `@${director.twitter_handle}` : director.display_name} </> : null}
+                      {photographer ? <>📸 {photographer.twitter_handle ? `@${photographer.twitter_handle}` : photographer.display_name} </> : null}
+                      {director ? <>🎬 {director.twitter_handle ? `@${director.twitter_handle}` : director.display_name} </> : null}
                     </p>
                   </>
                 ) : null}
@@ -71,21 +74,22 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, picture, onClose
                     </p>
                   </>
                 ) : null}
-
-                <label className="mt-3">
-                  <input type="checkbox" checked={isTermsAndConditionsAccepted} onChange={toggleTermsAndConditionsAccepted} />
-                  {' ' + t('acceptTermsAndConditions')}
-                </label>
               </div>
 
               <div className="modal-footer">
+                <label className="mr-auto mt-2">
+                  <input type="checkbox" disabled={downloadButtonClicked} checked={isTermsAndConditionsAccepted} onChange={toggleTermsAndConditionsAccepted} />
+                  {' ' + t('acceptTermsAndConditions')}
+                </label>
+
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={!isTermsAndConditionsAccepted}
-                  onClick={() => { window.open(picture.original.src); }}
+                  disabled={!isTermsAndConditionsAccepted || preparing}
+                  onClick={handleAccept}
                 >
-                  {t('downloadButtonText')}
+                  {preparing ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden={true} /> : null}
+                  {' ' + t('downloadButtonText')}
                 </button>
                 <button type="button" className="btn btn-secondary" onClick={onClose}>{t('closeButtonText')}</button>
               </div>

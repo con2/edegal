@@ -16,6 +16,8 @@ interface Album {
   pictures: Picture[];
   breadcrumb: Breadcrumb[];
   redirect_url: string;
+  is_downloadable: boolean;
+  download_url: string;
   date: string;
   layout: Layout;
   terms_and_conditions?: TermsAndConditions;

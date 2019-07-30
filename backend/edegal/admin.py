@@ -69,7 +69,7 @@ class AlbumAdmin(MultiUploadAdmin):
     form = AlbumAdminForm
     readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
     list_display = ('path', 'title', 'date', 'series', 'admin_get_num_pictures', 'is_public', 'is_visible')
-    list_filter = ('series', 'is_public', 'is_visible')
+    list_filter = ('series', 'is_public', 'is_visible', 'is_downloadable')
     raw_id_fields = ('cover_picture', 'terms_and_conditions', 'parent')
     search_fields = ('path', 'title')
     fieldsets = [
@@ -79,6 +79,7 @@ class AlbumAdmin(MultiUploadAdmin):
                 'date',
                 'parent',
                 'is_visible',
+                'is_downloadable',
             )
         }),
         ('Credits', {

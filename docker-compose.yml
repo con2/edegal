@@ -48,7 +48,6 @@ services:
     volumes:
       - ./frontend/src:/usr/src/app/src
     environment:
-      EDEGAL_BACKEND_URL: http://backend:8000
       REACT_APP_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
   postgres:
     image: postgres

@@ -12,7 +12,7 @@ import Picture from '../../models/Picture';
 import { State } from '../../modules';
 
 import './index.css';
-import DownloadDialog from './DownloadDialog';
+import DownloadDialog from '../DownloadDialog';
 
 
 type Direction = 'next' | 'previous' | 'album';
@@ -97,7 +97,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
               </svg>
             </div>
 
-            {picture.original && (
+            {album.is_downloadable && picture.original ? (
               <div
                 onClick={this.openDownloadDialog}
                 className="PictureView-action PictureView-action-download"
@@ -106,9 +106,16 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
                 <svg className="PictureView-icon">
                   <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
                 </svg>
-                {downloadDialogOpen ? <DownloadDialog album={album} picture={picture} onClose={this.closeDownloadDialog} /> : null}
+                {downloadDialogOpen ? (
+                  <DownloadDialog
+                    ns="DownloadDialog"
+                    album={album}
+                    onAccept={this.downloadPicture}
+                    onClose={this.closeDownloadDialog}
+                  />
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </Translation>
@@ -176,14 +183,10 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     }
   }
 
-  openDownloadDialog = () => {
-    this.setState({ downloadDialogOpen: true });
-  }
-
-  closeDownloadDialog = () => {
-    // XXX Whytf is setTimeout required here?
-    setTimeout(() => this.setState({ downloadDialogOpen: false }), 0);
-  }
+  // XXX Whytf is setTimeout required here?
+  closeDownloadDialog = () => { setTimeout(() => this.setState({ downloadDialogOpen: false }), 0); }
+  openDownloadDialog = () => { this.setState({ downloadDialogOpen: true }); }
+  downloadPicture = () => { window.open(this.props.picture.original.src); }
 }
 
 
