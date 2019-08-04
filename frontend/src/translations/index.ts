@@ -13,7 +13,7 @@ const resources: i18n.Resource = { fi, en };
 
 export default i18n
   .use(initReactI18next)
-  .use(BrowserLanguageDetector)
+  .use(new BrowserLanguageDetector())
   .init({
     fallbackLng: 'en',
     resources,
