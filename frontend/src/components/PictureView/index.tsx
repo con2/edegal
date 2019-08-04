@@ -1,7 +1,6 @@
-import { replace as replaceState, push as pushState, goBack } from 'connected-react-router';
 import * as React from 'react';
 import { Translation } from 'react-i18next';
-import { connect } from 'react-redux';
+import { withRouter, RouteComponentProps } from 'react-router';
 
 import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
 import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg';
@@ -9,7 +8,6 @@ import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite
 import preloadMedia from '../../helpers/preloadMedia';
 import Album from '../../models/Album';
 import Picture from '../../models/Picture';
-import { State } from '../../modules';
 
 import './index.css';
 import DownloadDialog from '../DownloadDialog';
@@ -25,19 +23,11 @@ const keyMap: {[keyCode: number]: Direction} = {
 };
 
 
-interface PictureViewStateProps {
+type PictureViewProps = RouteComponentProps<{ path: string }> & {
   album: Album;
   picture: Picture;
-  fromAlbumView: boolean;
+  fromAlbumView?: boolean;
 }
-
-interface PictureViewDispatchProps {
-  replaceState: typeof replaceState;
-  pushState: typeof pushState;
-  goBack: typeof goBack;
-}
-
-type PictureViewProps = PictureViewStateProps & PictureViewDispatchProps;
 
 interface PictureViewState {
   downloadDialogOpen: boolean;
@@ -165,20 +155,20 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
   goTo(direction: Direction) {
     // TODO hairy due to refactoring .album away from picture, ameliorate
-    const { album, picture, fromAlbumView } = this.props;
+    const { album, picture, fromAlbumView, history } = this.props;
     const destination = direction === 'album' ? album : picture[direction];
     if (destination) {
       if (direction === 'album') {
         if (fromAlbumView) {
           // arrived from album view
           // act as the browser back button
-          this.props.goBack();
+          history.goBack();
         } else {
           // arrived using direct link
-          this.props.pushState(destination.path);
+          history.push(destination.path);
         }
       } else {
-        this.props.replaceState(destination.path);
+        history.replace(destination.path);
       }
     }
   }
@@ -190,17 +180,4 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 }
 
 
-const mapStateToProps = (state: State) => ({
-  album: state.album,
-  picture: state.picture,
-  width: state.mainView.width,
-  fromAlbumView: state.router.location.state ? state.router.location.state.fromAlbumView : false,
-});
-
-const mapDispatchToProps = { replaceState, pushState, goBack };
-
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(PictureView);
+export default withRouter(PictureView);

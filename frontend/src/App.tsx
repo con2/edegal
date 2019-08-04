@@ -1,25 +1,21 @@
-import { ConnectedRouter } from 'connected-react-router';
 import * as React from 'react';
-import { Provider } from 'react-redux';
-import { Route, Switch } from 'react-router';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import MainView from './components/MainView';
-import store, { history } from './store';
 import './translations';
 
 
 export default class App extends React.Component<{}, {}> {
   render() {
     return (
-      <Provider store={store}>
-        <ConnectedRouter history={history}>
+      <Router>
           <div>
             <Switch>
-              <Route render={() => <MainView />} />
+              {/* XXX why is match.path always /? */}
+              <Route component={MainView} />
             </Switch>
           </div>
-        </ConnectedRouter>
-      </Provider>
+      </Router>
     );
   }
 }

@@ -14,9 +14,8 @@ interface DownloadDialogProps {
 
 
 const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, onAccept, onClose, ns, preparing }) => {
-  const [isTermsAndConditionsAccepted, setTermsAndConditionsAccepted] = React.useState(false);
+  const [isTermsAndConditionsAccepted, toggleTermsAndConditionsAccepted] = React.useReducer(accepted => !accepted, false);
   const [downloadButtonClicked, setDownloadButtonClicked] = React.useState(false);
-  const toggleTermsAndConditionsAccepted = () => setTermsAndConditionsAccepted(!isTermsAndConditionsAccepted);
   const handleAccept = () => { setDownloadButtonClicked(true); onAccept(); }
 
   const text = album && album.terms_and_conditions ? album.terms_and_conditions.text : '';

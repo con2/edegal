@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
 
 import TileItem from '../../models/TileItem';
-import { State } from '../../modules';
 import PictureTile from './PictureTile';
 
 
@@ -24,51 +22,22 @@ interface Row {
 const makeRow: () => Row = () => ({ height: thumbnailHeight, totalWidth: 0, items: [], scaleFactor: 1.0 });
 
 
-interface AlbumGridStateProps {
+interface AlbumGridProps {
   width: number;
-}
-interface AlbumGridOwnProps {
   tiles: TileItem[];
   showTitle: boolean;
 }
-type AlbumGridProps = AlbumGridStateProps & AlbumGridOwnProps;
 
-class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
-  render() {
-    const { tiles, showTitle } = this.props;
 
-    return (
-      <div>
-        {this.getRows(tiles).map((row, index) => (
-          <div key={index} className="AlbumView-row" style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}>
-            {row.items.map((item) => (
-              <PictureTile
-                key={item.path}
-                path={item.path}
-                width={item.thumbnail ? item.thumbnail.width * row.scaleFactor : defaultThumbnailWidth * row.scaleFactor}
-                height={row.height}
-                title={item.title}
-                showTitle={showTitle}
-                src={item.thumbnail ? item.thumbnail.src : undefined}
-                externalLink={item.redirect_url}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  }
+const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
+  const rows: Row[] = [];
 
-  private getRows(items: TileItem[]): Row[] {
-    if (items.length < 1) {
-      return [];
-    }
-
+  if (tiles.length) {
     let currentRow: Row = makeRow();
-    const rows: Row[] = [currentRow];
-    const maxWidth = maxWidthFactor * this.props.width;
+    const maxWidth = maxWidthFactor * width;
+    rows.push(currentRow);
 
-    items.forEach((tileItem) => {
+    tiles.forEach((tileItem) => {
       const itemWidth = tileItem.thumbnail ? tileItem.thumbnail.width : defaultThumbnailWidth;
 
       if (currentRow.totalWidth + itemWidth > maxWidth) {
@@ -82,21 +51,35 @@ class AlbumGrid extends React.PureComponent<AlbumGridProps, {}> {
     });
 
     // Finalize rows
-    const scaleThreshold = this.props.width * scaleThresholdFactor;
+    const scaleThreshold = width * scaleThresholdFactor;
     rows.forEach((row) => {
       if (row.totalWidth > scaleThreshold) {
-        row.scaleFactor = this.props.width / row.totalWidth;
+        row.scaleFactor = width / row.totalWidth;
         row.height = thumbnailHeight * row.scaleFactor;
       }
     });
-
-    return rows;
   }
+
+  return (
+    <div>
+      {rows.map((row, index) => (
+        <div key={index} className="AlbumView-row" style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}>
+          {row.items.map((item) => (
+            <PictureTile
+              key={item.path}
+              path={item.path}
+              width={item.thumbnail ? item.thumbnail.width * row.scaleFactor : defaultThumbnailWidth * row.scaleFactor}
+              height={row.height}
+              title={item.title}
+              showTitle={showTitle}
+              src={item.thumbnail ? item.thumbnail.src : undefined}
+              externalLink={item.redirect_url}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
 
-
-const mapStateToProps = (state: State) => ({
-  width: state.mainView.width,
-});
-
-export default connect(mapStateToProps)(AlbumGrid);
+export default AlbumGrid;

@@ -1,79 +1,32 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
 
-import { State } from '../modules';
-import { getAlbum } from '../modules/album';
-import { MainViewMode, mainViewResized } from '../modules/mainView';
 import AlbumView from './AlbumView';
 import Loading from './Loading';
 import PictureView from './PictureView';
+import { Content, getAlbum } from '../helpers/getAlbum';
+import { RouteComponentProps } from 'react-router';
 
 
-interface MainViewStateProps {
-  width: number;
-  mode: MainViewMode;
-  path: string;
-  ready: boolean;
-}
-// XXX this method of typing dispatch props is cheating and a black hole
-interface MainViewDispatchProps {
-  getAlbum: any;
-  mainViewResized: any;
-}
-type MainViewProps = MainViewStateProps & MainViewDispatchProps;
+const MainView: React.FC<RouteComponentProps<{}>> = ({ location }) => {
+  const path = location.pathname;
+  const [content, setContent] = React.useState<Content | null>(null);
 
+  React.useEffect(() => {
+    getAlbum(path).then(setContent);
+  }, [path])
 
-class MainView extends React.Component<MainViewProps, {}> {
-  render() {
-    const { mode, path, ready } = this.props;
+  if (content) {
+    const { album, picture } = content;
 
-    if (!ready) {
-      return <Loading />;
+    if (picture) {
+      return <PictureView album={album} picture={picture}/>
+    } else {
+      return <AlbumView album={album} />
     }
-
-    switch (mode) {
-      case 'album':
-        return <AlbumView key={path} />;
-      case 'picture':
-        return <PictureView key={path} />;
-    }
-  }
-
-  handleResize = () => {
-    const newWidth = document.documentElement!.clientWidth;
-
-    if (newWidth !== this.props.width) {
-      this.props.mainViewResized(newWidth);
-    }
-  }
-
-  componentDidMount() {
-    this.props.getAlbum(this.props.path);
-    this.handleResize();
-
-    window.addEventListener('resize', this.handleResize);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.handleResize);
-  }
-
-  componentDidUpdate(prevProps: MainViewProps) {
-    if (prevProps.path !== this.props.path) {
-      this.props.getAlbum(this.props.path);
-    }
+  } else {
+    return <Loading />;
   }
 }
 
 
-const mapStateToProps = (state: State) => ({
-  mode: state.mainView.mode,
-  path: state.router.location.pathname,
-  ready: state.ready,
-  width: state.mainView.width,
-});
-
-const mapDispatchToProps = { getAlbum, mainViewResized };
-
-
-export default connect(mapStateToProps, mapDispatchToProps)(MainView);
+export default MainView;

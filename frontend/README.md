@@ -6,7 +6,7 @@ This is the browser frontend for desktop & mobile browsers. Technology choices i
 
 * TypeScript
 * React
-* Redux
+  * Simple state management, no Redux etc.
 
 ## Getting started
 

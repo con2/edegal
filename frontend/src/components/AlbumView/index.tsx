@@ -1,18 +1,16 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
-
-import Album from '../../models/Album';
-import { State } from '../../modules';
-import AppBar from '../AppBar';
-
-import preloadMedia from '../../helpers/preloadMedia';
-import AlbumGrid from './AlbumGrid';
-import './index.css';
-import Subalbum from '../../models/Subalbum';
 import { Translation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+
+import { getCached } from '../../helpers/getAlbum';
+import preloadMedia from '../../helpers/preloadMedia';
+import Album from '../../models/Album';
+import Subalbum from '../../models/Subalbum';
+import AppBar from '../AppBar';
 import DownloadDialog from '../DownloadDialog';
-import { getCached } from '../../modules/album';
+import AlbumGrid from './AlbumGrid';
+
+import './index.css';
 
 
 interface AlbumViewProps {
@@ -22,6 +20,7 @@ interface AlbumViewProps {
 interface AlbumViewState {
   downloadDialogOpen: boolean;
   downloadDialogPreparing: boolean;
+  width: number;
 }
 
 
@@ -56,15 +55,16 @@ function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
 }
 
 
-class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
-  state = {
+export default class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
+  state: AlbumViewState = {
     downloadDialogOpen: false,
     downloadDialogPreparing: false,
+    width: document.documentElement ? document.documentElement.clientWidth : 0,
   }
 
   render() {
     const { album } = this.props;
-    const { downloadDialogOpen, downloadDialogPreparing } = this.state;
+    const { downloadDialogOpen, downloadDialogPreparing, width } = this.state;
     const canDownload = album.is_downloadable && album.pictures.length;
 
     const showBody = album.body || album.previous_in_series || album.next_in_series;
@@ -73,12 +73,15 @@ class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
       <Translation ns={['AlbumView']}>
         {(t) => (
           <div>
-            <AppBar actions={canDownload ? [
-              {
-                label: t('downloadAlbumLink') + '…',
-                onClick: this.openDownloadDialog,
-              },
-            ] : []} />
+            <AppBar
+              album={album}
+              actions={canDownload ? [
+                {
+                  label: t('downloadAlbumLink') + '…',
+                  onClick: this.openDownloadDialog,
+                },
+              ] : []}
+            />
 
             {/* Text body and previous/next links */}
             {showBody ? (
@@ -100,17 +103,17 @@ class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
                   return (
                     <div key={year ? year : 'unknownYear'}>
                       <h2>{year ? year : t('unknownYear')}</h2>
-                      <AlbumGrid tiles={subalbums} showTitle={true} />
+                      <AlbumGrid width={width} tiles={subalbums} showTitle={true} />
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <AlbumGrid tiles={album.subalbums} showTitle={true} />
+              <AlbumGrid width={width} tiles={album.subalbums} showTitle={true} />
             )}
 
             {/* Pictures */}
-            <AlbumGrid tiles={album.pictures} showTitle={false} />
+            <AlbumGrid width={width} tiles={album.pictures} showTitle={false} />
 
             {/* Download dialog */}
             {downloadDialogOpen ? (
@@ -128,20 +131,27 @@ class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
     );
   }
 
+  componentDidMount() {
+    this.preloadFirstPicture();
+
+    window.addEventListener('resize', this.handleResize);
+    this.handleResize();
+  }
+
+  componentDidUpdate() {
+    this.preloadFirstPicture();
+  }
+
+  handleResize = () => {
+    this.setState({ width: document.documentElement!.clientWidth });
+  }
+
   preloadFirstPicture() {
     const firstPicture = this.props.album.pictures[0];
 
     if (firstPicture) {
       preloadMedia(firstPicture);
     }
-  }
-
-  componentDidMount() {
-    this.preloadFirstPicture();
-  }
-
-  componentDidUpdate() {
-    this.preloadFirstPicture();
   }
 
   // XXX Whytf is setTimeout required here?
@@ -169,10 +179,3 @@ class AlbumView extends React.PureComponent<AlbumViewProps, AlbumViewState> {
     window.location.href = album.download_url;
   }
 }
-
-
-const mapStateToProps = (state: State) => ({
-  album: state.album,
-});
-
-export default connect(mapStateToProps)(AlbumView);
