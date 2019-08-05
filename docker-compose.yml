@@ -3,11 +3,11 @@ services:
   backend:
     build: backend
     init: true
-    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict rabbitmq:5672 -- python manage.py docker_start
+    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict redis:6379 -- python manage.py docker_start
     ports:
       - 8000:8000
     links:
-      - rabbitmq
+      - redis
       - postgres
       - memcache
     volumes:
@@ -18,14 +18,14 @@ services:
       PYTHONUNBUFFERED: 1
       DATABASE_URL: psql://edegal:edegal@postgres/edegal
       ALLOWED_HOSTS: '*'
-      BROKER_URL: amqp://guest:guest@rabbitmq/
+      BROKER_URL: redis://redis:6379
       CACHE_URL: memcache://memcache
   worker:
     build: backend
     init: true
-    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict rabbitmq:5672 -- celery -A edegal_site.celery:app worker
+    command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict redis:6379 -- celery -A edegal_site.celery:app worker
     links:
-      - rabbitmq
+      - redis
       - postgres
       - memcache
     volumes:
@@ -36,7 +36,7 @@ services:
       PYTHONUNBUFFERED: 1
       DATABASE_URL: psql://edegal:edegal@postgres/edegal
       ALLOWED_HOSTS: '*'
-      BROKER_URL: amqp://guest:guest@rabbitmq/
+      BROKER_URL: redis://redis:6379
       CACHE_URL: memcache://memcache
   frontend:
     build: frontend
@@ -57,8 +57,8 @@ services:
       POSTGRES_USER: edegal
       POSTGRES_PASSWORD: edegal
       POSTGRES_DB: edegal
-  rabbitmq:
-    image: rabbitmq
+  redis:
+    image: redis
   memcache:
     image: memcached
 volumes:
