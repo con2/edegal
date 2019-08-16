@@ -79,6 +79,7 @@ class Series(AlbumMixin, models.Model):
             ],
             pictures=[],
             terms_and_conditions=None,
+            credits={},
         )
 
     def get_albums(self, **extra_criteria):
