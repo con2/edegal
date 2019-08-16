@@ -4,29 +4,35 @@
   "private": true,
   "dependencies": {
     "bootstrap": "^4.3.1",
-    "i18next": "^17.0.8",
-    "i18next-browser-languagedetector": "^3.0.2",
+    "i18next": "^17.0.11",
+    "i18next-browser-languagedetector": "^3.0.3",
     "jquery": "^3.4.1",
     "lodash.groupby": "^4.6.0",
     "material-design-icons": "^3.0.1",
     "popper.js": "^1.15.0",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-i18next": "^10.11.5",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-i18next": "^10.12.2",
     "react-router": "^5.0.1",
     "react-router-dom": "^5.0.1",
-    "react-scripts": "^3.0.1"
+    "react-scripts": "^3.1.1"
   },
   "devDependencies": {
-    "@types/history": "^4.7.0",
+    "@types/history": "^4.7.2",
     "@types/i18next-browser-languagedetector": "^3.0.0",
-    "@types/jest": "24.0.16",
+    "@types/jest": "24.0.17",
     "@types/lodash.groupby": "^4.6.6",
-    "@types/node": "12.6.9",
-    "@types/react": "16.8.24",
-    "@types/react-dom": "16.8.4",
-    "@types/react-router": "^5.0.3",
+    "@types/node": "12.7.2",
+    "@types/react-dom": "16.8.5",
     "@types/react-router-dom": "^4.3.4",
+    "@types/react-router": "^5.0.3",
+    "@types/react": "^16.9.2",
+    "@typescript-eslint/eslint-plugin": "^2.0.0",
+    "@typescript-eslint/parser": "^2.0.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint": "^6.1.0",
+    "prettier": "^1.18.2",
     "typescript": "^3.5.3"
   },
   "scripts": {
@@ -34,9 +40,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
   },
   "proxy": "http://backend:8000",
   "browserslist": [

@@ -4,9 +4,7 @@ import Subalbum from './Subalbum';
 import TermsAndConditions from './TermsAndConditions';
 import Credits from './Credits';
 
-
 export type Layout = 'yearly' | 'simple';
-
 
 interface Album {
   path: string;
@@ -25,6 +23,5 @@ interface Album {
   previous_in_series?: Breadcrumb;
   credits: Credits;
 }
-
 
 export default Album;

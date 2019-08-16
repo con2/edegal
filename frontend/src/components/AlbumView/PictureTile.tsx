@@ -1,7 +1,6 @@
-import * as React from "react";
+import React from 'react';
 import { Link } from 'react-router-dom';
 import actionIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-action-symbol.svg';
-
 
 interface PictureTileProps {
   path: string;
@@ -13,7 +12,6 @@ interface PictureTileProps {
   externalLink?: string;
 }
 
-
 interface ThumbnailProps {
   src: string;
   width: number;
@@ -21,19 +19,17 @@ interface ThumbnailProps {
   title?: string;
 }
 
-
 const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
   <img
     src={src}
     alt={title}
     style={{
-      display: "block",
+      display: 'block',
       width: Math.floor(width),
       height: Math.floor(height),
     }}
   />
 );
-
 
 export default class PictureTile extends React.PureComponent<PictureTileProps> {
   render() {
@@ -50,7 +46,7 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
         </div>
       </a>
     ) : (
-      <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true }}}>
+      <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true } }}>
         {src ? <Thumbnail src={src} width={width} height={height} title={title} /> : null}
         {showTitle && title ? <div className="PictureTile-title">{title}</div> : null}
       </Link>

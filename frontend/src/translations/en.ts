@@ -3,6 +3,9 @@ const translations = {
     unknownYear: 'Unknown year',
     downloadAlbumLink: 'Download whole album',
   },
+  AlbumViewFooter: {
+    albumCopyright: 'Album',
+  },
   AppBar: {
     adminLink: 'Admin',
   },
@@ -21,7 +24,8 @@ const translations = {
     photographer: 'Photographer',
     director: 'Director',
     acceptTermsAndConditions: 'I accept these terms and conditions',
-    defaultTerms: 'Terms and conditions missing. These pictures are covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
+    defaultTerms:
+      'Terms and conditions missing. These pictures are covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
   },
   DownloadDialog: {
     dialogTitle: 'Download original photo',
@@ -37,7 +41,8 @@ const translations = {
     photographer: 'Photographer',
     director: 'Director',
     acceptTermsAndConditions: 'I accept these terms and conditions',
-    defaultTerms: 'Terms and conditions missing. The photo is covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
+    defaultTerms:
+      'Terms and conditions missing. The photo is covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
   },
   PictureView: {
     backToAlbum: 'Back to Album',

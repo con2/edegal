@@ -1,8 +1,7 @@
 import TileItem from './TileItem';
 
-
 interface Subalbum extends TileItem {
-    date: string;
+  date: string;
 }
 
 export default Subalbum;

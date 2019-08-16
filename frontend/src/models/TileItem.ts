@@ -1,6 +1,5 @@
 import { Media } from './Media';
 
-
 interface TileItem {
   path: string;
   title: string;

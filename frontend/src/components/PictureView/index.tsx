@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Translation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
 
@@ -12,27 +12,24 @@ import Picture from '../../models/Picture';
 import './index.css';
 import DownloadDialog from '../DownloadDialog';
 
-
 type Direction = 'next' | 'previous' | 'album';
-const keyMap: {[keyCode: number]: Direction} = {
-  27: 'album',    // escape
+const keyMap: { [keyCode: number]: Direction } = {
+  27: 'album', // escape
   33: 'previous', // page up
-  34: 'next',     // page down
+  34: 'next', // page down
   37: 'previous', // left arrow
-  39: 'next',     // right arrow
+  39: 'next', // right arrow
 };
-
 
 type PictureViewProps = RouteComponentProps<{ path: string }> & {
   album: Album;
   picture: Picture;
   fromAlbumView?: boolean;
-}
+};
 
 interface PictureViewState {
   downloadDialogOpen: boolean;
 }
-
 
 class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   state: PictureViewState = { downloadDialogOpen: false };
@@ -44,12 +41,12 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
     return (
       <Translation ns="PictureView">
-        {(t) => (
+        {t => (
           <div className="PictureView">
             <div
               className="PictureView-img"
               style={{
-                backgroundImage: `url(${preview.src})`
+                backgroundImage: `url(${preview.src})`,
               }}
             />
 
@@ -66,22 +63,14 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             ) : null}
 
             {picture.next ? (
-              <div
-                onClick={() => this.goTo('next')}
-                className="PictureView-nav PictureView-nav-next"
-                title={t('nextPicture')}
-              >
+              <div onClick={() => this.goTo('next')} className="PictureView-nav PictureView-nav-next" title={t('nextPicture')}>
                 <svg className="PictureView-icon">
                   <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
                 </svg>
               </div>
             ) : null}
 
-            <div
-              onClick={() => this.goTo('album')}
-              className="PictureView-action PictureView-action-exit"
-              title={t('backToAlbum')}
-            >
+            <div onClick={() => this.goTo('album')} className="PictureView-action PictureView-action-exit" title={t('backToAlbum')}>
               <svg className="PictureView-icon">
                 <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
               </svg>
@@ -139,7 +128,6 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
         preloadMedia(picture.next);
       }
     }, 0);
-
   }
 
   onKeyDown = (event: KeyboardEvent) => {
@@ -151,7 +139,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     if (direction) {
       this.goTo(direction);
     }
-  }
+  };
 
   goTo(direction: Direction) {
     // TODO hairy due to refactoring .album away from picture, ameliorate
@@ -174,10 +162,15 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   }
 
   // XXX Whytf is setTimeout required here?
-  closeDownloadDialog = () => { setTimeout(() => this.setState({ downloadDialogOpen: false }), 0); }
-  openDownloadDialog = () => { this.setState({ downloadDialogOpen: true }); }
-  downloadPicture = () => { window.open(this.props.picture.original.src); }
+  closeDownloadDialog = () => {
+    setTimeout(() => this.setState({ downloadDialogOpen: false }), 0);
+  };
+  openDownloadDialog = () => {
+    this.setState({ downloadDialogOpen: true });
+  };
+  downloadPicture = () => {
+    window.open(this.props.picture.original.src);
+  };
 }
-
 
 export default withRouter(PictureView);

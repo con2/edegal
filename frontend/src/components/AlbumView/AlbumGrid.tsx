@@ -1,15 +1,13 @@
-import * as React from 'react';
+import React from 'react';
 
 import TileItem from '../../models/TileItem';
 import PictureTile from './PictureTile';
-
 
 const maxWidthFactor = 1.1;
 const scaleThresholdFactor = 0.8;
 const defaultThumbnailWidth = 240;
 const thumbnailHeight = 240;
 const borderAdjustmentPixels = 2;
-
 
 interface Row {
   height: number;
@@ -18,16 +16,13 @@ interface Row {
   scaleFactor: number;
 }
 
-
 const makeRow: () => Row = () => ({ height: thumbnailHeight, totalWidth: 0, items: [], scaleFactor: 1.0 });
-
 
 interface AlbumGridProps {
   width: number;
   tiles: TileItem[];
   showTitle: boolean;
 }
-
 
 const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
   const rows: Row[] = [];
@@ -37,7 +32,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
     const maxWidth = maxWidthFactor * width;
     rows.push(currentRow);
 
-    tiles.forEach((tileItem) => {
+    tiles.forEach(tileItem => {
       const itemWidth = tileItem.thumbnail ? tileItem.thumbnail.width : defaultThumbnailWidth;
 
       if (currentRow.totalWidth + itemWidth > maxWidth) {
@@ -52,7 +47,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
 
     // Finalize rows
     const scaleThreshold = width * scaleThresholdFactor;
-    rows.forEach((row) => {
+    rows.forEach(row => {
       if (row.totalWidth > scaleThreshold) {
         row.scaleFactor = width / row.totalWidth;
         row.height = thumbnailHeight * row.scaleFactor;
@@ -64,7 +59,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
     <div>
       {rows.map((row, index) => (
         <div key={index} className="AlbumView-row" style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}>
-          {row.items.map((item) => (
+          {row.items.map(item => (
             <PictureTile
               key={item.path}
               path={item.path}
@@ -80,6 +75,6 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
       ))}
     </div>
   );
-}
+};
 
 export default AlbumGrid;

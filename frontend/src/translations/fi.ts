@@ -5,6 +5,9 @@ const translations: Translations = {
     unknownYear: 'Tuntematon vuosi',
     downloadAlbumLink: 'Lataa koko albumi',
   },
+  AlbumViewFooter: {
+    albumCopyright: 'Albumi',
+  },
   AppBar: {
     adminLink: 'Hallinta',
   },
@@ -23,7 +26,8 @@ const translations: Translations = {
     photographer: 'Kuvaaja',
     director: 'Ohjaaja',
     acceptTermsAndConditions: 'Hyväksyn ehdot',
-    defaultTerms: 'Albumin käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvien käyttöön.',
+    defaultTerms:
+      'Albumin käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvien käyttöön.',
   },
   DownloadDialog: {
     dialogTitle: 'Lataa alkuperäinen kuva',
@@ -39,7 +43,8 @@ const translations: Translations = {
     photographer: 'Kuvaaja',
     director: 'Ohjaaja',
     acceptTermsAndConditions: 'Hyväksyn ehdot',
-    defaultTerms: 'Kuvan käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvan käyttöön.',
+    defaultTerms:
+      'Kuvan käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvan käyttöön.',
   },
   PictureView: {
     backToAlbum: 'Takaisin albumiin',

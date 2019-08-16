@@ -1,7 +1,6 @@
 export type Format = 'jpeg' | 'webp';
 export type Role = 'original' | 'preview' | 'thumbnail';
 
-
 export interface Media {
   src: string;
   width: number;
@@ -11,7 +10,6 @@ export interface Media {
   role: Role;
 }
 
-
 export const nullMedia: Media = {
   src: '',
   width: 0,
@@ -20,6 +18,5 @@ export const nullMedia: Media = {
   format: 'jpeg',
   role: 'thumbnail',
 };
-
 
 // export default Media;

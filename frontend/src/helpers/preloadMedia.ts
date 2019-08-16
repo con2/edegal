@@ -1,6 +1,5 @@
 import Picture from '../models/Picture';
 
-
 /**
  * Preloads the picture preview for the given image for SPEED.
  *

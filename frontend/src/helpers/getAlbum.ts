@@ -5,7 +5,6 @@ import { Format } from '../models/Media';
 import Picture from '../models/Picture';
 import supportsWebp from './supportsWebp';
 
-
 /**
  * The "low level" album getter.
  */
@@ -35,7 +34,7 @@ export async function getCached(path: string, format: Format, bypassCache = fals
 
   // Cache the Album for Pictures and set .previous and .next
   let previous: Picture;
-  album.pictures.forEach((picture) => {
+  album.pictures.forEach(picture => {
     if (previous) {
       previous.next = picture;
       picture.previous = previous;
@@ -48,12 +47,10 @@ export async function getCached(path: string, format: Format, bypassCache = fals
   return album;
 }
 
-
 export interface Content {
   album: Album;
   picture?: Picture;
 }
-
 
 const webpSupportedPromise = supportsWebp();
 
@@ -81,7 +78,7 @@ export const getAlbum = async (path: string): Promise<Content> => {
     const picture = album.pictures.find(pic => pic.path === path);
 
     if (!picture) {
-      throw new Error('the album returned to us did not contain the requested path (this shouldn\'t happen)');
+      throw new Error("the album returned to us did not contain the requested path (this shouldn't happen)");
     }
 
     return { album, picture };
