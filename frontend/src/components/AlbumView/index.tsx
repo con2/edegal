@@ -11,6 +11,7 @@ import DownloadDialog from '../DownloadDialog';
 import AlbumGrid from './AlbumGrid';
 
 import './index.css';
+import AlbumViewFooter from './AlbumViewFooter';
 
 interface AlbumViewProps {
   album: Album;
@@ -120,6 +121,8 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
               {/* Pictures */}
               <AlbumGrid width={width} tiles={album.pictures} showTitle={false} />
             </main>
+
+            <AlbumViewFooter album={album} />
 
             {/* Download dialog */}
             {downloadDialogOpen ? (
