@@ -64,6 +64,19 @@ class AlbumAdminForm(forms.ModelForm):
         model = Album
 
 
+def make_not_public_not_visible(modeladmin, request, queryset):
+    return queryset.update(is_public=False, is_visible=False)
+make_not_public_not_visible.short_description = 'Make not public, not visible'
+
+def make_public_but_not_visible(modeladmin, request, queryset):
+    return queryset.update(is_public=True, is_visible=False)
+make_public_but_not_visible.short_description = 'Make public but not visible'
+
+def make_public_and_visible(modeladmin, request, queryset):
+    return queryset.update(is_public=True, is_visible=True)
+make_public_and_visible.short_description = 'Make public and visible'
+
+
 class AlbumAdmin(MultiUploadAdmin):
     model = Album
     form = AlbumAdminForm
@@ -72,6 +85,7 @@ class AlbumAdmin(MultiUploadAdmin):
     list_filter = ('series', 'is_public', 'is_visible', 'is_downloadable')
     raw_id_fields = ('cover_picture', 'terms_and_conditions', 'parent')
     search_fields = ('path', 'title')
+    actions = [make_not_public_not_visible, make_public_but_not_visible, make_public_and_visible]
     fieldsets = [
         ('Basic info', {
             'fields': (
