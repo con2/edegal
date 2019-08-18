@@ -14,9 +14,13 @@ This is the browser frontend for desktop & mobile browsers. Technology choices i
 
 This is the recommended way to develop Edegal. There is a single unified Docker Compose development environment for both the frontend and the backend. For instructions, see `README.md` in the parent directory.
 
+When developing with Docker Compose, the frontend will use the local backend running under Docker Compose.
+
 ### The Traditional Way
 
 If, for some reason, you want to develop the Edegal frontend without using Docker, follow these instructions.
+
+When developing without Docker, the frontend will, by default, use the Conikuvat.fi live production backend. To change this, edit `proxy` in `package.json`.
 
 Requirements:
 

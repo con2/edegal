@@ -41,7 +41,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://backend:8000",
+  "proxy": "https://conikuvat.fi",
   "browserslist": [
     ">0.2%",
     "not dead",

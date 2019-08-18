@@ -38,6 +38,8 @@ To run tests:
 
 For developing the backend or frontend components without Docker Compose, please see the set-up instructions in their respective README files under `backend/` and `frontend/`.
 
+If you need not touch the backend, you can also develop against the Conikuvat.fi backend. This is the default for local non-Docker development in the frontend.
+
 ## Testimonials
 
 * "That's mighty fast!"
