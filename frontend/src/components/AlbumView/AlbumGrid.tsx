@@ -7,7 +7,7 @@ const maxWidthFactor = 1.1;
 const scaleThresholdFactor = 0.8;
 const defaultThumbnailWidth = 240;
 const thumbnailHeight = 240;
-const borderAdjustmentPixels = 2;
+const borderAdjustmentPixels = 0;
 
 interface Row {
   height: number;
@@ -26,6 +26,9 @@ interface AlbumGridProps {
 
 const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
   const rows: Row[] = [];
+
+  // XXX ugly hack to make sure the width overflows a little so that there is no ugly white leakage on the right
+  width += 10;
 
   if (tiles.length) {
     let currentRow: Row = makeRow();

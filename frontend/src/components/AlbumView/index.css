@@ -4,13 +4,12 @@
 }
 
 .PictureTile {
-  border: 1px solid black;
   display: inline-block;
   position: relative;
 }
 
-.PictureTile:hover {
-  border: 1px solid #888;
+.PictureTile:hover .PictureTile-title {
+  text-decoration: underline;
 }
 
 .PictureTile img {
@@ -40,8 +39,6 @@
 }
 
 .TextContent {
-  background: white;
-  color: #333;
   padding-top: 36px;
   padding-bottom: 20px;
 }
@@ -60,9 +57,9 @@
   line-height: 35px;
   font-size: 80%;
   text-align: center;
-  color: #666;
+  color: #ccc;
 }
 
 .AlbumViewFooter a {
-  color: #888;
+  color: #aaa;
 }

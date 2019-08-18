@@ -30,7 +30,7 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
   return (
     <Translation ns={['AppBar']}>
       {t => (
-        <nav className="AppBar navbar navbar-expand-md navbar-dark navbar-fixed-top">
+        <nav className="AppBar navbar navbar-expand-md navbar-fixed-top">
           <Link className="navbar-brand" to={rootAlbum!.path}>
             {rootAlbum!.title}
           </Link>
