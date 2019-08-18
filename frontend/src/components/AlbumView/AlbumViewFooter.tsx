@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import Album from '../../models/Album';
@@ -14,15 +15,16 @@ const AlbumViewFooter: React.FC<FooterProps> = ({ album }) => {
   const { photographer } = album.credits;
 
   // TODO: Have the footer stay at the bottom of the page
-  return (
-    <footer className="AlbumViewFooter mt-3 mb-1">
+  return createPortal(
+    <footer className="AlbumViewFooter">
       {photographer ? (
         <>
           {t('albumCopyright')} &copy; {getYear(album)} {photographer.display_name}.{' '}
         </>
       ) : null}
       <a href="https://github.com/conikuvat/edegal">Edegal</a> &copy; 2010–2019 Santtu Pajukanta.
-    </footer>
+    </footer>,
+    document.body,
   );
 };
 
