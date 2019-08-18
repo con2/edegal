@@ -36,4 +36,4 @@ You should get up and running with the following commands:
     cd edegal-frontend
     npm install
     npm start
-    iexplore http://localhost:8080
+    iexplore http://localhost:3000
