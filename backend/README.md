@@ -4,11 +4,10 @@
 
 This is the REST API backend for Edegal. Technology choices include the following:
 
-* Python 3.6
-* Django 1.10
-* Django Rest Framework
-* PostgreSQL 9.5
-* Redis
+* Python 3.7
+* Django 1.11
+* PostgreSQL 11
+* Redis (TBD; replacing RabbitMQ)
 * [nginx](https://github.com/nginx/nginx)
 
 ## Getting started
@@ -19,12 +18,12 @@ This is the recommended way to develop Edegal. There is a single unified Docker 
 
 ### The Traditional Way
 
-If, for some reason, you want to develop the Edegal backend without using Docker, follow these instructions.
+If, for some reason, you want to develop the Edegal backend without using Docker, follow these instructions. Note that you have to setup the frontend for development separately: see `frontend/README.md`.
 
 What is assumed:
 
 * An UNIX-like operating system such as Ubuntu, CentOS or Mac OS X
-* Python 3.6 and a working `virtualenv` or `venv` tool
+* Python 3.7 and a working `virtualenv` or `venv` tool
 
 Cheats for Debian/Ubuntu:
 
