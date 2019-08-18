@@ -20,20 +20,18 @@ When developing with Docker Compose, the frontend will use the local backend run
 
 If, for some reason, you want to develop the Edegal frontend without using Docker, follow these instructions.
 
-When developing without Docker, the frontend will, by default, use the Conikuvat.fi live production backend. To change this, edit `proxy` in `package.json`.
+When developing without Docker, the frontend will, by default, use the Conikuvat.fi live production backend. If you want to use another backend, change `proxy` in `package.json`.
 
 Requirements:
 
-* Node.js 10.x or 8.x
+* Node.js 12.x (10.x or 8.x may work, but are not supported)
 
 Yarn is not supported, only `npm` is.
 
-Change `proxy` in `package.json` to point to wherever you are running the Django backend.
-
 You should get up and running with the following commands:
 
-    git clone git@github.com:conikuvat/edegal-frontend
-    cd edegal-frontend
+    git clone git@github.com:conikuvat/edegal
+    cd edegal/frontend
     npm install
     npm start
     iexplore http://localhost:3000
