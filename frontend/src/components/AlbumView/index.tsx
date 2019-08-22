@@ -1,5 +1,4 @@
 import React from 'react';
-import { Translation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { getCached } from '../../helpers/getAlbum';
@@ -12,6 +11,7 @@ import AlbumGrid from './AlbumGrid';
 
 import './index.css';
 import AlbumViewFooter from './AlbumViewFooter';
+import { T } from '../../translations';
 
 interface AlbumViewProps {
   album: Album;
@@ -63,80 +63,77 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     const { album } = this.props;
     const { downloadDialogOpen, downloadDialogPreparing, width } = this.state;
     const canDownload = album.is_downloadable && album.pictures.length;
+    const t = T(r => r.AlbumView);
 
     const showBody = album.body || album.previous_in_series || album.next_in_series;
 
     return (
-      <Translation ns={['AlbumView']}>
-        {t => (
-          <>
-            <AppBar
-              album={album}
-              actions={
-                canDownload
-                  ? [
-                      {
-                        label: t('downloadAlbumLink') + '…',
-                        onClick: this.openDownloadDialog,
-                      },
-                    ]
-                  : []
-              }
-            />
+      <>
+        <AppBar
+          album={album}
+          actions={
+            canDownload
+              ? [
+                  {
+                    label: t(r => r.downloadAlbumLink) + '…',
+                    onClick: this.openDownloadDialog,
+                  },
+                ]
+              : []
+          }
+        />
 
-            <main role="main">
-              {/* Text body and previous/next links */}
-              {showBody ? (
-                <div className="TextContent">
-                  {album.next_in_series || album.previous_in_series ? (
-                    <div className="container d-flex mb-3">
-                      {album.next_in_series ? <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link> : null}
-                      {album.previous_in_series ? (
-                        <Link className="ml-auto" to={album.previous_in_series.path}>
-                          {album.previous_in_series.title} &raquo;
-                        </Link>
-                      ) : null}
-                    </div>
+        <main role="main">
+          {/* Text body and previous/next links */}
+          {showBody ? (
+            <div className="TextContent">
+              {album.next_in_series || album.previous_in_series ? (
+                <div className="container d-flex mb-3">
+                  {album.next_in_series ? <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link> : null}
+                  {album.previous_in_series ? (
+                    <Link className="ml-auto" to={album.previous_in_series.path}>
+                      {album.previous_in_series.title} &raquo;
+                    </Link>
                   ) : null}
-                  <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />
                 </div>
               ) : null}
+              <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />
+            </div>
+          ) : null}
 
-              {/* Subalbums */}
-              {album.layout === 'yearly' ? (
-                <div className="YearlyView">
-                  {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
-                    return (
-                      <div key={year ? year : 'unknownYear'}>
-                        <h2>{year ? year : t('unknownYear')}</h2>
-                        <AlbumGrid width={width} tiles={subalbums} showTitle={true} />
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <AlbumGrid width={width} tiles={album.subalbums} showTitle={true} />
-              )}
+          {/* Subalbums */}
+          {album.layout === 'yearly' ? (
+            <div className="YearlyView">
+              {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
+                return (
+                  <div key={year ? year : 'unknownYear'}>
+                    <h2>{year ? year : t(r => r.unknownYear)}</h2>
+                    <AlbumGrid width={width} tiles={subalbums} showTitle={true} />
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <AlbumGrid width={width} tiles={album.subalbums} showTitle={true} />
+          )}
 
-              {/* Pictures */}
-              <AlbumGrid width={width} tiles={album.pictures} showTitle={false} />
-            </main>
+          {/* Pictures */}
+          <AlbumGrid width={width} tiles={album.pictures} showTitle={false} />
+        </main>
 
-            <AlbumViewFooter album={album} />
+        <AlbumViewFooter album={album} />
 
-            {/* Download dialog */}
-            {downloadDialogOpen ? (
-              <DownloadDialog
-                ns="DownloadAlbumDialog"
-                album={album}
-                onAccept={this.downloadAlbum}
-                onClose={this.closeDownloadDialog}
-                preparing={downloadDialogPreparing}
-              />
-            ) : null}
-          </>
-        )}
-      </Translation>
+        {/* Download dialog */}
+        {downloadDialogOpen ? (
+          <DownloadDialog
+            album={album}
+            onAccept={this.downloadAlbum}
+            onClose={this.closeDownloadDialog}
+            preparing={downloadDialogPreparing}
+            t={T(r => r.DownloadAlbumDialog)}
+          />
+        ) : null}
+      </>
     );
   }
 

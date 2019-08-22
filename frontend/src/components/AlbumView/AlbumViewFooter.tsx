@@ -1,8 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { useTranslation } from 'react-i18next';
 
 import Album from '../../models/Album';
+import { T } from '../../translations';
 
 const getYear = (album: Album) => (album.date ? new Date(album.date).getUTCFullYear() : '');
 
@@ -11,15 +11,14 @@ interface FooterProps {
 }
 
 const AlbumViewFooter: React.FC<FooterProps> = ({ album }) => {
-  const { t } = useTranslation('AlbumViewFooter');
+  const t = T(r => r.AlbumViewFooter);
   const { photographer } = album.credits;
 
-  // TODO: Have the footer stay at the bottom of the page
   return createPortal(
     <footer className="AlbumViewFooter">
       {photographer ? (
         <>
-          {t('albumCopyright')} &copy; {getYear(album)} {photographer.display_name}.{' '}
+          {t(r => r.albumCopyright)} &copy; {getYear(album)} {photographer.display_name}.{' '}
         </>
       ) : null}
       <a href="https://github.com/conikuvat/edegal">Edegal</a> &copy; 2010–2019 Santtu Pajukanta.

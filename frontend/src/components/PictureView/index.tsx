@@ -1,6 +1,5 @@
 import React from 'react';
-import { Translation } from 'react-i18next';
-import { withRouter, RouteComponentProps } from 'react-router';
+import { RouteComponentProps, withRouter } from 'react-router';
 
 import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
 import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg';
@@ -8,9 +7,10 @@ import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite
 import preloadMedia from '../../helpers/preloadMedia';
 import Album from '../../models/Album';
 import Picture from '../../models/Picture';
+import { T } from '../../translations';
+import DownloadDialog from '../DownloadDialog';
 
 import './index.css';
-import DownloadDialog from '../DownloadDialog';
 
 type Direction = 'next' | 'previous' | 'album';
 const keyMap: { [keyCode: number]: Direction } = {
@@ -35,69 +35,66 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   state: PictureViewState = { downloadDialogOpen: false };
 
   render() {
+    const t = T(r => r.PictureView);
     const { album, picture } = this.props;
     const { preview } = picture;
     const { downloadDialogOpen } = this.state;
 
     return (
-      <Translation ns="PictureView">
-        {t => (
-          <div className="PictureView">
-            <div
-              className="PictureView-img"
-              style={{
-                backgroundImage: `url(${preview.src})`,
-              }}
-            />
+      <div className="PictureView">
+        <div
+          className="PictureView-img"
+          style={{
+            backgroundImage: `url(${preview.src})`,
+          }}
+        />
 
-            {picture.previous ? (
-              <div
-                onClick={() => this.goTo('previous')}
-                className="PictureView-nav PictureView-nav-previous"
-                title={t('previousPicture')}
-              >
-                <svg className="PictureView-icon">
-                  <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
-                </svg>
-              </div>
-            ) : null}
+        {picture.previous ? (
+          <div
+            onClick={() => this.goTo('previous')}
+            className="PictureView-nav PictureView-nav-previous"
+            title={t(r => r.previousPicture)}
+          >
+            <svg className="PictureView-icon">
+              <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
+            </svg>
+          </div>
+        ) : null}
 
-            {picture.next ? (
-              <div onClick={() => this.goTo('next')} className="PictureView-nav PictureView-nav-next" title={t('nextPicture')}>
-                <svg className="PictureView-icon">
-                  <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
-                </svg>
-              </div>
-            ) : null}
+        {picture.next ? (
+          <div onClick={() => this.goTo('next')} className="PictureView-nav PictureView-nav-next" title={t(r => r.nextPicture)}>
+            <svg className="PictureView-icon">
+              <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
+            </svg>
+          </div>
+        ) : null}
 
-            <div onClick={() => this.goTo('album')} className="PictureView-action PictureView-action-exit" title={t('backToAlbum')}>
-              <svg className="PictureView-icon">
-                <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
-              </svg>
-            </div>
+        <div onClick={() => this.goTo('album')} className="PictureView-action PictureView-action-exit" title={t(r => r.backToAlbum)}>
+          <svg className="PictureView-icon">
+            <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
+          </svg>
+        </div>
 
-            {album.is_downloadable && picture.original ? (
-              <div
-                onClick={this.openDownloadDialog}
-                className="PictureView-action PictureView-action-download"
-                title={t('downloadOriginal')}
-              >
-                <svg className="PictureView-icon">
-                  <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
-                </svg>
-                {downloadDialogOpen ? (
-                  <DownloadDialog
-                    ns="DownloadDialog"
-                    album={album}
-                    onAccept={this.downloadPicture}
-                    onClose={this.closeDownloadDialog}
-                  />
-                ) : null}
-              </div>
+        {album.is_downloadable && picture.original ? (
+          <div
+            onClick={this.openDownloadDialog}
+            className="PictureView-action PictureView-action-download"
+            title={t(r => r.downloadOriginal)}
+          >
+            <svg className="PictureView-icon">
+              <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+            </svg>
+            {downloadDialogOpen ? (
+              <DownloadDialog
+                t={T(r => r.DownloadDialog)}
+                album={album}
+                onAccept={this.downloadPicture}
+                onClose={this.closeDownloadDialog}
+              />
             ) : null}
           </div>
-        )}
-      </Translation>
+        ) : null}
+      </div>
     );
   }
 
