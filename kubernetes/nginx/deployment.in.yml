@@ -24,13 +24,13 @@ spec:
                 then:
                   mountPath: /usr/share/nginx/html/media
                   name: edegal-media
-          volumes:
-            - !If
-                test: !Var edegal_storage_pvc
-                then:
-                  name: edegal-media
-                  persistentVolumeClaim:
-                    claimName: edegal-media
-            - !If
-                test: !Var edegal_storage_cephfs
-                then: !Var edegal_storage_cephfs_volume_definition
+      volumes:
+        - !If
+            test: !Var edegal_storage_pvc
+            then:
+              name: edegal-media
+              persistentVolumeClaim:
+                claimName: edegal-media
+        - !If
+            test: !Var edegal_storage_cephfs
+            then: !Var edegal_storage_cephfs_volume_definition
