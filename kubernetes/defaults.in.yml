@@ -65,10 +65,12 @@ edegal_environment:
         key: password
   - name: REDIS_HOSTNAME
     value: !Var redis_hostname
+
+  # Format to ensure these are strings
   - name: REDIS_BROKER_DATABASE
-    value: !Var redis_broker_database
+    value: !Format "{redis_broker_database}"
   - name: REDIS_CACHE_DATABASE
-    value: !Var redis_cache_database
+    value: !Format "{redis_cache_database}"
   - name: SECRET_KEY
     valueFrom:
       secretKeyRef:
