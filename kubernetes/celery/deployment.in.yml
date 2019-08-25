@@ -17,4 +17,4 @@ spec:
       - name: master
         image: !Var edegal_image
         args: ["celery", "-A", "edegal_site.celery:app", "worker"]
-        env: !Var environment
+        env: !Var edegal_environment

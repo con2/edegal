@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      stack: edegal
+      component: redis
+  template:
+    metadata:
+      labels:
+        stack: edegal
+        component: redis
+    spec:
+      containers:
+        - name: master
+          image: !Var redis_image
+          args:
+            - redis-server
+            - "--appendonly"
+            - "yes"
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - !If
+                test: !Any [!Var redis_storage_pvc, !Var redis_storage_cephfs]
+                then:
+                  mountPath: /data
+                  name: redis-data
+      volumes:
+        - !If
+            test: !Var redis_storage_pvc
+            then:
+              name: redis-data
+              persistentVolumeClaim:
+                claimName: redis-data
+        - !If
+            test: !Var redis_storage_cephfs
+            then:
+              name: redis-data
+              flexVolume:
+                driver: ceph.rook.io/rook
+                fsType: ceph
+                options:
+                  fsName: !Var redis_storage_cephfs
+                  clusterNamespace: !Var redis_storage_cephfs_namespace
+                  path: !Var redis_storage_cephfs_path

@@ -3,12 +3,25 @@
 edegal_tag: staging
 edegal_image: !Format conikuvat/edegal:{edegal_tag}
 edegal_static_image: !Format conikuvat/edegal-static:{edegal_tag}
-edegal_enable_volumes: true
+edegal_storage_pvc: true
+edegal_storage_cepfs: ''
+edegal_storage_cephfs_namespace: rook-ceph
+edegal_storage_cephfs_path: /conikuvat-staging/edegal-media
+edegal_storage_cephfs_volume_definition:
+  name: edegal-media
+  flexVolume:
+    driver: ceph.rook.io/rook
+    fsType: ceph
+    options:
+      fsName: !Var edegal_storage_cephfs
+      clusterNamespace: !Var edegal_storage_cephfs_namespace
+      path: !Var edegal_storage_cephfs_path
+
 
 ingress_public_hostname: edegal.127.0.0.1.xip.io
 ingress_letsencrypt_enabled: false
 
-# For memcached, rabbitmq and PostgreSQL, choose between a managed (in-cluster) service or
+# For Redis and PostgreSQL, choose between a managed (in-cluster) service or
 # an external one. For external services, set fooservice_managed: false and point
 # fooservice_hostname to the external service, overriding the other defaults if necessary.
 # Also please pin the images using a tag other than latest for production.
@@ -16,11 +29,15 @@ memcached_managed: true
 memcached_image: memcached:alpine
 memcached_hostname: memcached
 
-rabbitmq_managed: true
-rabbitmq_image: rabbitmq
-rabbitmq_hostname: rabbitmq
-rabbitmq_vhost: edegal
-rabbitmq_enable_volumes: true
+redis_managed: true
+redis_image: redis
+redis_hostname: redis
+redis_broker_database: 1
+redis_cache_database: 2
+redis_storage_pvc: true
+redis_storage_cephfs: ''
+redis_storage_cephfs_namespace: rook-ceph
+redis_storage_cephfs_path: /conikuvat-staging/redis-data
 
 # NOTE: "managed" PostgreSQL should not be considered production-ready.
 postgres_managed: true
@@ -31,7 +48,7 @@ postgres_database: edegal
 setup_should_run: true
 
 # Common environment vars for both edegal and celery pods.
-environment:
+edegal_environment:
   - name: POSTGRESQL_HOSTNAME
     value: !Var postgres_hostname
   - name: POSTGRESQL_DATABASE
@@ -46,20 +63,12 @@ environment:
       secretKeyRef:
         name: postgres
         key: password
-  - name: RABBITMQ_HOSTNAME
-    value: !Var rabbitmq_hostname
-  - name: RABBITMQ_VHOST
-    value: !Var rabbitmq_vhost
-  - name: RABBITMQ_USERNAME
-    valueFrom:
-      secretKeyRef:
-        name: rabbitmq
-        key: username
-  - name: RABBITMQ_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: rabbitmq
-        key: password
+  - name: REDIS_HOSTNAME
+    value: !Var redis_hostname
+  - name: REDIS_BROKER_DATABASE
+    value: !Var redis_broker_database
+  - name: REDIS_CACHE_DATABASE
+    value: !Var redis_cache_database
   - name: SECRET_KEY
     valueFrom:
       secretKeyRef:
