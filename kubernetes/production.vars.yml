@@ -1,4 +1,4 @@
-ingress_public_hostname: conikuvat.fi
+ingress_public_hostname: beta.conikuvat.fi
 
 postgres_managed: false
 postgres_hostname: siilo.tracon.fi
