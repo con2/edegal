@@ -38,18 +38,6 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 30
           volumeMounts:
-            - !If
-                test: !Any [!Var edegal_storage_pvc, !Var edegal_storage_cephfs]
-                then:
-                  mountPath: /usr/src/app/media
-                  name: edegal-media
-      volumes:
-        - !If
-            test: !Var edegal_storage_pvc
-            then:
+            - mountPath: /usr/src/app/media
               name: edegal-media
-              persistentVolumeClaim:
-                claimName: edegal-media
-        - !If
-            test: !Var edegal_storage_cephfs
-            then: !Var edegal_storage_cephfs_volume_definition
+      volumes: !Var edegal_media_volumes_definition

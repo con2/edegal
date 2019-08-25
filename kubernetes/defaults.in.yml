@@ -3,20 +3,19 @@
 edegal_tag: staging
 edegal_image: !Format conikuvat/edegal:{edegal_tag}
 edegal_static_image: !Format conikuvat/edegal-static:{edegal_tag}
+
+# By default image storage is configured using a PersistentVolumeClaim. In order to use CephFS or NFS, set this to false.
+# See also redis_storage_…
 edegal_storage_pvc: true
-edegal_storage_cepfs: ''
+
+# To use an existing Rook CephFS file system as the image storage, set edegal_storage_cepfs to the name of the CephFS.
+edegal_storage_cephfs: ''
 edegal_storage_cephfs_namespace: rook-ceph
 edegal_storage_cephfs_path: /conikuvat-staging/edegal-media
-edegal_storage_cephfs_volume_definition:
-  name: edegal-media
-  flexVolume:
-    driver: ceph.rook.io/rook
-    fsType: ceph
-    options:
-      fsName: !Var edegal_storage_cephfs
-      clusterNamespace: !Var edegal_storage_cephfs_namespace
-      path: !Var edegal_storage_cephfs_path
 
+# To use an existing NFS export as the image storage, set edegal_storage_nfs to the IP of the server.
+edegal_storage_nfs: ''
+edegal_storage_nfs_path: /
 
 ingress_public_hostname: edegal.127.0.0.1.xip.io
 ingress_letsencrypt_enabled: false
@@ -78,3 +77,30 @@ edegal_environment:
         key: secretKey
   - name: ALLOWED_HOSTS
     value: !Var ingress_public_hostname
+
+# Common volumes for edegal, celery and nginx pods.
+edegal_media_volumes_definition:
+  - !If
+      test: !Var edegal_storage_pvc
+      then:
+        name: edegal-media
+        persistentVolumeClaim:
+          claimName: edegal-media
+  - !If
+      test: !Var edegal_storage_cephfs
+      then:
+        name: edegal-media
+        flexVolume:
+          driver: ceph.rook.io/rook
+          fsType: ceph
+          options:
+            fsName: !Var edegal_storage_cephfs
+            clusterNamespace: !Var edegal_storage_cephfs_namespace
+            path: !Var edegal_storage_cephfs_path
+  - !If
+      test: !Var edegal_storage_nfs
+      then:
+        name: edegal-media
+        nfs:
+          server: !Var edegal_storage_nfs
+          path: !Var edegal_storage_nfs_path
