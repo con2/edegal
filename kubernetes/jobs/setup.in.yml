@@ -15,6 +15,6 @@ spec:
       - name: setup
         image: !Var edegal_image
         args: ["python", "manage.py", "setup"]
-        env: !Var environment
+        env: !Var edegal_environment
       restartPolicy: Never
   backoffLimit: 4
