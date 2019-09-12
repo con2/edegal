@@ -28,6 +28,7 @@ const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
       width: Math.floor(width),
       height: Math.floor(height),
     }}
+    loading="lazy"
   />
 );
 
