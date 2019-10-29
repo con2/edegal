@@ -223,7 +223,7 @@ class MediaSpecAdmin(admin.ModelAdmin):
 class PhotographerAdmin(admin.ModelAdmin):
     model = Photographer
     list_display = ('display_name', 'user', 'twitter_handle', 'instagram_handle', 'facebook_handle')
-    raw_id_fields = ('default_terms_and_conditions', 'user',)
+    raw_id_fields = ('default_terms_and_conditions', 'user', 'cover_picture')
 
     def get_changeform_initial_data(self, request):
         return dict(user=request.user)
