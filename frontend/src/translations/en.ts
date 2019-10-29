@@ -8,6 +8,7 @@ const translations = {
   },
   AppBar: {
     adminLink: 'Admin',
+    photographers: 'Photographers',
   },
   DownloadAlbumDialog: {
     dialogTitle: 'Download album',

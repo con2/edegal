@@ -188,13 +188,6 @@ class Album(AlbumMixin, MPTTModel):
             thumbnail=self._make_thumbnail(format=format),
         )
 
-    def _make_thumbnail(self, format):
-        # TODO what if the thumbnail is hidden?
-        if self.cover_picture:
-            return self.cover_picture.get_media('thumbnail', format=format).as_dict()
-        else:
-            return None
-
     def _make_path(self):
         if self.parent is None:
             return '/'
@@ -219,9 +212,9 @@ class Album(AlbumMixin, MPTTModel):
         credits = {}
 
         if self.photographer:
-            credits['photographer'] = self.photographer.as_dict()
+            credits['photographer'] = self.photographer.make_credit()
         if self.director:
-            credits['director'] = self.director.as_dict()
+            credits['director'] = self.director.make_credit()
 
         return credits
 

@@ -15,3 +15,10 @@ class AlbumMixin:
 
     def get_absolute_url(self):
         return f'{settings.EDEGAL_FRONTEND_URL}{self.path}'
+
+    def _make_thumbnail(self, format):
+        # TODO what if the thumbnail is hidden?
+        if self.cover_picture:
+            return self.cover_picture.get_media('thumbnail', format=format).as_dict()
+        else:
+            return None

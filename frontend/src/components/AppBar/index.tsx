@@ -5,7 +5,8 @@ import Config from '../../Config';
 import Album from '../../models/Album';
 
 import './index.css';
-import { T } from '../../translations';
+import { T, TranslationFunction } from '../../translations';
+import Breadcrumb from '../../models/Breadcrumb';
 
 const breadcrumbSeparator = ' » ';
 
@@ -17,6 +18,15 @@ export interface AppBarAction {
 interface AppBarProps {
   album: Album;
   actions?: AppBarAction[];
+}
+
+function getBreadcrumbTitle(breadcrumb: Breadcrumb, t: TranslationFunction<{ photographers: string }>) {
+  switch (breadcrumb.path) {
+    case '/photographers':
+      return t(r => r.photographers);
+    default:
+      return breadcrumb.title;
+  }
 }
 
 const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
@@ -50,7 +60,7 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
             <li key={item.path} className="nav-item">
               <Link className="nav-link" to={item.path}>
                 {breadcrumbSeparator}
-                {item.title}
+                {getBreadcrumbTitle(item, t)}
               </Link>
             </li>
           ))}

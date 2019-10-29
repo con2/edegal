@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.db import models
 
+from .album_mixin import AlbumMixin
 from .common import CommonFields
 from ..utils import slugify, pick_attrs
 
 
-class Photographer(models.Model):
+class Photographer(AlbumMixin, models.Model):
     """
     Metadata used to give credit to the author(s) of a photo. While it's named Photographer, we use the
     same model for photographic directors, lighting designers etc.
@@ -28,6 +29,13 @@ class Photographer(models.Model):
     facebook_handle = models.CharField(max_length=50, blank=True)
     default_terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions', null=True, blank=True, on_delete=models.SET_NULL)
 
+    cover_picture = models.ForeignKey('Picture',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
+
     def save(self, *args, **kwargs):
         if not self.slug:
             if self.user and self.user.username:
@@ -44,7 +52,7 @@ class Photographer(models.Model):
 
         return super().save(*args, **kwargs)
 
-    def as_dict(self, **extra_attrs):
+    def make_credit(self, **extra_attrs):
         return pick_attrs(self,
             'slug',
             'display_name',
@@ -56,7 +64,45 @@ class Photographer(models.Model):
             **extra_attrs,
         )
 
-    def __str__(self):
+    def make_subalbum(self, format='jpeg'):
+        return pick_attrs(self,
+            'path',
+            'title',
+            redirect_url='',
+            date='',
+            thumbnail=self._make_thumbnail(format=format),
+        )
+
+    def make_album(self, format='jpeg'):
+        from .album import Album
+
+        return pick_attrs(self,
+            'path',
+            'title',
+            body='',
+            subalbums=[
+                album._make_subalbum(format=format)
+                for album in self.albums.filter(is_public=True, is_visible=True)
+            ],
+            pictures=[],
+            breadcrumb=[
+                Album.objects.get(path='/')._make_breadcrumb(),
+                dict(path='/photographers', title='Photographers'),
+            ],
+            redirect_url='',
+            is_downloadable=False,
+            download_url='',
+            date='',
+            layout='yearly',
+            credits={},
+        )
+
+    @property
+    def path(self):
+        return f'/photographers/{self.slug}'
+
+    @property
+    def title(self):
         return self.display_name
 
     class Meta:

@@ -10,6 +10,7 @@ const translations: Translations = {
   },
   AppBar: {
     adminLink: 'Hallinta',
+    photographers: 'Valokuvaajat',
   },
   DownloadAlbumDialog: {
     dialogTitle: 'Lataa koko albumi',
