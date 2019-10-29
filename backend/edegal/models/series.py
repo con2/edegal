@@ -74,7 +74,7 @@ class Series(AlbumMixin, models.Model):
                 Album.objects.get(path='/')._make_breadcrumb(),
             ],
             subalbums=[
-                album._make_subalbum(format=format)
+                album.make_subalbum(format=format)
                 for album in self.get_albums(**child_criteria)
             ],
             pictures=[],

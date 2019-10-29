@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 
 from mptt.models import MPTTModel, TreeForeignKey
 
-from ..utils import slugify, pick_attrs
+from ..utils import slugify, pick_attrs, strip_photographer_name_from_title
 
 from .album_mixin import AlbumMixin
 from .common import CommonFields
@@ -41,6 +41,8 @@ LAYOUT_CHOICES = [
     ('simple', 'Simple'),
     ('yearly', 'Yearly'),
 ]
+
+BREADCRUMB_SEPARATOR = " » "
 
 
 class Album(AlbumMixin, MPTTModel):
@@ -139,7 +141,7 @@ class Album(AlbumMixin, MPTTModel):
             breadcrumb=self._make_breadcrumbs(),
             download_url=self.download_url or '',
             subalbums=[
-                subalbum._make_subalbum(format=format)
+                subalbum.make_subalbum(format=format)
                 for subalbum in self._get_subalbums(is_visible=True, **child_criteria)
             ],
             pictures=[
@@ -179,14 +181,44 @@ class Album(AlbumMixin, MPTTModel):
                 .prefetch_related('media')
         )
 
-    def _make_subalbum(self, format):
-        return pick_attrs(self,
-            'path',
-            'title',
-            'redirect_url',
-            date=self.date.isoformat() if self.date else '',
-            thumbnail=self._make_thumbnail(format=format),
-        )
+    def make_subalbum(self, format='jpeg', context='parent'):
+        if context == 'parent':
+            return pick_attrs(self,
+                'path',
+                'title',
+                'redirect_url',
+                date=self.date.isoformat() if self.date else '',
+                thumbnail=self._make_thumbnail(format=format),
+            )
+        elif context == 'photographer':
+            return pick_attrs(self,
+                'path',
+                'redirect_url',
+                title=self.title_in_photographer_context,
+                date=self.date.isoformat() if self.date else '',
+                thumbnail=self._make_thumbnail(format=format),
+            )
+        else:
+            raise NotImplementedError(context)
+
+    @property
+    def title_in_photographer_context(self):
+        parts = []
+
+        for breadcrumb in self.get_ancestors(include_self=True).only('title'):
+            title = breadcrumb.title
+
+            if self.photographer and self.photographer.display_name:
+                title = strip_photographer_name_from_title(title, self.photographer.display_name)
+
+            if title:
+                parts.append(title)
+
+        if parts:
+            return BREADCRUMB_SEPARATOR.join(parts)
+        else:
+            # oopsie woopsie
+            return self.title
 
     def _make_path(self):
         if self.parent is None:

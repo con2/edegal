@@ -74,6 +74,9 @@ class Photographer(AlbumMixin, models.Model):
         )
 
     def make_album(self, format='jpeg'):
+        """
+        Returns an album-like dict representation of the Photographer.
+        """
         from .album import Album
 
         return pick_attrs(self,
@@ -81,7 +84,7 @@ class Photographer(AlbumMixin, models.Model):
             'title',
             body='',
             subalbums=[
-                album._make_subalbum(format=format)
+                album.make_subalbum(format=format, context='photographer')
                 for album in self.albums.filter(is_public=True, is_visible=True)
             ],
             pictures=[],
