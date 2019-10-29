@@ -166,12 +166,16 @@ class Album(AlbumMixin, MPTTModel):
         )
 
     def _get_subalbums(self, **child_criteria):
+        return self.get_albums(parent=self)
+
+    @classmethod
+    def get_albums(cls, **criteria):
         return (
-            self.subalbums.filter(cover_picture__media__role='thumbnail', **child_criteria)
-                .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
-                .distinct()
-                .select_related('cover_picture')
-                .order_by(F('date').desc(nulls_last=True), 'tree_id')
+            cls.objects.filter(cover_picture__media__role='thumbnail', **criteria)
+            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
+            .distinct()
+            .select_related('cover_picture')
+            .order_by(F('date').desc(nulls_last=True), 'tree_id')
         )
 
     def _get_pictures(self, **child_criteria):
@@ -205,7 +209,11 @@ class Album(AlbumMixin, MPTTModel):
     def title_in_photographer_context(self):
         parts = []
 
-        for breadcrumb in self.get_ancestors(include_self=True).only('title'):
+        for breadcrumb in self.get_ancestors(include_self=True).only('title', 'path'):
+            if breadcrumb.path == '/':
+                # No need to have the gallery title here
+                continue
+
             title = breadcrumb.title
 
             if self.photographer and self.photographer.display_name:
