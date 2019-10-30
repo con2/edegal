@@ -34,7 +34,7 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
   const { path, title, breadcrumb } = album;
   const fullBreadcrumb = breadcrumb.concat([{ path, title }]);
 
-  document.title = fullBreadcrumb.map(crumb => crumb.title).join(breadcrumbSeparator);
+  document.title = fullBreadcrumb.map(crumb => getBreadcrumbTitle(crumb, t)).join(breadcrumbSeparator);
 
   const rootAlbum = fullBreadcrumb.shift();
 
