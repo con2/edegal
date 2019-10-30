@@ -12,10 +12,13 @@ interface PhotographerProfileProps {
 const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer, coverPicture }) => {
   const t = T(r => r.DownloadAlbumDialog);
 
+  // Portrait photos get slightly less width budget to prevent them from becoming overtly tall.
+  const className = coverPicture && coverPicture.thumbnail.height > coverPicture.thumbnail.width ? 'col-md-3' : 'col-md-4';
+
   return (
     <div className="container">
       <div className="row">
-        <div className="col-md-8">
+        <div className="col-md">
           <h1>{photographer.display_name}</h1>
 
           {photographer.twitter_handle ? (
@@ -38,7 +41,7 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
         </div>
 
         {coverPicture ? (
-          <figure className="col-md">
+          <figure className={className}>
             <Link to={coverPicture.path}>
               <img
                 src={coverPicture.thumbnail.src}
