@@ -85,7 +85,7 @@ class Photographer(AlbumMixin, models.Model):
             body='',
             subalbums=[
                 album.make_subalbum(format=format, context='photographer')
-                for album in Album.get_albums(photographer=self)
+                for album in Album.get_albums(photographer=self, is_public=True, is_visible=True)
             ],
             pictures=[],
             breadcrumb=[
