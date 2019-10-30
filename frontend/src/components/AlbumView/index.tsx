@@ -12,6 +12,7 @@ import AlbumGrid from './AlbumGrid';
 import './index.css';
 import AlbumViewFooter from './AlbumViewFooter';
 import { T } from '../../translations';
+import PhotographerProfile from './PhotographerProfile';
 
 interface AlbumViewProps {
   album: Album;
@@ -52,6 +53,10 @@ function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
   return years;
 }
 
+function isPhotographerView(album: Album) {
+  return album.path.startsWith('/photographers/');
+}
+
 export default class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
   state: AlbumViewState = {
     downloadDialogOpen: false,
@@ -65,7 +70,8 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     const canDownload = album.is_downloadable && album.pictures.length;
     const t = T(r => r.AlbumView);
 
-    const showBody = album.body || album.previous_in_series || album.next_in_series;
+    const showPhotographerProfile = isPhotographerView(album) && album.credits.photographer;
+    const showBody = album.body || album.previous_in_series || album.next_in_series || showPhotographerProfile;
 
     return (
       <>
@@ -97,7 +103,10 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
                   ) : null}
                 </div>
               ) : null}
-              <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />
+              {album.body ? <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} /> : null}
+              {showPhotographerProfile ? (
+                <PhotographerProfile photographer={album.credits.photographer!} coverPicture={album.cover_picture} />
+              ) : null}
             </div>
           ) : null}
 

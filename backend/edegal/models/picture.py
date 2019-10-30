@@ -35,8 +35,8 @@ class Picture(models.Model):
         else:
             return self.album.terms_and_conditions
 
-    def as_dict(self, format='jpeg'):
-        return pick_attrs(self,
+    def as_dict(self, format='jpeg', include_credits=False):
+        result = pick_attrs(self,
             'path',
             'title',
             'description',
@@ -44,6 +44,15 @@ class Picture(models.Model):
             preview=self.get_media('preview', format).as_dict(),
             original=self.get_media('original', format).as_dict(),
         )
+
+        if include_credits:
+            result['credits'] = self.make_credits()
+
+        return result
+
+    def make_credits(self):
+        # TODO allow overriding photog per-picture
+        return self.album.make_credits()
 
     def _make_path(self):
         assert self.album

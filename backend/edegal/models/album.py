@@ -136,7 +136,12 @@ class Album(AlbumMixin, MPTTModel):
             'layout',
             'is_downloadable',
 
-            credits=self._make_credits(),
+            cover_picture=(
+                self.cover_picture.as_dict(format=format)
+                if self.cover_picture
+                else None
+            ),
+            credits=self.make_credits(),
             date=self.date.isoformat() if self.date else '',
             breadcrumb=self._make_breadcrumbs(),
             download_url=self.download_url or '',
@@ -248,7 +253,7 @@ class Album(AlbumMixin, MPTTModel):
 
         return breadcrumbs
 
-    def _make_credits(self):
+    def make_credits(self):
         credits = {}
 
         if self.photographer:

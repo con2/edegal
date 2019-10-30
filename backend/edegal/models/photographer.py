@@ -97,7 +97,17 @@ class Photographer(AlbumMixin, models.Model):
             download_url='',
             date='',
             layout='yearly',
-            credits={},
+            credits=dict(
+                photographer=self.make_credit(),
+            ),
+            cover_picture=(
+                self.cover_picture.as_dict(
+                    format=format,
+                    include_credits=self.cover_picture.album.photographer != self,
+                )
+                if self.cover_picture
+                else None
+            ),
         )
 
     @property
