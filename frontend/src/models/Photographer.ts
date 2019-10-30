@@ -1,5 +1,5 @@
 export default interface Photographer {
-  slug: string;
+  path: string;
   display_name: string;
   email: string;
   homepage_url: string;

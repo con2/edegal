@@ -54,7 +54,7 @@ class Photographer(AlbumMixin, models.Model):
 
     def make_credit(self, **extra_attrs):
         return pick_attrs(self,
-            'slug',
+            'path',
             'display_name',
             'homepage_url',
             'twitter_handle',
