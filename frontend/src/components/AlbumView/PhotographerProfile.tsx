@@ -50,8 +50,8 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
               />
             </Link>
             {coverPicture.credits && coverPicture.credits.photographer ? (
-              <figcaption>
-                <strong>{t(r => r.photographer)}</strong>{' '}
+              <figcaption className="small text-muted text-right">
+                <strong>{t(r => r.photographer)}:</strong>{' '}
                 <Link to={coverPicture.credits.photographer.path}>{coverPicture.credits.photographer.display_name}</Link>
               </figcaption>
             ) : null}
