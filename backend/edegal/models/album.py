@@ -275,9 +275,11 @@ class Album(AlbumMixin, MPTTModel):
 
         1. Cover picture EXIF data
         2. Known date formats in description or title
+        3. Non-root ancestors
 
         Description is preferred to title because some events might have a fictional date in their title.
         """
+        # 1. Cover picture EXIF data
         try:
             d = self.cover_picture.original.get_exif_datetime().date()
             logger.debug('Guessed date %s from cover picture EXIF for %s', d.isoformat(), self)
@@ -285,6 +287,7 @@ class Album(AlbumMixin, MPTTModel):
         except (RuntimeError, LookupError, TypeError, ValueError, AttributeError):
             logger.warning('Failed to guess date from cover picture EXIF for %s', self)
 
+        # 2. Known date formats in description or title
         for regex in GUESS_DATE_REGEXEN:
             match = regex.search(self.description) or regex.search(self.title)
             if match:
@@ -298,6 +301,17 @@ class Album(AlbumMixin, MPTTModel):
                 else:
                     logger.debug('Guessed date %s from description/title for %s', d.isoformat(), self)
                     return d
+
+        # 3. Non-root ancestors, nearest first
+        ancestor_with_date = (
+            self.get_ancestors(ascending=True, include_self=False)
+            .exclude(path='/')
+            .filter(date__isnull=False)
+            .first()
+        )
+        if ancestor_with_date:
+            logger.debug('Guessed date %s from ancestry (%s)', ancestor_with_date.date.isoformat(), ancestor_with_date.path)
+            return ancestor_with_date.date
 
         logger.warning('No method of date guessing worked for %s', self)
 
@@ -325,10 +339,13 @@ class Album(AlbumMixin, MPTTModel):
         if not self.cover_picture:
             self.cover_picture = self._select_cover_picture()
 
+        return_value = super().save(*args, **kwargs)
+
+        # _guess_date calls get_ancestors, so must be done after first save
         if not self.date:
             self.date = self._guess_date()
-
-        return_value = super(Album, self).save(*args, **kwargs)
+            if self.date:
+                super().save(*args, **kwargs)
 
         # In case path changed, update child pictures' paths.
         for picture in self.pictures.all():
