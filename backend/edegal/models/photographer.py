@@ -28,6 +28,12 @@ class Photographer(AlbumMixin, models.Model):
     instagram_handle = models.CharField(max_length=30, blank=True)
     facebook_handle = models.CharField(max_length=50, blank=True)
     default_terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions', null=True, blank=True, on_delete=models.SET_NULL)
+    body = models.TextField(
+        blank=True,
+        default='',
+        verbose_name='Introduction text',
+        help_text='Will be displayed at the top of the photographer view before albums.',
+    )
 
     cover_picture = models.ForeignKey('Picture',
         on_delete=models.SET_NULL,
@@ -82,7 +88,7 @@ class Photographer(AlbumMixin, models.Model):
         return pick_attrs(self,
             'path',
             'title',
-            body='',
+            'body',
             subalbums=[
                 album.make_subalbum(format=format, context='photographer')
                 for album in Album.get_albums(photographer=self, is_public=True, is_visible=True)

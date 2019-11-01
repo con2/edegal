@@ -66,3 +66,18 @@
 .AlbumViewFooter a {
   color: #888;
 }
+
+.PhotographerProfile-socialMediaLinks {
+  margin: 0;
+  padding: 0 0 0.5rem 0;
+}
+
+.PhotographerProfile-socialMediaLinks li {
+  list-style-type: none;
+  display: inline;
+  /* padding-right: 0.5em; */
+}
+
+.PhotographerProfile-socialMediaLinks li + li::before {
+  content: " · ";
+}

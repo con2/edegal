@@ -70,8 +70,14 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     const canDownload = album.is_downloadable && album.pictures.length;
     const t = T(r => r.AlbumView);
 
-    const showPhotographerProfile = isPhotographerView(album) && album.credits.photographer;
-    const showBody = album.body || album.previous_in_series || album.next_in_series || showPhotographerProfile;
+    let body = null;
+    if (isPhotographerView(album) && album.credits.photographer) {
+      body = <PhotographerProfile photographer={album.credits.photographer} coverPicture={album.cover_picture} body={album.body} />;
+    } else if (album.body) {
+      body = <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
+    }
+
+    const showBody = body || album.previous_in_series || album.next_in_series;
 
     return (
       <>
@@ -103,10 +109,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
                   ) : null}
                 </div>
               ) : null}
-              {album.body ? <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} /> : null}
-              {showPhotographerProfile ? (
-                <PhotographerProfile photographer={album.credits.photographer!} coverPicture={album.cover_picture} />
-              ) : null}
+              {body ? body : null}
             </div>
           ) : null}
 

@@ -7,13 +7,21 @@ import { T } from '../../translations';
 interface PhotographerProfileProps {
   photographer: Photographer;
   coverPicture?: Picture;
+  body?: string;
 }
 
-const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer, coverPicture }) => {
+const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer, coverPicture, body }) => {
   const t = T(r => r.DownloadAlbumDialog);
 
   // Portrait photos get slightly less width budget to prevent them from becoming overtly tall.
   const className = coverPicture && coverPicture.thumbnail.height > coverPicture.thumbnail.width ? 'col-md-3' : 'col-md-4';
+
+  // TODO Icons
+  const socialMediaLinks = [
+    [photographer.twitter_handle, 'Twitter', `https://twitter.com/${photographer.twitter_handle}`],
+    [photographer.instagram_handle, 'Instagram', `https://instagram.com/${photographer.instagram_handle}`],
+    [photographer.facebook_handle, 'Facebook', `https://facebook.com/${photographer.facebook_handle}`],
+  ].filter(([handle]) => handle);
 
   return (
     <div className="container">
@@ -21,23 +29,17 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
         <div className="col-md">
           <h1>{photographer.display_name}</h1>
 
-          {photographer.twitter_handle ? (
-            <p>
-              <strong>Twitter:</strong>{' '}
-              <a href={`https://twitter.com/${photographer.twitter_handle}`} target="_blank" rel="noopener noreferrer">
-                @{photographer.twitter_handle}
-              </a>
-            </p>
-          ) : null}
+          <ul className="PhotographerProfile-socialMediaLinks">
+            {socialMediaLinks.map(([handle, label, link]) => (
+              <li>
+                <a href={link} target="_blank" rel="noopener noreferrer" title={`${label}: ${handle}`}>
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
 
-          {photographer.instagram_handle ? (
-            <p>
-              <strong>Instagram:</strong>{' '}
-              <a href={`https://instagram.com/${photographer.instagram_handle}`} target="_blank" rel="noopener noreferrer">
-                @{photographer.instagram_handle}
-              </a>
-            </p>
-          ) : null}
+          {body ? <article dangerouslySetInnerHTML={{ __html: body || '' }} /> : null}
         </div>
 
         {coverPicture ? (

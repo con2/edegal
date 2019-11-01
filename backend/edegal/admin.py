@@ -220,8 +220,22 @@ class MediaSpecAdmin(admin.ModelAdmin):
     actions = [activate_media_specs, deactivate_media_specs]
 
 
+class PhotographerAdminForm(forms.ModelForm):
+    body = forms.CharField(
+        widget=CKEditorUploadingWidget(),
+        required=False,
+        label=Photographer._meta.get_field('body').verbose_name,
+        help_text=Photographer._meta.get_field('body').help_text,
+    )
+
+    class Meta:
+        model = Photographer
+        fields = ('display_name', 'slug', 'user', 'email', 'twitter_handle', 'instagram_handle', 'facebook_handle', 'default_terms_and_conditions', 'body', 'cover_picture')
+
+
 class PhotographerAdmin(admin.ModelAdmin):
     model = Photographer
+    form = PhotographerAdminForm
     list_display = ('display_name', 'user', 'twitter_handle', 'instagram_handle', 'facebook_handle')
     raw_id_fields = ('default_terms_and_conditions', 'user', 'cover_picture')
 
