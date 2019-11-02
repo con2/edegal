@@ -33,6 +33,12 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
   const t = T(r => r.AppBar);
   const { path, title, breadcrumb } = album;
   const fullBreadcrumb = breadcrumb.concat([{ path, title }]);
+  const rootNavLinks = [
+    {
+      path: '/photographers',
+      title: t(r => r.photographers),
+    },
+  ];
 
   document.title = fullBreadcrumb.map(crumb => getBreadcrumbTitle(crumb, t)).join(breadcrumbSeparator);
 
@@ -55,16 +61,28 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
         <span className="navbar-toggler-icon" />
       </button>
       <div className="collapse navbar-collapse" id="AppBar-navbar">
-        <ul className="navbar-nav mr-auto">
-          {fullBreadcrumb.map(item => (
-            <li key={item.path} className="nav-item">
-              <Link className="nav-link" to={item.path}>
-                {breadcrumbSeparator}
-                {getBreadcrumbTitle(item, t)}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {breadcrumb.length ? (
+          <ul className="navbar-nav mr-auto">
+            {fullBreadcrumb.map(item => (
+              <li key={item.path} className="nav-item">
+                <Link className="nav-link" to={item.path}>
+                  {breadcrumbSeparator}
+                  {getBreadcrumbTitle(item, t)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="navbar-nav mr-auto">
+            {rootNavLinks.map(item => (
+              <li key={item.path} className="nav-item">
+                <Link className="nav-link" to={item.path}>
+                  {item.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
         <ul className="navbar-nav">
           {(actions || []).map(action => (
             <li key={action.label} className="nav-item">
