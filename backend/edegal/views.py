@@ -60,10 +60,12 @@ class PhotographersApiV3View(View):
                 "message": "unsupported format (try jpeg or webp)",
             }, status=400)
 
+        pseudoalbum = Album.objects.filter(path='/photographers').first()
+
         return JsonResponse(dict(
             path='/photographers',
             title='Photographers',
-            body='',
+            body=pseudoalbum.body if pseudoalbum else '',
             subalbums=[
                 photog.make_subalbum(format=format)
                 for photog in Photographer.objects.filter(cover_picture__isnull=False)
