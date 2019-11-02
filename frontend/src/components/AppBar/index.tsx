@@ -33,12 +33,13 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
   const t = T(r => r.AppBar);
   const { path, title, breadcrumb } = album;
   const fullBreadcrumb = breadcrumb.concat([{ path, title }]);
-  const rootNavLinks = [
+  const navLinks = [
     {
       path: '/photographers',
       title: t(r => r.photographers),
     },
   ];
+  const showNavLinks = document.location.pathname === '/' || navLinks.some(link => document.location.pathname === link.path);
 
   document.title = fullBreadcrumb.map(crumb => getBreadcrumbTitle(crumb, t)).join(breadcrumbSeparator);
 
@@ -61,26 +62,35 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
         <span className="navbar-toggler-icon" />
       </button>
       <div className="collapse navbar-collapse" id="AppBar-navbar">
-        {breadcrumb.length ? (
+        {showNavLinks ? (
           <ul className="navbar-nav mr-auto">
-            {fullBreadcrumb.map(item => (
-              <li key={item.path} className="nav-item">
-                <Link className="nav-link" to={item.path}>
-                  {breadcrumbSeparator}
-                  {getBreadcrumbTitle(item, t)}
-                </Link>
-              </li>
-            ))}
+            {/* Root or otherwise magical album. Show nav links. */}
+            {navLinks.map(item => {
+              const className = document.location.pathname === item.path ? 'nav-item active' : 'nav-item';
+
+              return (
+                <li key={item.path} className={className}>
+                  <Link className="nav-link" to={item.path}>
+                    {item.title}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <ul className="navbar-nav mr-auto">
-            {rootNavLinks.map(item => (
-              <li key={item.path} className="nav-item">
-                <Link className="nav-link" to={item.path}>
-                  {item.title}
-                </Link>
-              </li>
-            ))}
+            {/* Non-root album. Show breadcrumb. */}
+            {fullBreadcrumb.map((item, index) => {
+              const className = index === fullBreadcrumb.length - 1 ? 'nav-item active' : 'nav-item';
+              return (
+                <li key={item.path} className={className}>
+                  <Link className="nav-link" to={item.path}>
+                    {breadcrumbSeparator}
+                    {getBreadcrumbTitle(item, t)}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
         <ul className="navbar-nav">
