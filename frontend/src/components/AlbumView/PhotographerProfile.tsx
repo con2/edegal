@@ -31,7 +31,7 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
 
           <ul className="PhotographerProfile-socialMediaLinks">
             {socialMediaLinks.map(([handle, label, link]) => (
-              <li>
+              <li key={label}>
                 <a href={link} target="_blank" rel="noopener noreferrer" title={`${label}: ${handle}`}>
                   {label}
                 </a>

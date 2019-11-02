@@ -14,9 +14,12 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location }) => {
   const [content, setContent] = React.useState<Content | null>(null);
 
   React.useEffect(() => {
+    // TODO: not exactly NodeJS, fix tsconfig
+    let timeout: NodeJS.Timeout | null = null;
+
     (async () => {
       // Only show the loading indicator if the request is slow.
-      const timeout = setTimeout(() => setLoading(true), loadingViewDelayMillis);
+      timeout = setTimeout(() => setLoading(true), loadingViewDelayMillis);
 
       const content = await getAlbum(path);
 
@@ -24,6 +27,12 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location }) => {
       setContent(content);
       setLoading(false);
     })();
+
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
   }, [path]);
 
   if (loading || !content) {
