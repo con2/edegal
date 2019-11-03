@@ -39,7 +39,7 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
       title: t(r => r.photographers),
     },
   ];
-  const showNavLinks = document.location.pathname === '/' || navLinks.some(link => document.location.pathname === link.path);
+  const showNavLinks = path === '/' || navLinks.some(link => path === link.path);
 
   document.title = fullBreadcrumb.map(crumb => getBreadcrumbTitle(crumb, t)).join(breadcrumbSeparator);
 
@@ -66,7 +66,7 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
           <ul className="navbar-nav mr-auto">
             {/* Root or otherwise magical album. Show nav links. */}
             {navLinks.map(item => {
-              const className = document.location.pathname === item.path ? 'nav-item active' : 'nav-item';
+              const className = path === item.path ? 'nav-item active' : 'nav-item';
 
               return (
                 <li key={item.path} className={className}>
