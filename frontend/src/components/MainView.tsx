@@ -8,7 +8,7 @@ import { RouteComponentProps } from 'react-router';
 
 const loadingViewDelayMillis = 500;
 
-const MainView: React.FC<RouteComponentProps<{}>> = ({ location }) => {
+const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
   const path = location.pathname;
   const [loading, setLoading] = React.useState(true);
   const [content, setContent] = React.useState<Content | null>(null);
@@ -40,7 +40,15 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location }) => {
   } else {
     const { album, picture } = content;
 
-    if (picture) {
+    if (album.redirect_url) {
+      if (album.redirect_url.indexOf('://') >= 0) {
+        document.location.href = album.redirect_url;
+      } else {
+        setTimeout(() => history.push(album.redirect_url), 0);
+      }
+
+      return <Loading />;
+    } else if (picture) {
       return <PictureView album={album} picture={picture} />;
     } else {
       return <AlbumView album={album} />;
