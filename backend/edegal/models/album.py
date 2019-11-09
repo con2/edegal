@@ -139,6 +139,7 @@ class Album(AlbumMixin, MPTTModel):
             'layout',
             'is_downloadable',
 
+            is_public=self.is_public and self.is_visible,
             cover_picture=(
                 self.cover_picture.as_dict(format=format)
                 if self.cover_picture
@@ -174,7 +175,7 @@ class Album(AlbumMixin, MPTTModel):
     def get_albums(cls, **criteria):
         return (
             cls.objects.filter(cover_picture__media__role='thumbnail', **criteria)
-            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
+            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture', 'is_public', 'is_visible')
             .distinct()
             .select_related('cover_picture')
             .order_by(F('date').desc(nulls_last=True), 'tree_id')
@@ -193,6 +194,7 @@ class Album(AlbumMixin, MPTTModel):
                 'path',
                 'title',
                 'redirect_url',
+                'is_public',
                 date=self.date.isoformat() if self.date else '',
                 thumbnail=self._make_thumbnail(format=format),
             )
@@ -200,6 +202,7 @@ class Album(AlbumMixin, MPTTModel):
             return pick_attrs(self,
                 'path',
                 'redirect_url',
+                'is_public',
                 title=self.title_in_photographer_context,
                 date=self.date.isoformat() if self.date else '',
                 thumbnail=self._make_thumbnail(format=format),

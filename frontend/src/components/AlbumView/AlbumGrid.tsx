@@ -69,6 +69,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
               showTitle={showTitle}
               src={item.thumbnail ? item.thumbnail.src : undefined}
               externalLink={item.redirect_url}
+              isPublic={item.is_public}
             />
           ))}
         </div>

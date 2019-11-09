@@ -40,6 +40,7 @@ class Picture(models.Model):
             'path',
             'title',
             'description',
+            'is_public',
             thumbnail=self.get_media('thumbnail', format).as_dict(),
             preview=self.get_media('preview', format).as_dict(),
             original=self.get_media('original', format).as_dict(),

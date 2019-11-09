@@ -6,6 +6,7 @@ interface PictureTileProps {
   path: string;
   height: number;
   width: number;
+  isPublic: boolean;
   title?: string;
   showTitle?: boolean;
   src?: string;
@@ -18,6 +19,8 @@ interface ThumbnailProps {
   height: number;
   title?: string;
 }
+
+const nonPublicPrefix = '🔐 ';
 
 const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
   <img
@@ -34,7 +37,7 @@ const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
 
 export default class PictureTile extends React.PureComponent<PictureTileProps> {
   render() {
-    const { path, width, height, src, title, externalLink, showTitle } = this.props;
+    const { path, width, height, src, title, externalLink, showTitle, isPublic } = this.props;
 
     return externalLink ? (
       <a className="PictureTile" href={externalLink} target="_blank" rel="noopener noreferrer">
@@ -49,7 +52,18 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
     ) : (
       <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true } }} title={title}>
         {src ? <Thumbnail src={src} width={width} height={height} title={title} /> : null}
-        {showTitle && title ? <div className="PictureTile-title">{title}</div> : null}
+        {showTitle && title ? (
+          <div className="PictureTile-title">
+            {isPublic ? (
+              title
+            ) : (
+              <>
+                {nonPublicPrefix}
+                <em>{title}</em>
+              </>
+            )}
+          </div>
+        ) : null}
       </Link>
     );
   }

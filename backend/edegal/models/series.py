@@ -66,6 +66,8 @@ class Series(AlbumMixin, models.Model):
             'title',
             'description',
             'body',
+            'is_public',
+            'is_visible',
 
             redirect_url='',
             layout='simple',
@@ -87,7 +89,7 @@ class Series(AlbumMixin, models.Model):
 
         return (
             Album.objects.filter(series=self, **extra_criteria)
-            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
+            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture', 'is_public', 'is_visible')
             .select_related('cover_picture')
             .order_by(F('date').desc(nulls_last=True), 'tree_id')
         )
