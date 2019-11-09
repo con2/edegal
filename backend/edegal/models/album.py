@@ -397,9 +397,9 @@ class Album(AlbumMixin, MPTTModel):
         try:
             picture = Picture.objects.only('album_id').get(path=path)
         except Picture.DoesNotExist:
-            query = dict(path=path, cover_picture__media__role='thumbnail', **extra_criteria)
+            query = dict(path=path, **extra_criteria)
         else:
-            query = dict(id=picture.album_id, cover_picture__media__role='thumbnail', **extra_criteria)
+            query = dict(id=picture.album_id, **extra_criteria)
 
         # TODO Can we limit fetched fields in select_related?
         queryset = (
