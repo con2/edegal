@@ -59,7 +59,9 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
             ) : (
               <>
                 <em>{title}</em>
-                {nonPublicSuffix}
+                <svg className="PictureTile-icon">
+                  <use xlinkHref={`${actionIcons}#ic_lock_open_24px`} />
+                </svg>
               </>
             )}
           </div>
