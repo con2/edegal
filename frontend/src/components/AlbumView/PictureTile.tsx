@@ -20,7 +20,7 @@ interface ThumbnailProps {
   title?: string;
 }
 
-const nonPublicPrefix = '🔐 ';
+const nonPublicSuffix = ' 🔐';
 
 const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
   <img
@@ -58,8 +58,8 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
               title
             ) : (
               <>
-                {nonPublicPrefix}
                 <em>{title}</em>
+                {nonPublicSuffix}
               </>
             )}
           </div>
