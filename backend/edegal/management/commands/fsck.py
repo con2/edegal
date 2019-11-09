@@ -46,7 +46,7 @@ class Command(BaseCommand):
             if fix:
                 parts = ['Pictures without media (deleting):']
             else:
-                parts = ['Non-original media with empty src (--force to delete):']
+                parts = ['Pictures without media (--force to delete):']
 
             parts.extend(str(picture) for picture in pictures)
 
@@ -61,9 +61,9 @@ class Command(BaseCommand):
 
         if albums.exists():
             if fix:
-                parts = ['Albums with next/previous linkage without Series (--force to clear):']
-            else:
                 parts = ['Albums with next/previous linkage without Series (clearing):']
+            else:
+                parts = ['Albums with next/previous linkage without Series (--force to clear):']
 
             parts.extend(str(album) for album in albums)
 
