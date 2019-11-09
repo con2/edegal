@@ -74,6 +74,7 @@ class Photographer(AlbumMixin, models.Model):
         return pick_attrs(self,
             'path',
             'title',
+            'is_public',
             redirect_url='',
             date='',
             thumbnail=self._make_thumbnail(format=format),
@@ -89,6 +90,7 @@ class Photographer(AlbumMixin, models.Model):
             'path',
             'title',
             'body',
+            'is_public',
             subalbums=[
                 album.make_subalbum(format=format, context='photographer')
                 for album in Album.get_albums(photographer=self, is_public=True, is_visible=True)
@@ -123,6 +125,10 @@ class Photographer(AlbumMixin, models.Model):
     @property
     def title(self):
         return self.display_name
+
+    @property
+    def is_public(self):
+        return self.cover_picture_id is not None
 
     class Meta:
         ordering = ('display_name',)
