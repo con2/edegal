@@ -194,7 +194,7 @@ class Album(AlbumMixin, MPTTModel):
                 'path',
                 'title',
                 'redirect_url',
-                'is_public',
+                is_public=self.is_public and self.is_visible,
                 date=self.date.isoformat() if self.date else '',
                 thumbnail=self._make_thumbnail(format=format),
             )
@@ -202,7 +202,7 @@ class Album(AlbumMixin, MPTTModel):
             return pick_attrs(self,
                 'path',
                 'redirect_url',
-                'is_public',
+                is_public=self.is_public and self.is_visible,
                 title=self.title_in_photographer_context,
                 date=self.date.isoformat() if self.date else '',
                 thumbnail=self._make_thumbnail(format=format),
