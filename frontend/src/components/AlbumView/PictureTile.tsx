@@ -20,8 +20,6 @@ interface ThumbnailProps {
   title?: string;
 }
 
-const nonPublicSuffix = ' 🔐';
-
 const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
   <img
     src={src}
