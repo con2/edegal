@@ -45,6 +45,10 @@ const translations = {
     defaultTerms:
       'Terms and conditions missing. The photo is covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
   },
+  ErrorBoundary: {
+    defaultMessage:
+      'Something went wrong while loading the album. It is likely that either the album does not exist, you are not authorized to view it or there is a connectivity problem.',
+  },
   PictureView: {
     backToAlbum: 'Back to Album',
     downloadOriginal: 'Download Original',
