@@ -41,10 +41,10 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
       <a className="PictureTile" href={externalLink} target="_blank" rel="noopener noreferrer">
         {src ? <Thumbnail src={src} width={width} height={height} title={title} /> : null}
         <div className="PictureTile-title">
-          {title}
           <svg className="PictureTile-icon">
             <use xlinkHref={`${actionIcons}#ic_launch_24px`} />
           </svg>
+          {title}
         </div>
       </a>
     ) : (
@@ -56,10 +56,10 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
               title
             ) : (
               <>
-                <em>{title}</em>
                 <svg className="PictureTile-icon">
                   <use xlinkHref={`${actionIcons}#ic_lock_open_24px`} />
                 </svg>
+                <em>{title}</em>
               </>
             )}
           </div>
