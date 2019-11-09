@@ -122,9 +122,12 @@ class Album(AlbumMixin, MPTTModel):
         self.__original_path = self.path
 
     def as_dict(self, include_hidden=False, format='jpeg'):
-        child_criteria = dict()
-        if not include_hidden:
-            child_criteria.update(is_public=True)
+        if include_hidden:
+            subalbums = self._get_subalbums()
+            pictures = self._get_pictures()
+        else:
+            subalbums = self._get_subalbums(is_public=True, is_visible=True)
+            pictures = self._get_pictures(is_public=True)
 
         return pick_attrs(self,
             'slug',
@@ -145,14 +148,8 @@ class Album(AlbumMixin, MPTTModel):
             date=self.date.isoformat() if self.date else '',
             breadcrumb=self._make_breadcrumbs(),
             download_url=self.download_url or '',
-            subalbums=[
-                subalbum.make_subalbum(format=format)
-                for subalbum in self._get_subalbums(is_visible=True, **child_criteria)
-            ],
-            pictures=[
-                picture.as_dict(format=format)
-                for picture in self._get_pictures(**child_criteria)
-            ],
+            subalbums=[subalbum.make_subalbum(format=format) for subalbum in subalbums],
+            pictures=[picture.as_dict(format=format) for picture in pictures],
             terms_and_conditions=(
                 self.terms_and_conditions.as_dict()
                 if self.terms_and_conditions
@@ -170,8 +167,8 @@ class Album(AlbumMixin, MPTTModel):
             ),
         )
 
-    def _get_subalbums(self, **child_criteria):
-        return self.get_albums(parent=self)
+    def _get_subalbums(self, **subalbum_criteria):
+        return self.get_albums(parent=self, **subalbum_criteria)
 
     @classmethod
     def get_albums(cls, **criteria):
@@ -183,9 +180,9 @@ class Album(AlbumMixin, MPTTModel):
             .order_by(F('date').desc(nulls_last=True), 'tree_id')
         )
 
-    def _get_pictures(self, **child_criteria):
+    def _get_pictures(self, **subalbum_criteria):
         return (
-            self.pictures.filter(media__role='thumbnail', **child_criteria)
+            self.pictures.filter(media__role='thumbnail', **subalbum_criteria)
                 .distinct()
                 .prefetch_related('media')
         )
