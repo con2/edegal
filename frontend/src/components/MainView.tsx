@@ -5,6 +5,8 @@ import Loading from './Loading';
 import PictureView from './PictureView';
 import { Content, getAlbum } from '../helpers/getAlbum';
 import { RouteComponentProps } from 'react-router';
+import ErrorMessage from './ErrorMessage';
+import { T } from '../translations';
 
 const loadingViewDelayMillis = 500;
 
@@ -12,6 +14,7 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
   const path = location.pathname;
   const [loading, setLoading] = React.useState(true);
   const [content, setContent] = React.useState<Content | null>(null);
+  const [error, setError] = React.useState<Error | null>(null);
 
   React.useEffect(() => {
     // TODO: not exactly NodeJS, fix tsconfig
@@ -21,10 +24,17 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
       // Only show the loading indicator if the request is slow.
       timeout = setTimeout(() => setLoading(true), loadingViewDelayMillis);
 
-      const content = await getAlbum(path);
+      let content = null;
+      let error = null;
+      try {
+        content = await getAlbum(path);
+      } catch (theError) {
+        error = theError;
+      }
 
       clearTimeout(timeout);
       setContent(content);
+      setError(error);
       setLoading(false);
     })();
 
@@ -35,7 +45,10 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
     };
   }, [path]);
 
-  if (loading || !content) {
+  if (error) {
+    const t = T(r => r.ErrorBoundary);
+    return <ErrorMessage>{t(r => r.defaultMessage)}</ErrorMessage>;
+  } else if (loading || !content) {
     return <Loading />;
   } else {
     const { album, picture } = content;
