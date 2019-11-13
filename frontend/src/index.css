@@ -8,3 +8,11 @@ body {
   color: #eee;
   margin-bottom: 35px;
 }
+
+/* Make modal dialogs scrollable */
+.modal-dialog {
+  height: calc(100% - 70px);
+}
+.modal-content {
+  overflow: auto;
+}
