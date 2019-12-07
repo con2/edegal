@@ -45,7 +45,7 @@ class Photographer(AlbumMixin, models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             if self.user and self.user.username:
-                self.slug = self.user.username
+                self.slug = slugify(self.user.username)
             elif self.display_name:
                 self.slug = slugify(self.display_name)
 
