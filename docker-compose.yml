@@ -53,7 +53,6 @@ services:
     image: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./backend/edegal_site/sql/50_create_extension_tsm_system_rows.sql:/docker-entrypoint-initdb.d/50_create_extension_tsm_system_rows.sql
     environment:
       POSTGRES_USER: edegal
       POSTGRES_PASSWORD: edegal

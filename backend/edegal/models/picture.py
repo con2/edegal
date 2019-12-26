@@ -1,4 +1,5 @@
 import logging
+from random import randint
 
 from django.conf import settings
 from django.db import models
@@ -86,10 +87,14 @@ class Picture(models.Model):
 
     @classmethod
     def get_random_picture(cls):
-        try:
-            return cls.objects.raw('select * from edegal_picture tablesample system_rows(1)')[0]
-        except ProgrammingError as e:
-            raise Exception('For /random to work, you probably need to "CREATE EXTENSION tsm_system_rows;" as the database superuser.') from e
+        max_id = cls.objects.only('id').latest('id').id
+        sample_id = randint(1, max_id)
+
+        return cls.objects.filter(
+            id__gte=sample_id,
+            is_public=True,
+            album__is_public=True,
+        ).only('id', 'path').order_by('id').first()
 
     @property
     def original(self):
