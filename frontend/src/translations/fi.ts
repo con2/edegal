@@ -11,6 +11,7 @@ const translations: Translations = {
   AppBar: {
     adminLink: 'Hallinta',
     photographers: 'Valokuvaajat',
+    randomPicture: 'Satunnainen kuva',
   },
   DownloadAlbumDialog: {
     dialogTitle: 'Lataa koko albumi',

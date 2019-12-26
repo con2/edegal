@@ -9,6 +9,7 @@ const translations = {
   AppBar: {
     adminLink: 'Admin',
     photographers: 'Photographers',
+    randomPicture: 'Random picture',
   },
   DownloadAlbumDialog: {
     dialogTitle: 'Download album',

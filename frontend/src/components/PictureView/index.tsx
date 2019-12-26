@@ -132,6 +132,11 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
       return;
     }
 
+    if (event.key === 'r' || event.key === 'R') {
+      this.props.history.push('/random');
+      return;
+    }
+
     const direction = keyMap[event.keyCode];
     if (direction) {
       this.goTo(direction);

@@ -38,6 +38,10 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
       path: '/photographers',
       title: t(r => r.photographers),
     },
+    {
+      path: '/random',
+      title: t(r => r.randomPicture),
+    }
   ];
   const showNavLinks = path === '/' || navLinks.some(link => path === link.path);
 

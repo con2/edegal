@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import View
 
-from .models import Album, Photographer
+from .models import Album, Photographer, Picture
 from .models.media_spec import FORMAT_CHOICES
 
 
@@ -101,7 +101,24 @@ class PhotographerApiV3View(View):
         return JsonResponse(photographer.make_album(format=format))
 
 
+class RandomPictureAPIV3View(View):
+    http_method_names = ['get', 'head']
+
+    def get(self, request):
+        picture = Picture.get_random_picture()
+
+        response = JsonResponse(Album.fake_album_as_dict(
+            path='/random',
+            title='Random Picture',
+            redirect_url=picture.path,
+        ))
+        response['Cache-Control'] = 'no-store'
+
+        return response
+
+
 api_v3_view = ApiV3View.as_view()
 photographers_api_v3_view = PhotographersApiV3View.as_view()
 photographer_api_v3_view = PhotographerApiV3View.as_view()
+random_picture_api_v3_view = RandomPictureAPIV3View.as_view()
 status_view = StatusView.as_view()

@@ -57,7 +57,7 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
       if (album.redirect_url.indexOf('://') >= 0) {
         document.location.href = album.redirect_url;
       } else {
-        setTimeout(() => history.push(album.redirect_url), 0);
+        setTimeout(() => history.replace(album.redirect_url), 0);
       }
 
       return <Loading />;

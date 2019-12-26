@@ -44,6 +44,20 @@ LAYOUT_CHOICES = [
 
 BREADCRUMB_SEPARATOR = " » "
 
+FAKE_ALBUM_DEFAULTS = dict(
+    # path must be provided
+    title='',
+    body='',
+    subalbums=[],
+    pictures=[],
+    redirect_url='',
+    is_downloadable=False,
+    download_url='',
+    date='',
+    layout='simple',
+    credits={},
+)
+
 
 class Album(AlbumMixin, MPTTModel):
     slug = models.CharField(**CommonFields.slug)
@@ -167,6 +181,21 @@ class Album(AlbumMixin, MPTTModel):
                 else None
             ),
         )
+
+    @classmethod
+    def fake_album_as_dict(self, *, path, **kwargs):
+        """
+        Many of our views are implemented as returning Album-like JSON objects.
+        Use this method for getting sensible defaults for omitted fields.
+        """
+        result = dict(FAKE_ALBUM_DEFAULTS, path=path, **kwargs)
+
+        if 'breadcrumb' not in result:
+            result['breadcrumb'] = [
+                Album.objects.get(path='/')._make_breadcrumb(),
+            ]
+
+        return result
 
     def _get_subalbums(self, **subalbum_criteria):
         return self.get_albums(parent=self, **subalbum_criteria)

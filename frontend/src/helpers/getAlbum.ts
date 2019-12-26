@@ -5,6 +5,11 @@ import { Format } from '../models/Media';
 import Picture from '../models/Picture';
 import supportsWebp from './supportsWebp';
 
+// The result of these endpoints may change on every request.
+const nonCachedPaths = [
+  '/random',
+];
+
 /**
  * The "low level" album getter.
  */
@@ -30,7 +35,9 @@ export async function getCached(path: string, format: Format, bypassCache = fals
   // TODO: validate response
   const album: Album = await response.json();
 
-  AlbumCache.set(path, album);
+  if (!nonCachedPaths.includes(album.path)) {
+    AlbumCache.set(album.path, album);
+  }
 
   // Cache the Album for Pictures and set .previous and .next
   let previous: Picture;

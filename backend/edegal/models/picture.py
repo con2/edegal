@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.db import models
+from django.db.utils import ProgrammingError
 from django.utils.translation import ugettext_lazy as _
 
 from ..utils import slugify, pick_attrs
@@ -82,6 +83,13 @@ class Picture(models.Model):
 
         for medium in media_to_remove:
             print('Would remove', medium)
+
+    @classmethod
+    def get_random_picture(cls):
+        try:
+            return cls.objects.raw('select * from edegal_picture tablesample system_rows(1)')[0]
+        except ProgrammingError as e:
+            raise Exception('For /random to work, you probably need to "CREATE EXTENSION tsm_system_rows;" as the database superuser.') from e
 
     @property
     def original(self):
