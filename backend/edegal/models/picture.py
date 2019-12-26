@@ -94,6 +94,8 @@ class Picture(models.Model):
             id__gte=sample_id,
             is_public=True,
             album__is_public=True,
+            album__is_visible=True,
+            album__redirect_url='',
         ).only('id', 'path').order_by('id').first()
 
     @property
