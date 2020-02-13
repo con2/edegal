@@ -27,8 +27,6 @@ class ApiV3View(View):
             context = 'timeline'
             path = path[:-len('/timeline')]
 
-        print(f'{path=}')
-
         format = request.GET.get('format', 'jpeg').lower()
         if format == 'jpg':
             format = 'jpeg'

@@ -161,7 +161,7 @@ class Album(AlbumMixin, MPTTModel):
             ),
             credits=self.make_credits(),
             date=self.date.isoformat() if self.date else '',
-            breadcrumb=self._make_breadcrumbs(),
+            breadcrumb=self._make_breadcrumbs(context=context),
             download_url=self.download_url or '',
             subalbums=[subalbum.make_subalbum(format=format) for subalbum in subalbums],
             pictures=[picture.as_dict(format=format) for picture in pictures],
@@ -287,13 +287,16 @@ class Album(AlbumMixin, MPTTModel):
                 pth = pth[1:]
             return pth
 
-    def _make_breadcrumbs(self):
+    def _make_breadcrumbs(self, context='album'):
         ancestors = self.get_ancestors().only('path', 'title', 'series')
         series = self.series or next((album.series for album in ancestors if album.series), None)
         breadcrumbs = [ancestor._make_breadcrumb() for ancestor in ancestors]
 
         if series:
             breadcrumbs.insert(1, series._make_breadcrumb())
+
+        if context == 'timeline':
+            breadcrumbs.append(self._make_breadcrumb())
 
         return breadcrumbs
 

@@ -20,12 +20,13 @@ interface AppBarProps {
   actions?: AppBarAction[];
 }
 
-function getBreadcrumbTitle(breadcrumb: Breadcrumb, t: TranslationFunction<{ photographers: string }>) {
-  switch (breadcrumb.path) {
-    case '/photographers':
-      return t(r => r.photographers);
-    default:
-      return breadcrumb.title;
+function getBreadcrumbTitle(breadcrumb: Breadcrumb, t: TranslationFunction<{ photographers: string; timeline: string }>) {
+  if (breadcrumb.path === '/photographers') {
+    return t(r => r.photographers);
+  } else if (breadcrumb.path.endsWith('/timeline')) {
+    return t(r => r.timeline);
+  } else {
+    return breadcrumb.title;
   }
 }
 
@@ -41,7 +42,7 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
     {
       path: '/random',
       title: t(r => r.randomPicture),
-    }
+    },
   ];
   const showNavLinks = path === '/' || navLinks.some(link => path === link.path);
 
