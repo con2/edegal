@@ -27,6 +27,7 @@ class Picture(models.Model):
 
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
+    taken_at = models.DateTimeField(null=True, blank=True, help_text="EXIF original date time of the original media")
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
 

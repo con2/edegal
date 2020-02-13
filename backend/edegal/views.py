@@ -18,8 +18,16 @@ class ApiV3View(View):
     http_method_names = ['get', 'head']
 
     def get(self, request, path):
+        context = 'album'
+
         if path == '':
             path = '/'
+        elif path.endswith('/timeline'):
+            # NOTE order: timeline of the root album is disallowed by design because it would contain _all_ photos of the gallery
+            context = 'timeline'
+            path = path[:-len('/timeline')]
+
+        print(f'{path=}')
 
         format = request.GET.get('format', 'jpeg').lower()
         if format == 'jpg':
@@ -38,6 +46,7 @@ class ApiV3View(View):
         response = JsonResponse(album.as_dict(
             include_hidden=request.user.is_staff,
             format=format,
+            context=context,
         ))
 
         download = request.GET.get('download', 'false')

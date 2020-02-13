@@ -196,7 +196,7 @@ class MediaInline(admin.TabularInline):
 
 class PictureAdmin(admin.ModelAdmin):
     model = Picture
-    readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
+    readonly_fields = ('path', 'taken_at', 'created_at', 'updated_at', 'created_by')
     list_display = ('album', 'path', 'title')
     search_fields = ('path', 'title')
     raw_id_fields = ('album',)

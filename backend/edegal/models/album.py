@@ -135,24 +135,24 @@ class Album(AlbumMixin, MPTTModel):
         super(Album, self).__init__(*args, **kwargs)
         self.__original_path = self.path
 
-    def as_dict(self, include_hidden=False, format='jpeg'):
+    def as_dict(self, include_hidden=False, format='jpeg', context='album'):
         if include_hidden:
-            subalbums = self._get_subalbums()
-            pictures = self._get_pictures()
+            subalbums = self._get_subalbums(context=context)
+            pictures = self._get_pictures(context=context)
         else:
-            subalbums = self._get_subalbums(is_public=True, is_visible=True)
-            pictures = self._get_pictures(is_public=True)
+            subalbums = self._get_subalbums(context=context, is_public=True, is_visible=True)
+            pictures = self._get_pictures(context=context, is_public=True)
 
         return pick_attrs(self,
             'slug',
-            'path',
             'title',
             'description',
-            'body',
             'redirect_url',
             'layout',
             'is_downloadable',
 
+            path=(f'{self.path}/timeline' if context == 'timeline' else self.path),
+            body=('' if context == 'timeline' else self.body),
             is_public=self.is_public and self.is_visible,
             cover_picture=(
                 self.cover_picture.as_dict(format=format)
@@ -172,12 +172,12 @@ class Album(AlbumMixin, MPTTModel):
             ),
             previous_in_series=(
                 self.previous_in_series._make_breadcrumb()
-                if self.previous_in_series
+                if self.previous_in_series and context == 'album'
                 else None
             ),
             next_in_series=(
                 self.next_in_series._make_breadcrumb()
-                if self.next_in_series
+                if self.next_in_series and context == 'album'
                 else None
             ),
         )
@@ -197,8 +197,13 @@ class Album(AlbumMixin, MPTTModel):
 
         return result
 
-    def _get_subalbums(self, **subalbum_criteria):
-        return self.get_albums(parent=self, **subalbum_criteria)
+    def _get_subalbums(self, context='album', **subalbum_criteria):
+        if context == 'album':
+            return self.get_albums(parent=self, **subalbum_criteria)
+        elif context == 'timeline':
+            return Album.objects.none()
+        else:
+            raise NotImplementedError(context)
 
     @classmethod
     def get_albums(cls, **criteria):
@@ -210,11 +215,21 @@ class Album(AlbumMixin, MPTTModel):
             .order_by(F('date').desc(nulls_last=True), 'tree_id')
         )
 
-    def _get_pictures(self, **subalbum_criteria):
+    def _get_pictures(self, context='album', **subalbum_criteria):
+        if context == 'album':
+            pictures_queryset = self.pictures.all()
+        elif context == 'timeline':
+            pictures_queryset = Picture.objects.filter(
+                album__in=self.get_descendants(include_self=True),
+                taken_at__isnull=False,
+            ).order_by('taken_at')
+        else:
+            raise NotImplementedError(context)
+
         return (
-            self.pictures.filter(media__role='thumbnail', **subalbum_criteria)
-                .distinct()
-                .prefetch_related('media')
+            pictures_queryset.filter(media__role='thumbnail', **subalbum_criteria)
+            .distinct()
+            .prefetch_related('media')
         )
 
     def make_subalbum(self, format='jpeg', context='parent'):
@@ -314,12 +329,10 @@ class Album(AlbumMixin, MPTTModel):
         Description is preferred to title because some events might have a fictional date in their title.
         """
         # 1. Cover picture EXIF data
-        try:
-            d = self.cover_picture.original.get_exif_datetime().date()
-            logger.debug('Guessed date %s from cover picture EXIF for %s', d.isoformat(), self)
+        if self.cover_picture and self.cover_picture.taken_at:
+            d = self.cover_picture.taken_at
+            logger.debug('Guessed date %s from cover picture EXIF data for %s', d.isoformat(), self)
             return d
-        except (RuntimeError, LookupError, TypeError, ValueError, AttributeError):
-            logger.warning('Failed to guess date from cover picture EXIF for %s', self)
 
         # 2. Known date formats in description or title
         for regex in GUESS_DATE_REGEXEN:
