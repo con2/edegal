@@ -7,6 +7,7 @@ from os.path import dirname, abspath, getsize
 
 from django.conf import settings
 from django.db import models
+from django.utils.timezone import make_aware
 
 from PIL import Image
 
@@ -84,9 +85,9 @@ class Media(models.Model):
     def get_exif_datetime(self):
         with self.as_image() as image:
             try:
-                return datetime.strptime(image._getexif()[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT)
-            except (ValueError, KeyError):
-                logger.warning('Failed to extract original datetime from EXIF for %s', self, exc_info=True)
+                return make_aware(datetime.strptime(image._getexif()[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT))
+            except Exception:
+                logger.debug('Failed to extract original datetime from EXIF for %s', self, exc_info=True)
                 return None
 
     def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
