@@ -42,4 +42,4 @@ class Command(BaseCommand):
             else:
                 print('-', end='', flush=True)
 
-            print()
+        print()

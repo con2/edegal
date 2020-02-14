@@ -53,8 +53,11 @@ class Series(AlbumMixin, models.Model):
 
         return super().save(*args, **kwargs)
 
-    def as_dict(self, include_hidden=False, format='jpeg'):
+    def as_dict(self, include_hidden=False, format='jpeg', context='album'):
         from .album import Album
+
+        if context != 'album':
+            raise NotImplementedError(context)
 
         child_criteria = dict()
         if not include_hidden:
