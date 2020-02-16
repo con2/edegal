@@ -37,14 +37,14 @@ EXIF_DATETIME_FORMAT = '%Y:%m:%d %H:%M:%S'
 
 
 class Media(models.Model):
-    picture = models.ForeignKey('edegal.Picture', related_name='media')
+    picture = models.ForeignKey('edegal.Picture', on_delete=models.CASCADE, related_name='media')
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     src = models.FileField(
         unique=True,
         max_length=1023,
     )
-    spec = models.ForeignKey(MediaSpec, null=True, blank=True)
+    spec = models.ForeignKey(MediaSpec, on_delete=models.CASCADE, null=True, blank=True)
     role = models.CharField(
         max_length=max(len(ext) for (ext, label) in ROLE_CHOICES),
         choices=ROLE_CHOICES,

@@ -64,6 +64,7 @@ class Album(AlbumMixin, MPTTModel):
     parent = TreeForeignKey('self',
         null=True,
         blank=True,
+        on_delete=models.CASCADE,
         related_name='subalbums',
         db_index=True,
         verbose_name='Parent Album',

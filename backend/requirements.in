@@ -2,10 +2,10 @@ beautifulsoup4
 celery
 django-environ
 django-mptt
-Django~=1.11.28
+Django
 Pillow
 python-memcached
-git+git://github.com/gkuhn1/django-admin-multiupload.git@v1.10.1#egg=admin-multiupload
+git+git://github.com/conikuvat/django-admin-multiupload.git@django3#egg=admin-multiupload
 requests-oauthlib
 requests
 django-ckeditor

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import path
 from django.views.static import serve as serve_static
 
 
@@ -15,7 +16,7 @@ if settings.EDEGAL_USE_KOMPASSI_OAUTH2:
 
 
 # must be after kompassi_oauth2 as we mount it under /admin to pass proxy
-urlpatterns.append(url(r'^admin/', include(admin.site.urls)))
+urlpatterns.append(path('admin/', admin.site.urls))
 
 
 if settings.DEBUG:
