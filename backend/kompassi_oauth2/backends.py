@@ -21,7 +21,7 @@ def user_attrs_from_kompassi(kompassi_user):
 
 
 class KompassiOAuth2AuthenticationBackend(object):
-    def authenticate(self, oauth2_session=None, **kwargs):
+    def authenticate(self, request, oauth2_session=None, **kwargs):
         if oauth2_session is None:
             # Not ours (password login)
             return None

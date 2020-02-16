@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django.shortcuts import redirect
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth import authenticate, login
 
 from requests_oauthlib import OAuth2Session
