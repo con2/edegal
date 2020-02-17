@@ -10,6 +10,8 @@ interface Picture extends TileItem {
   preview: Media;
   thumbnail: Media;
 
+  taken_at?: string;
+
   // Only present if different than album
   credits?: Credits;
 }

@@ -13,6 +13,7 @@ import './index.css';
 import AlbumViewFooter from './AlbumViewFooter';
 import { T } from '../../translations';
 import PhotographerProfile from './PhotographerProfile';
+import Timeline from './Timeline';
 
 interface AlbumViewProps {
   album: Album;
@@ -53,9 +54,8 @@ function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
   return years;
 }
 
-function isPhotographerView(album: Album) {
-  return album.path.startsWith('/photographers/');
-}
+const isPhotographerView = (album: Album) => album.path.startsWith('/photographers/');
+const isTimelineView = (album: Album) => album.path.endsWith('/timeline');
 
 export default class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
   state: AlbumViewState = {
@@ -134,6 +134,8 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
         </main>
 
         <AlbumViewFooter album={album} />
+
+        {isTimelineView(album) && <Timeline pictures={album.pictures} />}
 
         {/* Download dialog */}
         {downloadDialogOpen ? (
