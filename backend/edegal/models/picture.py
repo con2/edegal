@@ -44,6 +44,7 @@ class Picture(models.Model):
             'title',
             'description',
             'is_public',
+            taken_at=self.taken_at.isoformat() if self.taken_at else '',
             thumbnail=self.get_media('thumbnail', format).as_dict(),
             preview=self.get_media('preview', format).as_dict(),
             original=self.get_media('original', format).as_dict(),
