@@ -218,7 +218,7 @@ class Album(AlbumMixin, MPTTModel):
 
     def _get_pictures(self, context='album', **subalbum_criteria):
         if context == 'album':
-            pictures_queryset = self.pictures.all()
+            pictures_queryset = self.pictures.all().order_by('taken_at', 'id')
         elif context == 'timeline':
             pictures_queryset = Picture.objects.filter(
                 album__in=self.get_descendants(include_self=True),
