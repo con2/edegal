@@ -4,33 +4,31 @@
 #
 #    pip-compile
 #
-git+git://github.com/conikuvat/django-admin-multiupload.git@django3#egg=admin-multiupload
+git+git://github.com/conikuvat/django-admin-multiupload.git@django3#egg=admin-multiupload  # via -r requirements.in
 amqp==2.5.2               # via kombu
 asgiref==3.2.3            # via django
-beautifulsoup4==4.8.2
+beautifulsoup4==4.8.2     # via -r requirements.in
 billiard==3.6.2.0         # via celery
-celery==4.4.0
+celery==4.4.0             # via -r requirements.in
 certifi==2019.11.28       # via requests
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
-django-ckeditor==5.9.0
-django-environ==0.4.5
+django-ckeditor==5.9.0    # via -r requirements.in
+django-environ==0.4.5     # via -r requirements.in
 django-js-asset==1.2.2    # via django-ckeditor, django-mptt
-django-mptt==0.11.0
-django==3.0.3
+django-mptt==0.11.0       # via -r requirements.in
+django==3.0.7             # via -r requirements.in, django-mptt
 idna==2.8                 # via requests
-importlib-metadata==1.5.0  # via kombu
 kombu==4.6.7              # via celery
 oauthlib==3.1.0           # via requests-oauthlib
-pillow==7.0.0
-pip-tools==4.4.1
-python-memcached==1.59
+pillow==7.0.0             # via -r requirements.in
+pip-tools==4.4.1          # via -r requirements.in
+python-memcached==1.59    # via -r requirements.in
 pytz==2019.3              # via celery, django
-requests-oauthlib==1.3.0
-requests==2.22.0
+requests-oauthlib==1.3.0  # via -r requirements.in
+requests==2.22.0          # via -r requirements.in, requests-oauthlib
 six==1.14.0               # via pip-tools, python-memcached
 soupsieve==1.9.5          # via beautifulsoup4
 sqlparse==0.3.0           # via django
 urllib3==1.25.8           # via requests
 vine==1.3.0               # via amqp, celery
-zipp==2.2.0               # via importlib-metadata
