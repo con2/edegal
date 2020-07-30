@@ -85,7 +85,6 @@ class AlbumTestCase(TestCase):
     def test_as_dict(self):
         album = Album.get_album_by_path('/album-2')
         print(album.as_dict())
-        assert False
 
     def test_canonical_path(self):
         picture1 = Picture.objects.get(path='/album-2/picture-1')
