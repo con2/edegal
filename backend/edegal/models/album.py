@@ -173,12 +173,12 @@ class Album(AlbumMixin, MPTTModel):
             ),
             previous_in_series=(
                 self.previous_in_series._make_breadcrumb()
-                if self.previous_in_series and context == 'album'
+                if self.series and self.previous_in_series and context == 'album'
                 else None
             ),
             next_in_series=(
                 self.next_in_series._make_breadcrumb()
-                if self.next_in_series and context == 'album'
+                if self.series and self.next_in_series and context == 'album'
                 else None
             ),
         )
@@ -218,7 +218,7 @@ class Album(AlbumMixin, MPTTModel):
 
     def _get_pictures(self, context='album', **subalbum_criteria):
         if context == 'album':
-            pictures_queryset = self.pictures.all().order_by('taken_at', 'id')
+            pictures_queryset = self.pictures.all()
         elif context == 'timeline':
             pictures_queryset = Picture.objects.filter(
                 album__in=self.get_descendants(include_self=True),
@@ -392,6 +392,10 @@ class Album(AlbumMixin, MPTTModel):
 
         if not self.date:
             self.date = self._guess_date()
+
+        if not self.series:
+            self.next_in_series = None
+            self.previous_in_series = None
 
         return_value = super().save(*args, **kwargs)
 
