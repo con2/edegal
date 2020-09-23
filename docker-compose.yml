@@ -49,6 +49,7 @@ services:
       - ./frontend/src:/usr/src/app/src
     environment:
       REACT_APP_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
+      CI: "true"
   postgres:
     image: postgres
     volumes:
