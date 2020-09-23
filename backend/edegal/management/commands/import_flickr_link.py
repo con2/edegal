@@ -21,6 +21,15 @@ class Command(BaseCommand):
             '-s', '--slug',
             help='Override slug (defaults to slugified title)',
         )
+        parser.add_argument(
+            '-l', '--leaf-album-title',
+            help='Use 2-level layout when importing. In larppikuvat.fi, argument is the name of the photographer.',
+        )
+        parser.add_argument(
+            '-d', '--strip-date-from-title',
+            help='Strip date from title and move it to description',
+            action='store_true',
+        )
 
 
     def handle(self, *args, **options):
@@ -30,4 +39,6 @@ class Command(BaseCommand):
                 flickr_url=flickr_url,
                 override_title=options['title'],
                 override_slug=options['slug'],
+                leaf_album_title=options['leaf_album_title'],
+                strip_date_from_title=options['strip_date_from_title'],
             )
