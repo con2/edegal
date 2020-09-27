@@ -13,9 +13,10 @@ const breadcrumbSeparator = ' » ';
 export interface AppBarAction {
   label: string;
   onClick?(): void;
+  href?: string;
 }
 
-interface AppBarProps {
+export interface AppBarProps {
   album: Album;
   actions?: AppBarAction[];
 }
@@ -99,13 +100,36 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
           </ul>
         )}
         <ul className="navbar-nav">
-          {(actions || []).map(action => (
-            <li key={action.label} className="nav-item">
-              <button className="btn btn-link nav-link" onClick={action.onClick}>
-                {action.label}
-              </button>
-            </li>
-          ))}
+          {(actions || []).map(action => {
+            const { onClick, href, label } = action;
+
+            // TODO emfancify types instead of runtime check :)
+            if (onClick) {
+              if (href) {
+                console.warn('Both onClick and href specified for AppBarAction (onClick prevails)', { href, label });
+              }
+
+              return (
+                <li key={label} className="nav-item">
+                  <button className="btn btn-link nav-link" onClick={onClick}>
+                    {label}
+                  </button>
+                </li>
+              );
+            } else {
+              if (!href) {
+                console.warn('Neither onClick nor href specified for AppBarAction (does nothing)', { label });
+              }
+
+              return (
+                <li key={label} className="nav-item">
+                  <Link className="nav-link" to={href || ''}>
+                    {label}
+                  </Link>
+                </li>
+              );
+            }
+          })}
           <li className="nav-item">
             <a href={Config.loginUrl} className="nav-link AppBar-adminLink">
               {t(r => r.adminLink)}

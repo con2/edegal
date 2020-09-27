@@ -5,7 +5,7 @@ import { getCached } from '../../helpers/getAlbum';
 import preloadMedia from '../../helpers/preloadMedia';
 import Album from '../../models/Album';
 import Subalbum from '../../models/Subalbum';
-import AppBar from '../AppBar';
+import AppBar, { AppBarProps } from '../AppBar';
 import DownloadDialog from '../DownloadDialog';
 import AlbumGrid from './AlbumGrid';
 
@@ -68,10 +68,11 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     const { album } = this.props;
     const { downloadDialogOpen, downloadDialogPreparing, width } = this.state;
     const canDownload = album.is_downloadable && album.pictures.length;
+    const thisIsPhotographerView = isPhotographerView(album);
     const t = T(r => r.AlbumView);
 
     let body = null;
-    if (isPhotographerView(album) && album.credits.photographer) {
+    if (thisIsPhotographerView && album.credits.photographer) {
       body = <PhotographerProfile photographer={album.credits.photographer} coverPicture={album.cover_picture} body={album.body} />;
     } else if (album.body) {
       body = <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
@@ -79,21 +80,23 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
 
     const showBody = body || album.previous_in_series || album.next_in_series;
 
+    const actions: AppBarProps['actions'] = [];
+    if (!thisIsPhotographerView && album.credits.photographer) {
+      actions.push({
+        label: t(r => r.aboutPhotographerLink),
+        href: album.credits.photographer.path,
+      });
+    }
+    if (canDownload) {
+      actions.push({
+        label: t(r => r.downloadAlbumLink) + '…',
+        onClick: this.openDownloadDialog,
+      });
+    }
+
     return (
       <>
-        <AppBar
-          album={album}
-          actions={
-            canDownload
-              ? [
-                  {
-                    label: t(r => r.downloadAlbumLink) + '…',
-                    onClick: this.openDownloadDialog,
-                  },
-                ]
-              : []
-          }
-        />
+        <AppBar album={album} actions={actions} />
 
         <main role="main">
           {/* Text body and previous/next links */}

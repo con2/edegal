@@ -2,6 +2,7 @@ const translations = {
   AlbumView: {
     unknownYear: 'Unknown year',
     downloadAlbumLink: 'Download whole album',
+    aboutPhotographerLink: 'About the photographer',
   },
   AlbumViewFooter: {
     albumCopyright: 'Album',
@@ -52,13 +53,13 @@ const translations = {
       'Something went wrong while loading the album. It is likely that either the album does not exist, you are not authorized to view it or there is a connectivity problem.',
   },
   LarppikuvatProfile: {
-    contact: "How can I be contacted?",
-    hours: "What amount of hours can I be expected to work while photographing a LARP?",
-    delivery_schedule: "What is my typical delivery schedule for finished photos?",
-    delivery_practice: "How will I deliver finished photos to participants and what are the quarantine rules used?",
-    delivery_method: "How will I publish finished photos to the general public?",
-    copy_protection: "What can you do with my photos and what kind of protections are applied?",
-    expected_compensation: "What kind of compensation do I expect for LARP photography?",
+    contact: 'How can I be contacted?',
+    hours: 'What amount of hours can I be expected to work while photographing a LARP?',
+    delivery_schedule: 'What is my typical delivery schedule for finished photos?',
+    delivery_practice: 'How will I deliver finished photos to participants and what are the quarantine rules used?',
+    delivery_method: 'How will I publish finished photos to the general public?',
+    copy_protection: 'What can you do with my photos and what kind of protections are applied?',
+    expected_compensation: 'What kind of compensation do I expect for LARP photography?',
   },
   PictureView: {
     backToAlbum: 'Back to Album',

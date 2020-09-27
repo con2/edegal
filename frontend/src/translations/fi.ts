@@ -4,6 +4,7 @@ const translations: Translations = {
   AlbumView: {
     unknownYear: 'Tuntematon vuosi',
     downloadAlbumLink: 'Lataa koko albumi',
+    aboutPhotographerLink: 'Tietoja valokuvaajasta',
   },
   AlbumViewFooter: {
     albumCopyright: 'Albumi',
@@ -53,13 +54,13 @@ const translations: Translations = {
     defaultMessage: 'Albumin lataus epäonnistui. Todennäköisesti albumia ei ole olemassa tai sinulla ei ole käyttöoikeutta siihen.',
   },
   LarppikuvatProfile: {
-    contact: "Miten saat minuun yhteyden?",
-    hours: "Millaista työmäärää minulta voi odottaa larppia kuvatessani?",
-    delivery_schedule: "Millaisella aikataululla toimitan tyypillisesti valmiit kuvat?",
-    delivery_practice: "Miten toimitan valmiit kuvat pelin osallistujille ja millaista karanteenia sovellan?",
-    delivery_method: "Miten julkaisen valmiit kuvat suurelle yleisölle?",
-    copy_protection: "Mitä kuvillani saa tehdä ja millaisia kopiosuojauksia käytän?",
-    expected_compensation: "Millaista korvausta odotan larppikuvauksesta?",
+    contact: 'Miten saat minuun yhteyden?',
+    hours: 'Millaista työmäärää minulta voi odottaa larppia kuvatessani?',
+    delivery_schedule: 'Millaisella aikataululla toimitan tyypillisesti valmiit kuvat?',
+    delivery_practice: 'Miten toimitan valmiit kuvat pelin osallistujille ja millaista karanteenia sovellan?',
+    delivery_method: 'Miten julkaisen valmiit kuvat suurelle yleisölle?',
+    copy_protection: 'Mitä kuvillani saa tehdä ja millaisia kopiosuojauksia käytän?',
+    expected_compensation: 'Millaista korvausta odotan larppikuvauksesta?',
   },
   PictureView: {
     backToAlbum: 'Takaisin albumiin',
