@@ -141,6 +141,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
         {isTimelineView(album) && <Timeline pictures={album.pictures} />}
 
         <DownloadDialog
+          key={album.path}
           album={album}
           onAccept={this.downloadAlbum}
           onClose={this.closeDownloadDialog}
