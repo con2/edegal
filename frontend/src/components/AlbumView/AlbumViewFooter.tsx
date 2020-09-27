@@ -22,7 +22,7 @@ const AlbumViewFooter: React.FC<FooterProps> = ({ album }) => {
           {t(r => r.albumCopyright)} &copy; {getYear(album)} <Link to={photographer.path}>{photographer.display_name}</Link>.{' '}
         </>
       ) : null}
-      <a href="https://github.com/conikuvat/edegal">Edegal</a> &copy; 2010–2020 Santtu Pajukanta.
+      Edegal &copy; 2010–2020 <a href="https://github.com/conikuvat/edegal">Santtu Pajukanta</a>.
     </footer>,
     document.body,
   );
