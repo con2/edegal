@@ -53,6 +53,7 @@ const translations: Translations = {
   ErrorBoundary: {
     defaultMessage: 'Albumin lataus epäonnistui. Todennäköisesti albumia ei ole olemassa tai sinulla ei ole käyttöoikeutta siihen.',
   },
+  /* eslint-disable @typescript-eslint/camelcase */
   LarppikuvatProfile: {
     contact: 'Miten saat minuun yhteyden?',
     hours: 'Millaista työmäärää minulta voi odottaa larppia kuvatessani?',
@@ -62,6 +63,7 @@ const translations: Translations = {
     copy_protection: 'Mitä kuvillani saa tehdä ja millaisia kopiosuojauksia käytän?',
     expected_compensation: 'Millaista korvausta odotan larppikuvauksesta?',
   },
+  /* eslint-enable @typescript-eslint/camelcase */
   PictureView: {
     backToAlbum: 'Takaisin albumiin',
     downloadOriginal: 'Lataa alkuperäinen kuva',

@@ -52,6 +52,8 @@ const translations = {
     defaultMessage:
       'Something went wrong while loading the album. It is likely that either the album does not exist, you are not authorized to view it or there is a connectivity problem.',
   },
+  /* eslint-disable @typescript-eslint/camelcase */
+  // TODO in v4 api, perform automatic python_case to javaCase translation
   LarppikuvatProfile: {
     contact: 'How can I be contacted?',
     hours: 'What amount of hours can I be expected to work while photographing a LARP?',
@@ -61,6 +63,7 @@ const translations = {
     copy_protection: 'What can you do with my photos and what kind of protections are applied?',
     expected_compensation: 'What kind of compensation do I expect for LARP photography?',
   },
+  /* eslint-enable @typescript-eslint/camelcase */
   PictureView: {
     backToAlbum: 'Back to Album',
     downloadOriginal: 'Download Original',
