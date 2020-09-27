@@ -1,5 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+
+import { LinkContainer } from 'react-router-bootstrap';
+import Button from 'react-bootstrap/Button';
+import Navbar from 'react-bootstrap/Navbar';
+import Nav from 'react-bootstrap/Nav';
 
 import Config from '../../Config';
 import Album from '../../models/Album';
@@ -52,54 +56,48 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
   const rootAlbum = fullBreadcrumb.shift();
 
   return (
-    <nav className="AppBar navbar navbar-expand-md navbar-dark navbar-fixed-top">
-      <Link className="navbar-brand" to={rootAlbum!.path}>
-        {rootAlbum!.title}
-      </Link>
-      <button
-        className="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#AppBar-navbar"
-        aria-controls="AppBar-navbar"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span className="navbar-toggler-icon" />
-      </button>
-      <div className="collapse navbar-collapse" id="AppBar-navbar">
+    <Navbar variant="dark" className="AppBar" expand="lg">
+      <LinkContainer to={rootAlbum!.path}>
+        <Navbar.Brand href="#home">{rootAlbum!.title}</Navbar.Brand>
+      </LinkContainer>
+
+      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Collapse id="basic-navbar-nav">
         {showNavLinks ? (
-          <ul className="navbar-nav mr-auto">
+          <Nav className="mr-auto">
             {/* Root or otherwise magical album. Show nav links. */}
             {navLinks.map(item => {
-              const className = path === item.path ? 'nav-item active' : 'nav-item';
+              const isActive = path === item.path;
 
               return (
-                <li key={item.path} className={className}>
-                  <Link className="nav-link" to={item.path}>
-                    {item.title}
-                  </Link>
-                </li>
+                <Nav.Item key={item.path}>
+                  <LinkContainer to={item.path}>
+                    <Nav.Link active={isActive}>{item.title}</Nav.Link>
+                  </LinkContainer>
+                </Nav.Item>
               );
             })}
-          </ul>
+          </Nav>
         ) : (
-          <ul className="navbar-nav mr-auto">
+          <Nav className="mr-auto">
             {/* Non-root album. Show breadcrumb. */}
             {fullBreadcrumb.map((item, index) => {
-              const className = index === fullBreadcrumb.length - 1 ? 'nav-item active' : 'nav-item';
+              const isActive = index === fullBreadcrumb.length - 1;
               return (
-                <li key={item.path} className={className}>
-                  <Link className="nav-link" to={item.path}>
-                    {breadcrumbSeparator}
-                    {getBreadcrumbTitle(item, t)}
-                  </Link>
-                </li>
+                <Nav.Item key={item.path}>
+                  <LinkContainer to={item.path}>
+                    <Nav.Link active={isActive}>
+                      {breadcrumbSeparator}
+                      {getBreadcrumbTitle(item, t)}
+                    </Nav.Link>
+                  </LinkContainer>
+                </Nav.Item>
               );
             })}
-          </ul>
+          </Nav>
         )}
-        <ul className="navbar-nav">
+
+        <Nav>
           {(actions || []).map(action => {
             const { onClick, href, label } = action;
 
@@ -110,11 +108,11 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
               }
 
               return (
-                <li key={label} className="nav-item">
-                  <button className="btn btn-link nav-link" onClick={onClick}>
+                <Nav.Item>
+                  <Button variant="link" className="nav-link" onClick={onClick}>
                     {label}
-                  </button>
-                </li>
+                  </Button>
+                </Nav.Item>
               );
             } else {
               if (!href) {
@@ -122,22 +120,20 @@ const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
               }
 
               return (
-                <li key={label} className="nav-item">
-                  <Link className="nav-link" to={href || ''}>
-                    {label}
-                  </Link>
-                </li>
+                <Nav.Item>
+                  <LinkContainer to={href || ''}>
+                    <Nav.Link>{label}</Nav.Link>
+                  </LinkContainer>
+                </Nav.Item>
               );
             }
           })}
-          <li className="nav-item">
-            <a href={Config.loginUrl} className="nav-link AppBar-adminLink">
-              {t(r => r.adminLink)}
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+          <Nav.Item>
+            <Nav.Link href={Config.loginUrl}>{t(r => r.adminLink)}</Nav.Link>
+          </Nav.Item>
+        </Nav>
+      </Navbar.Collapse>
+    </Navbar>
   );
 };
 
