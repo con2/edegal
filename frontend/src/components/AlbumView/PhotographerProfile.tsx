@@ -1,5 +1,5 @@
 import React from 'react';
-import Photographer from '../../models/Photographer';
+import Photographer, { LarppikuvatProfile } from '../../models/Photographer';
 import Picture from '../../models/Picture';
 import { Link } from 'react-router-dom';
 import { T } from '../../translations';
@@ -10,8 +10,19 @@ interface PhotographerProfileProps {
   body?: string;
 }
 
+const larppikuvatProfileKeys: (keyof LarppikuvatProfile)[] = [
+  "contact",
+  "hours",
+  "delivery_schedule",
+  "delivery_practice",
+  "delivery_method",
+  "copy_protection",
+  "expected_compensation",
+]
+
 const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer, coverPicture, body }) => {
   const t = T(r => r.DownloadAlbumDialog);
+  const larppikuvaT = T(r => r.LarppikuvatProfile);
 
   // Portrait photos get slightly less width budget to prevent them from becoming overtly tall.
   const className = coverPicture && coverPicture.thumbnail.height > coverPicture.thumbnail.width ? 'col-md-3' : 'col-md-4';
@@ -21,7 +32,17 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
     [photographer.twitter_handle, 'Twitter', `https://twitter.com/${photographer.twitter_handle}`],
     [photographer.instagram_handle, 'Instagram', `https://instagram.com/${photographer.instagram_handle}`],
     [photographer.facebook_handle, 'Facebook', `https://facebook.com/${photographer.facebook_handle}`],
+    [photographer.flickr_handle, 'Flickr', `https://flickr.com/photos/${photographer.flickr_handle}`],
   ].filter(([handle]) => handle);
+
+  const larppikuvatProfileItems: [keyof LarppikuvatProfile, string][] = [];
+  if (photographer.larppikuvat_profile) {
+    for (const key of larppikuvatProfileKeys) {
+      if (photographer.larppikuvat_profile[key]) {
+        larppikuvatProfileItems.push([key, photographer.larppikuvat_profile[key]])
+      }
+    }
+  }
 
   return (
     <div className="container">
@@ -40,6 +61,17 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
           </ul>
 
           {body ? <article dangerouslySetInnerHTML={{ __html: body || '' }} /> : null}
+
+          {larppikuvatProfileItems.length ? (
+            <dd className="PhotographerProfile-larppikuvatProfile">
+              {larppikuvatProfileItems.map(([key, value]) => (
+                <React.Fragment key="key">
+                  <dt>{larppikuvaT(r => r[key])}</dt>
+                  {["contact", "delivery_method"].includes(key) ? <dd dangerouslySetInnerHTML={{ __html: value }} /> : <dd>{value}</dd>}
+                </React.Fragment>
+              ))}
+            </dd>
+          ) : null}
         </div>
 
         {coverPicture ? (

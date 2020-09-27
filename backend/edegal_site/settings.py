@@ -91,3 +91,7 @@ if env('KOMPASSI_OAUTH2_CLIENT_SECRET', default=''):
     EDEGAL_USE_KOMPASSI_OAUTH2 = True
 else:
     EDEGAL_USE_KOMPASSI_OAUTH2 = False
+
+
+if env.bool('EDEGAL_ENABLE_LARPPIKUVAT_FEATURES', default=False):
+    INSTALLED_APPS = INSTALLED_APPS + ('larppikuvat',)

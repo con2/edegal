@@ -230,14 +230,34 @@ class PhotographerAdminForm(forms.ModelForm):
 
     class Meta:
         model = Photographer
-        fields = ('display_name', 'slug', 'user', 'email', 'twitter_handle', 'instagram_handle', 'facebook_handle', 'default_terms_and_conditions', 'body', 'cover_picture')
+        fields = (
+            'display_name',
+            'slug',
+            'user',
+            'email',
+            'twitter_handle',
+            'instagram_handle',
+            'facebook_handle',
+            'flickr_handle',
+            'default_terms_and_conditions',
+            'body',
+            'cover_picture',
+        )
+
+
+photographer_inlines = []
+
+if 'larppikuvat' in settings.INSTALLED_APPS:
+    from larppikuvat.admin import LarppikuvatPhotographerProfileInlineAdmin
+    photographer_inlines.append(LarppikuvatPhotographerProfileInlineAdmin)
 
 
 class PhotographerAdmin(admin.ModelAdmin):
     model = Photographer
     form = PhotographerAdminForm
-    list_display = ('display_name', 'user', 'twitter_handle', 'instagram_handle', 'facebook_handle')
+    list_display = ('display_name', 'user', 'twitter_handle', 'instagram_handle', 'facebook_handle', 'flickr_handle')
     raw_id_fields = ('default_terms_and_conditions', 'user', 'cover_picture')
+    inlines = photographer_inlines
 
     def get_changeform_initial_data(self, request):
         return dict(user=request.user)

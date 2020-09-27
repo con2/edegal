@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from .album_mixin import AlbumMixin
@@ -27,6 +28,7 @@ class Photographer(AlbumMixin, models.Model):
     twitter_handle = models.CharField(max_length=15, blank=True)
     instagram_handle = models.CharField(max_length=30, blank=True)
     facebook_handle = models.CharField(max_length=50, blank=True)
+    flickr_handle = models.CharField(max_length=50, blank=True)
     default_terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions', null=True, blank=True, on_delete=models.SET_NULL)
     body = models.TextField(
         blank=True,
@@ -55,20 +57,31 @@ class Photographer(AlbumMixin, models.Model):
             self.instagram_handle = self.instagram_handle[1:]
         if self.facebook_handle.startswith('@'):
             self.facebook_handle = self.facebook_handle[1:]
+        if self.flickr_handle.startswith('@'):
+            self.flickr_handle = self.flickr_handle[1:]
 
         return super().save(*args, **kwargs)
 
-    def make_credit(self, **extra_attrs):
-        return pick_attrs(self,
+    def make_credit(self, include_larppikuvat_profile=False, **extra_attrs):
+        result = pick_attrs(self,
             'path',
             'display_name',
             'homepage_url',
             'twitter_handle',
             'instagram_handle',
             'facebook_handle',
+            'flickr_handle',
 
             **extra_attrs,
         )
+
+        if include_larppikuvat_profile:
+            try:
+                result['larppikuvat_profile'] = self.larppikuvat_profile.as_dict()
+            except ObjectDoesNotExist:
+                pass
+
+        return result
 
     def make_subalbum(self, format='jpeg'):
         return pick_attrs(self,
@@ -106,7 +119,9 @@ class Photographer(AlbumMixin, models.Model):
             date='',
             layout='yearly',
             credits=dict(
-                photographer=self.make_credit(),
+                photographer=self.make_credit(
+                    include_larppikuvat_profile="larppikuvat" in settings.INSTALLED_APPS,
+                ),
             ),
             cover_picture=(
                 self.cover_picture.as_dict(

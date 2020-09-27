@@ -52,6 +52,15 @@ const translations: Translations = {
   ErrorBoundary: {
     defaultMessage: 'Albumin lataus epäonnistui. Todennäköisesti albumia ei ole olemassa tai sinulla ei ole käyttöoikeutta siihen.',
   },
+  LarppikuvatProfile: {
+    contact: "Yhteydenottokanavat",
+    hours: "Tyypillinen ja/tai maksimikuvaustuntimäärä",
+    delivery_schedule: "Tyypillinen kuvien toimittamisen aikataulu",
+    delivery_practice: "Kuvien julkaisukäytännöt ja karanteeni",
+    delivery_method: "Kuvien toimitustapa/julkaisualusta",
+    copy_protection: "Kopiosuojakäytännöt",
+    expected_compensation: "Korvauskäytännöt",
+  },
   PictureView: {
     backToAlbum: 'Takaisin albumiin',
     downloadOriginal: 'Lataa alkuperäinen kuva',

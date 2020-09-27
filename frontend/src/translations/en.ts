@@ -51,6 +51,15 @@ const translations = {
     defaultMessage:
       'Something went wrong while loading the album. It is likely that either the album does not exist, you are not authorized to view it or there is a connectivity problem.',
   },
+  LarppikuvatProfile: {
+    contact: "How to contact me",
+    hours: "Typical and maximum hours I am willing to work at a LARP",
+    delivery_schedule: "Expected delivery time for finished photos",
+    delivery_practice: "Quarantine of finished photos",
+    delivery_method: "Place of publication for finished photos",
+    copy_protection: "Copy protection used on the finished photos",
+    expected_compensation: "Expected compensation",
+  },
   PictureView: {
     backToAlbum: 'Back to Album',
     downloadOriginal: 'Download Original',
