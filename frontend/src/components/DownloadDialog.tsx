@@ -54,11 +54,6 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, onAccept, onClos
   const haveInstagram = (photographer && photographer.instagram_handle) || (director && director.instagram_handle);
   const haveCredit = (photographer && photographer.display_name) || (director && director.display_name);
 
-  React.useEffect(() => {
-    document.body.classList.add('modal-open');
-    return () => document.body.classList.remove('modal-open');
-  });
-
   return (
     <Modal show={isOpen} onHide={handleClose} className="DownloadDialog">
       <Modal.Header closeButton>
