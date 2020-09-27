@@ -84,14 +84,13 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             <svg className="PictureView-icon">
               <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
             </svg>
-            {downloadDialogOpen ? (
-              <DownloadDialog
-                t={T(r => r.DownloadDialog)}
-                album={album}
-                onAccept={this.downloadPicture}
-                onClose={this.closeDownloadDialog}
-              />
-            ) : null}
+            <DownloadDialog
+              t={T(r => r.DownloadDialog)}
+              album={album}
+              onAccept={this.downloadPicture}
+              onClose={this.closeDownloadDialog}
+              isOpen={downloadDialogOpen}
+            />
           </div>
         ) : null}
       </div>

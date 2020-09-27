@@ -140,16 +140,14 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
 
         {isTimelineView(album) && <Timeline pictures={album.pictures} />}
 
-        {/* Download dialog */}
-        {downloadDialogOpen ? (
-          <DownloadDialog
-            album={album}
-            onAccept={this.downloadAlbum}
-            onClose={this.closeDownloadDialog}
-            preparing={downloadDialogPreparing}
-            t={T(r => r.DownloadAlbumDialog)}
-          />
-        ) : null}
+        <DownloadDialog
+          album={album}
+          onAccept={this.downloadAlbum}
+          onClose={this.closeDownloadDialog}
+          isOpen={downloadDialogOpen}
+          isPreparing={downloadDialogPreparing}
+          t={T(r => r.DownloadAlbumDialog)}
+        />
       </>
     );
   }
