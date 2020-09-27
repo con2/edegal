@@ -13,14 +13,14 @@ interface PhotographerProfileProps {
 }
 
 const larppikuvatProfileKeys: (keyof LarppikuvatProfile)[] = [
-  "contact",
-  "hours",
-  "delivery_schedule",
-  "delivery_practice",
-  "delivery_method",
-  "copy_protection",
-  "expected_compensation",
-]
+  'contact',
+  'hours',
+  'delivery_schedule',
+  'delivery_practice',
+  'delivery_method',
+  'copy_protection',
+  'expected_compensation',
+];
 
 const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer, coverPicture, body }) => {
   const t = T(r => r.DownloadAlbumDialog);
@@ -41,7 +41,7 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
   if (photographer.larppikuvat_profile) {
     for (const key of larppikuvatProfileKeys) {
       if (photographer.larppikuvat_profile[key]) {
-        larppikuvatProfileItems.push([key, photographer.larppikuvat_profile[key]])
+        larppikuvatProfileItems.push([key, photographer.larppikuvat_profile[key]]);
       }
     }
   }
@@ -69,7 +69,13 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
               {larppikuvatProfileItems.map(([key, value]) => (
                 <React.Fragment key={key}>
                   <dt>{larppikuvaT(r => r[key])}</dt>
-                  {["contact", "delivery_method", "copy_protection"].includes(key) ? <dd dangerouslySetInnerHTML={{ __html: value }} /> : <dd><Linebreaks text={value} /></dd>}
+                  {['contact', 'delivery_method', 'copy_protection'].includes(key) ? (
+                    <dd dangerouslySetInnerHTML={{ __html: value }} />
+                  ) : (
+                    <dd>
+                      <Linebreaks text={value} />
+                    </dd>
+                  )}
                 </React.Fragment>
               ))}
             </dd>
