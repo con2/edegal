@@ -94,7 +94,11 @@ class PhotographerApiV3View(View):
     http_method_names = ['get', 'head']
 
     def get(self, request, photographer_slug):
-        photographer = get_object_or_404(Photographer, slug=photographer_slug)
+        try:
+            photographer = Photographer.objects.get(slug=photographer_slug)
+        except Photographer.DoesNotExist:
+            # Fallback to album view on 404 to allow info pages like /photographers/privacy
+            return api_v3_view(request, path=f"/photographers/{photographer_slug}")
 
         format = request.GET.get('format', 'jpeg').lower()
         if format == 'jpg':
