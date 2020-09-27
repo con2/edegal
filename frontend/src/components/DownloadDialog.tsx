@@ -40,6 +40,7 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, onAccept, onClos
     onAccept();
   }, [onAccept]);
   const handleClose = React.useCallback(() => {
+    setDownloadButtonClicked(false);
     setTermsAndConditionsAccepted(false);
     onClose();
   }, [onClose]);
