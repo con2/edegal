@@ -1,7 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 import Photographer, { LarppikuvatProfile } from '../../models/Photographer';
 import Picture from '../../models/Picture';
-import { Link } from 'react-router-dom';
+import Linebreaks from '../Linebreaks';
 import { T } from '../../translations';
 
 interface PhotographerProfileProps {
@@ -67,7 +69,7 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
               {larppikuvatProfileItems.map(([key, value]) => (
                 <React.Fragment key={key}>
                   <dt>{larppikuvaT(r => r[key])}</dt>
-                  {["contact", "delivery_method", "copy_protection"].includes(key) ? <dd dangerouslySetInnerHTML={{ __html: value }} /> : <dd>{value}</dd>}
+                  {["contact", "delivery_method", "copy_protection"].includes(key) ? <dd dangerouslySetInnerHTML={{ __html: value }} /> : <dd><Linebreaks text={value} /></dd>}
                 </React.Fragment>
               ))}
             </dd>
