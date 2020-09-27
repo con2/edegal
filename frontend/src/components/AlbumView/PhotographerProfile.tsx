@@ -65,9 +65,9 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
           {larppikuvatProfileItems.length ? (
             <dd className="PhotographerProfile-larppikuvatProfile">
               {larppikuvatProfileItems.map(([key, value]) => (
-                <React.Fragment key="key">
+                <React.Fragment key={key}>
                   <dt>{larppikuvaT(r => r[key])}</dt>
-                  {["contact", "delivery_method"].includes(key) ? <dd dangerouslySetInnerHTML={{ __html: value }} /> : <dd>{value}</dd>}
+                  {["contact", "delivery_method", "copy_protection"].includes(key) ? <dd dangerouslySetInnerHTML={{ __html: value }} /> : <dd>{value}</dd>}
                 </React.Fragment>
               ))}
             </dd>

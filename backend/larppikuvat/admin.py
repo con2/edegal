@@ -21,6 +21,13 @@ class LarppikuvatPhotographerProfileForm(forms.ModelForm):
         help_text=LarppikuvatPhotographerProfile._meta.get_field('delivery_method').help_text,
     )
 
+    copy_protection = forms.CharField(
+        widget=CKEditorUploadingWidget(),
+        required=False,
+        label=LarppikuvatPhotographerProfile._meta.get_field('copy_protection').verbose_name,
+        help_text=LarppikuvatPhotographerProfile._meta.get_field('copy_protection').help_text,
+    )
+
     class Meta:
         fields = (
             "contact",
