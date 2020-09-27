@@ -7,10 +7,10 @@ import Nav from 'react-bootstrap/Nav';
 
 import Config from '../../Config';
 import Album from '../../models/Album';
-
-import './index.css';
 import { T, TranslationFunction } from '../../translations';
 import Breadcrumb from '../../models/Breadcrumb';
+
+import './index.css';
 
 const breadcrumbSeparator = ' » ';
 
