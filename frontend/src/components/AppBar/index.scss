@@ -1,0 +1,16 @@
+/* Fixes an 1px baseline glitch between download album and admin links */
+.AppBar {
+  .navbar-brand {
+    font-weight: 900;
+    text-transform: lowercase;
+  }
+
+  .nav-link {
+    font-weight: 700;
+    text-transform: lowercase;
+  }
+
+  .btn-link {
+    border: none;
+  }
+}

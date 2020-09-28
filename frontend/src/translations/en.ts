@@ -1,8 +1,12 @@
 const translations = {
   AlbumView: {
     unknownYear: 'Unknown year',
+  },
+  BreadcrumbBar: {
     downloadAlbumLink: 'Download whole album',
     aboutPhotographerLink: 'About the photographer',
+    photographers: 'Photographers',
+    timeline: 'Timeline',
   },
   AlbumViewFooter: {
     albumCopyright: 'Album',
@@ -10,7 +14,6 @@ const translations = {
   AppBar: {
     adminLink: 'Admin',
     photographers: 'Photographers',
-    timeline: 'Timeline',
     randomPicture: 'Random picture',
   },
   DownloadAlbumDialog: {

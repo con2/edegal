@@ -3,8 +3,12 @@ import { Translations } from '.';
 const translations: Translations = {
   AlbumView: {
     unknownYear: 'Tuntematon vuosi',
+  },
+  BreadcrumbBar: {
     downloadAlbumLink: 'Lataa koko albumi',
     aboutPhotographerLink: 'Tietoja valokuvaajasta',
+    photographers: 'Valokuvaajat',
+    timeline: 'Aikajana',
   },
   AlbumViewFooter: {
     albumCopyright: 'Albumi',
@@ -12,7 +16,6 @@ const translations: Translations = {
   AppBar: {
     adminLink: 'Hallinta',
     photographers: 'Valokuvaajat',
-    timeline: 'Aikajana',
     randomPicture: 'Satunnainen kuva',
   },
   DownloadAlbumDialog: {

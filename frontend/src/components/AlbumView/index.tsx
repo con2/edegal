@@ -5,7 +5,7 @@ import { getCached } from '../../helpers/getAlbum';
 import preloadMedia from '../../helpers/preloadMedia';
 import Album from '../../models/Album';
 import Subalbum from '../../models/Subalbum';
-import AppBar, { AppBarProps } from '../AppBar';
+import AppBar from '../AppBar';
 import DownloadDialog from '../DownloadDialog';
 import AlbumGrid from './AlbumGrid';
 
@@ -14,6 +14,7 @@ import AlbumViewFooter from './AlbumViewFooter';
 import { T } from '../../translations';
 import PhotographerProfile from './PhotographerProfile';
 import Timeline from './Timeline';
+import BreadcrumbBar from '../BreadcrumbBar';
 
 interface AlbumViewProps {
   album: Album;
@@ -64,7 +65,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     width: document.documentElement ? document.documentElement.clientWidth : 0,
   };
 
-  render() {
+  render(): JSX.Element {
     const { album } = this.props;
     const { downloadDialogOpen, downloadDialogPreparing, width } = this.state;
     const canDownload = album.is_downloadable && album.pictures.length;
@@ -80,23 +81,13 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
 
     const showBody = body || album.previous_in_series || album.next_in_series;
 
-    const actions: AppBarProps['actions'] = [];
-    if (!thisIsPhotographerView && album.credits.photographer) {
-      actions.push({
-        label: t(r => r.aboutPhotographerLink),
-        href: album.credits.photographer.path,
-      });
-    }
-    if (canDownload) {
-      actions.push({
-        label: t(r => r.downloadAlbumLink) + '…',
-        onClick: this.openDownloadDialog,
-      });
-    }
+    // TODO logic is "this is not a nav-linked view", encap somewhere when it grows hairier?
+    const showBreadcrumb = album.breadcrumb.length && album.path !== '/photographers';
 
     return (
       <>
-        <AppBar album={album} actions={actions} />
+        <AppBar album={album} />
+        {showBreadcrumb ? <BreadcrumbBar album={album} /> : null}
 
         <main role="main">
           {/* Text body and previous/next links */}
@@ -153,22 +144,22 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
     );
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     this.preloadFirstPicture();
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(): void {
     this.preloadFirstPicture();
   }
 
-  handleResize = () => {
+  handleResize: () => void = () => {
     this.setState({ width: document.documentElement!.clientWidth });
   };
 
-  preloadFirstPicture() {
+  preloadFirstPicture(): void {
     const firstPicture = this.props.album.pictures[0];
 
     if (firstPicture) {
@@ -177,14 +168,14 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
   }
 
   // XXX Whytf is setTimeout required here?
-  closeDownloadDialog = () => {
+  closeDownloadDialog: () => void = () => {
     setTimeout(() => this.setState({ downloadDialogOpen: false }), 0);
   };
-  openDownloadDialog = () => {
+  openDownloadDialog: () => void = () => {
     this.setState({ downloadDialogOpen: true });
   };
 
-  downloadAlbum = async () => {
+  downloadAlbum: () => Promise<void> = async () => {
     let { album } = this.props;
 
     if (!album.download_url) {

@@ -1,4 +1,0 @@
-/* Fixes an 1px baseline glitch between download album and admin links */
-.AppBar .btn-link {
-  border: none;
-}

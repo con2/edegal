@@ -1,0 +1,9 @@
+.BreadcrumbBar {
+    background-color: #646464;
+    padding: 0.5em 0 0.5em 0;
+    font-size: 13px;
+
+    &, a, a:active, a:visited {
+        color: #c9c9c9;
+    }
+}
