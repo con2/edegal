@@ -3,8 +3,12 @@ import { Translations } from '.';
 const translations: Translations = {
   AlbumView: {
     unknownYear: 'Tuntematon vuosi',
-    downloadAlbumLink: 'Lataa koko albumi',
+  },
+  BreadcrumbBar: {
+    downloadAlbumLink: 'Lataa albumi',
     aboutPhotographerLink: 'Tietoja valokuvaajasta',
+    photographers: 'Valokuvaajat',
+    timeline: 'Aikajana',
   },
   AlbumViewFooter: {
     albumCopyright: 'Albumi',
@@ -12,11 +16,10 @@ const translations: Translations = {
   AppBar: {
     adminLink: 'Hallinta',
     photographers: 'Valokuvaajat',
-    timeline: 'Aikajana',
     randomPicture: 'Satunnainen kuva',
   },
   DownloadAlbumDialog: {
-    dialogTitle: 'Lataa koko albumi',
+    dialogTitle: 'Lataa albumi',
     termsAndConditions: 'Käyttääksesi näitä kuvia sinun tulee hyväksyä seuraavat ehdot:',
     contact: 'Jos aiottu käyttö ei ole edellä mainittujen ehtojen mukaista, sovi käytöstä kuvaajan kanssa:',
     creditInstructions: 'Kun käytät näitä kuvia, ilmoita tekijän/tekijöiden nimi seuraavasti:',
@@ -53,7 +56,6 @@ const translations: Translations = {
   ErrorBoundary: {
     defaultMessage: 'Albumin lataus epäonnistui. Todennäköisesti albumia ei ole olemassa tai sinulla ei ole käyttöoikeutta siihen.',
   },
-  /* eslint-disable @typescript-eslint/camelcase */
   LarppikuvatProfile: {
     contact: 'Miten saat minuun yhteyden?',
     hours: 'Millaista työmäärää minulta voi odottaa larppia kuvatessani?',
@@ -63,7 +65,6 @@ const translations: Translations = {
     copy_protection: 'Mitä kuvillani saa tehdä ja millaisia kopiosuojauksia käytän?',
     expected_compensation: 'Millaista korvausta odotan larppikuvauksesta?',
   },
-  /* eslint-enable @typescript-eslint/camelcase */
   PictureView: {
     backToAlbum: 'Takaisin albumiin',
     downloadOriginal: 'Lataa alkuperäinen kuva',

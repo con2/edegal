@@ -32,7 +32,15 @@ interface DownloadDialogProps {
   t: TranslationFunction<DownloadDialogTranslations>; // TODO
 }
 
-const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, onAccept, onClose, t, isPreparing, isOpen }) => {
+export function useDownloadDialogState() {
+  const [isDownloadDialogOpen, setDownloadDialogOpen] = React.useState(false);
+  const openDownloadDialog = React.useCallback(() => setDownloadDialogOpen(true), []);
+  const closeDownloadDialog = React.useCallback(() => setDownloadDialogOpen(false), []);
+
+  return { isDownloadDialogOpen, openDownloadDialog, closeDownloadDialog };
+}
+
+export function DownloadDialog({ album, onAccept, onClose, t, isPreparing, isOpen }: DownloadDialogProps): JSX.Element {
   const [isTermsAndConditionsAccepted, setTermsAndConditionsAccepted] = React.useState(false);
   const [downloadButtonClicked, setDownloadButtonClicked] = React.useState(false);
   const handleAccept = React.useCallback(() => {
@@ -159,6 +167,6 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ album, onAccept, onClos
       </div>
     </Modal>
   );
-};
+}
 
 export default DownloadDialog;
