@@ -71,19 +71,27 @@ export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
       <nav className="BreadcrumbBar-breadcrumb">
         {fullBreadcrumb.map((item, index) => {
           const isActive = index === fullBreadcrumb.length - 1;
-          const content = `${breadcrumbSeparator} ${getBreadcrumbTitle(item, t)}`;
+          const content = getBreadcrumbTitle(item, t);
+          const separator = index > 0 ? breadcrumbSeparator : '';
           if (isActive) {
-            return <span key={item.path}>{content}</span>;
+            return (
+              <React.Fragment key={item.path}>
+                {separator} {content}
+              </React.Fragment>
+            );
           } else {
             return (
-              <Link key={item.path} to={item.path}>
-                {content}
-              </Link>
+              <React.Fragment key={item.path}>
+                {separator}
+                <Link key={item.path} to={item.path}>
+                  {content}
+                </Link>
+              </React.Fragment>
             );
           }
         })}
       </nav>
-      <nav>
+      <nav className="BreadcrumbBar-actions">
         {canDownload ? (
           <Button variant="link" size="sm" onClick={openDownloadDialog}>
             <svg className="BreadcrumbBar-icon">
