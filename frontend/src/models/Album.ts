@@ -21,6 +21,7 @@ interface Album {
   terms_and_conditions?: TermsAndConditions;
   next_in_series?: Breadcrumb;
   previous_in_series?: Breadcrumb;
+  cover_picture?: Picture;
   credits: Credits;
 }
 

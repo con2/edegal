@@ -84,14 +84,14 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             <svg className="PictureView-icon">
               <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
             </svg>
-            {downloadDialogOpen ? (
-              <DownloadDialog
-                t={T(r => r.DownloadDialog)}
-                album={album}
-                onAccept={this.downloadPicture}
-                onClose={this.closeDownloadDialog}
-              />
-            ) : null}
+            <DownloadDialog
+              key={picture.path}
+              t={T(r => r.DownloadDialog)}
+              album={album}
+              onAccept={this.downloadPicture}
+              onClose={this.closeDownloadDialog}
+              isOpen={downloadDialogOpen}
+            />
           </div>
         ) : null}
       </div>
@@ -129,6 +129,11 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
   onKeyDown = (event: KeyboardEvent) => {
     if (event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    if (event.key === 'r' || event.key === 'R') {
+      this.props.history.push('/random');
       return;
     }
 

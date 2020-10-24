@@ -1,11 +1,13 @@
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
+from .album_mixin import AlbumMixin
 from .common import CommonFields
 from ..utils import slugify, pick_attrs
 
 
-class Photographer(models.Model):
+class Photographer(AlbumMixin, models.Model):
     """
     Metadata used to give credit to the author(s) of a photo. While it's named Photographer, we use the
     same model for photographic directors, lighting designers etc.
@@ -26,12 +28,26 @@ class Photographer(models.Model):
     twitter_handle = models.CharField(max_length=15, blank=True)
     instagram_handle = models.CharField(max_length=30, blank=True)
     facebook_handle = models.CharField(max_length=50, blank=True)
+    flickr_handle = models.CharField(max_length=50, blank=True)
     default_terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions', null=True, blank=True, on_delete=models.SET_NULL)
+    body = models.TextField(
+        blank=True,
+        default='',
+        verbose_name='Introduction text',
+        help_text='Will be displayed at the top of the photographer view before albums.',
+    )
+
+    cover_picture = models.ForeignKey('Picture',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
 
     def save(self, *args, **kwargs):
         if not self.slug:
             if self.user and self.user.username:
-                self.slug = self.user.username
+                self.slug = slugify(self.user.username)
             elif self.display_name:
                 self.slug = slugify(self.display_name)
 
@@ -41,23 +57,93 @@ class Photographer(models.Model):
             self.instagram_handle = self.instagram_handle[1:]
         if self.facebook_handle.startswith('@'):
             self.facebook_handle = self.facebook_handle[1:]
+        if self.flickr_handle.startswith('@'):
+            self.flickr_handle = self.flickr_handle[1:]
 
         return super().save(*args, **kwargs)
 
-    def as_dict(self, **extra_attrs):
-        return pick_attrs(self,
-            'slug',
+    def make_credit(self, include_larppikuvat_profile=False, **extra_attrs):
+        result = pick_attrs(self,
+            'path',
             'display_name',
             'homepage_url',
             'twitter_handle',
             'instagram_handle',
             'facebook_handle',
+            'flickr_handle',
 
             **extra_attrs,
         )
 
-    def __str__(self):
+        if include_larppikuvat_profile:
+            try:
+                result['larppikuvat_profile'] = self.larppikuvat_profile.as_dict()
+            except ObjectDoesNotExist:
+                pass
+
+        return result
+
+    def make_subalbum(self, format='jpeg'):
+        return pick_attrs(self,
+            'path',
+            'title',
+            'is_public',
+            redirect_url='',
+            date='',
+            thumbnail=self._make_thumbnail(format=format),
+        )
+
+    def make_album(self, format='jpeg'):
+        """
+        Returns an album-like dict representation of the Photographer.
+        """
+        from .album import Album
+
+        return pick_attrs(self,
+            'path',
+            'title',
+            'body',
+            'is_public',
+            subalbums=[
+                album.make_subalbum(format=format, context='photographer')
+                for album in Album.get_albums(photographer=self, is_public=True, is_visible=True)
+            ],
+            pictures=[],
+            breadcrumb=[
+                Album.objects.get(path='/')._make_breadcrumb(),
+                dict(path='/photographers', title='Photographers'),
+            ],
+            redirect_url='',
+            is_downloadable=False,
+            download_url='',
+            date='',
+            layout='yearly',
+            credits=dict(
+                photographer=self.make_credit(
+                    include_larppikuvat_profile="larppikuvat" in settings.INSTALLED_APPS,
+                ),
+            ),
+            cover_picture=(
+                self.cover_picture.as_dict(
+                    format=format,
+                    include_credits=self.cover_picture.album.photographer != self,
+                )
+                if self.cover_picture
+                else None
+            ),
+        )
+
+    @property
+    def path(self):
+        return f'/photographers/{self.slug}'
+
+    @property
+    def title(self):
         return self.display_name
+
+    @property
+    def is_public(self):
+        return self.cover_picture_id is not None
 
     class Meta:
         ordering = ('display_name',)

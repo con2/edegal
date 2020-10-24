@@ -1,7 +1,9 @@
 import logging
+from random import randint
 
 from django.conf import settings
 from django.db import models
+from django.db.utils import ProgrammingError
 from django.utils.translation import ugettext_lazy as _
 
 from ..utils import slugify, pick_attrs
@@ -25,6 +27,7 @@ class Picture(models.Model):
 
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
+    taken_at = models.DateTimeField(null=True, blank=True, help_text="EXIF original date time of the original media")
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
 
@@ -35,15 +38,26 @@ class Picture(models.Model):
         else:
             return self.album.terms_and_conditions
 
-    def as_dict(self, format='jpeg'):
-        return pick_attrs(self,
+    def as_dict(self, format='jpeg', include_credits=False):
+        result = pick_attrs(self,
             'path',
             'title',
             'description',
+            'is_public',
+            taken_at=self.taken_at.isoformat() if self.taken_at else '',
             thumbnail=self.get_media('thumbnail', format).as_dict(),
             preview=self.get_media('preview', format).as_dict(),
             original=self.get_media('original', format).as_dict(),
         )
+
+        if include_credits:
+            result['credits'] = self.make_credits()
+
+        return result
+
+    def make_credits(self):
+        # TODO allow overriding photog per-picture
+        return self.album.make_credits()
 
     def _make_path(self):
         assert self.album
@@ -72,6 +86,19 @@ class Picture(models.Model):
 
         for medium in media_to_remove:
             print('Would remove', medium)
+
+    @classmethod
+    def get_random_picture(cls):
+        max_id = cls.objects.only('id').latest('id').id
+        sample_id = randint(1, max_id)
+
+        return cls.objects.filter(
+            id__gte=sample_id,
+            is_public=True,
+            album__is_public=True,
+            album__is_visible=True,
+            album__redirect_url='',
+        ).only('id', 'path').order_by('id').first()
 
     @property
     def original(self):
@@ -107,5 +134,5 @@ class Picture(models.Model):
         verbose_name = _('Picture')
         verbose_name_plural = _('Pictures')
         unique_together = [('album', 'slug')]
-        ordering = ('album', 'order', 'slug')
+        ordering = ('album', 'order', 'taken_at', 'slug')
         index_together = [('album', 'order', 'slug')]

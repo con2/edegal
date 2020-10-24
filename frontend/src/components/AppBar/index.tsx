@@ -1,77 +1,50 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+
+import { LinkContainer } from 'react-router-bootstrap';
+import Navbar from 'react-bootstrap/Navbar';
+import Nav from 'react-bootstrap/Nav';
 
 import Config from '../../Config';
 import Album from '../../models/Album';
-
-import './index.css';
 import { T } from '../../translations';
 
-const breadcrumbSeparator = ' » ';
+import './index.scss';
 
-export interface AppBarAction {
-  label: string;
-  onClick?(): void;
+function NavLink({ path, title, isActive }: { path: string; title: string; isActive?: boolean }): JSX.Element {
+  return (
+    <Nav.Item key={path}>
+      <LinkContainer to={path}>
+        <Nav.Link active={!!isActive}>{title}</Nav.Link>
+      </LinkContainer>
+    </Nav.Item>
+  );
 }
 
-interface AppBarProps {
-  album: Album;
-  actions?: AppBarAction[];
-}
-
-const AppBar: React.FC<AppBarProps> = ({ album, actions }) => {
+function AppBar({ album }: { album: Album }): JSX.Element {
   const t = T(r => r.AppBar);
-  const { path, title, breadcrumb } = album;
-  const fullBreadcrumb = breadcrumb.concat([{ path, title }]);
-
-  document.title = fullBreadcrumb.map(crumb => crumb.title).join(breadcrumbSeparator);
-
-  const rootAlbum = fullBreadcrumb.shift();
+  const { path, title } = album;
+  const rootAlbum = album.breadcrumb[0] || { path, title };
 
   return (
-    <nav className="AppBar navbar navbar-expand-md navbar-dark navbar-fixed-top">
-      <Link className="navbar-brand" to={rootAlbum!.path}>
-        {rootAlbum!.title}
-      </Link>
-      <button
-        className="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#AppBar-navbar"
-        aria-controls="AppBar-navbar"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span className="navbar-toggler-icon" />
-      </button>
-      <div className="collapse navbar-collapse" id="AppBar-navbar">
-        <ul className="navbar-nav mr-auto">
-          {fullBreadcrumb.map(item => (
-            <li key={item.path} className="nav-item">
-              <Link className="nav-link" to={item.path}>
-                {breadcrumbSeparator}
-                {item.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <ul className="navbar-nav">
-          {(actions || []).map(action => (
-            <li key={action.label} className="nav-item">
-              <button className="btn btn-link nav-link" onClick={action.onClick}>
-                {action.label}
-              </button>
-            </li>
-          ))}
-          <li className="nav-item">
-            <a href={Config.loginUrl} className="nav-link AppBar-adminLink">
-              {t(r => r.adminLink)}
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+    <Navbar variant="dark" className="AppBar" expand="sm">
+      <LinkContainer to={rootAlbum.path}>
+        <Navbar.Brand href="#home">{rootAlbum.title}</Navbar.Brand>
+      </LinkContainer>
+
+      <Navbar.Toggle aria-controls="AppBar-nav" />
+      <Navbar.Collapse id="AppBar-nav">
+        <Nav className="mr-auto">
+          <NavLink path="/photographers" title={t(r => r.photographers)} isActive={path.startsWith('/photographers')} />
+          <NavLink path="/random" title={t(r => r.randomPicture)} />
+        </Nav>
+        <Nav>
+          <Nav.Item>
+            <Nav.Link href={Config.loginUrl}>{t(r => r.adminLink)}</Nav.Link>
+          </Nav.Item>
+        </Nav>
+      </Navbar.Collapse>
+    </Navbar>
   );
-};
+}
 
 export default AppBar;

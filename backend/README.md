@@ -4,7 +4,7 @@
 
 This is the REST API backend for Edegal. Technology choices include the following:
 
-* Python 3.7
+* Python 3.8
 * Django 1.11
 * PostgreSQL 11
 * Redis (TBD; replacing RabbitMQ)
@@ -23,7 +23,7 @@ If, for some reason, you want to develop the Edegal backend without using Docker
 What is assumed:
 
 * An UNIX-like operating system such as Ubuntu, CentOS or Mac OS X
-* Python 3.7 and a working `virtualenv` or `venv` tool
+* Python 3.8 and a working `virtualenv` or `venv` tool
 
 Cheats for Debian/Ubuntu:
 

@@ -8,12 +8,12 @@ export default class App extends React.Component<{}, {}> {
   render() {
     return (
       <Router>
-        <div>
+        <>
           <Switch>
             {/* XXX why is match.path always /? */}
             <Route component={MainView} />
           </Switch>
-        </div>
+        </>
       </Router>
     );
   }

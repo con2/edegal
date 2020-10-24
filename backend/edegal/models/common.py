@@ -2,13 +2,15 @@ from django.core.validators import RegexValidator
 
 
 validate_slug = RegexValidator(
-    regex=r'[a-z0-9-]+',
-    message='The slug may only contain lower case letters (a–z), numbers (0–9) and dashes (-).'
+    regex=r'^[a-z0-9-]+$',
+    message='The slug may only contain lower case letters (a–z), numbers (0–9) and dashes (-).',
+    code='invalid_slug',
 )
 
 validate_path = RegexValidator(
-    regex=r'[a-z0-9-/]+',
-    message='The path may only contain lower case letters (a–z), numbers (0–9), dashes (-) and forward slashes (/).'
+    regex=r'^/[a-z0-9-/]+$',
+    message='The path may only contain lower case letters (a–z), numbers (0–9), dashes (-) and forward slashes (/). The path must start with a slash (/).',
+    code='invalid_path',
 )
 
 

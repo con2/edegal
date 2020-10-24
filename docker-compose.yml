@@ -6,47 +6,38 @@ services:
     command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict redis:6379 -- python manage.py docker_start
     ports:
       - 8000:8000
-    links:
-      - redis
-      - postgres
     volumes:
       - ./backend/edegal:/usr/src/app/edegal
+      - ./backend/larppikuvat:/usr/src/app/larppikuvat
       - media:/usr/src/app/media
-    environment:
+    environment: &environment
       DEBUG: 1
       PYTHONUNBUFFERED: 1
       DATABASE_URL: psql://edegal:edegal@postgres/edegal
       ALLOWED_HOSTS: '*'
-      BROKER_URL: redis://redis:6379/1
-      CACHE_URL: rediscache://redis:6379/2
+      BROKER_URL: redis://redis/0
+      CACHE_URL: redis://redis/1
+      EDEGAL_ENABLE_LARPPIKUVAT_FEATURES: "true"
   worker:
     build: backend
     init: true
     command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict redis:6379 -- celery -A edegal_site.celery:app worker
-    links:
-      - redis
-      - postgres
     volumes:
       - ./backend/edegal:/usr/src/app/edegal
+      - ./backend/larppikuvat:/usr/src/app/larppikuvat
       - media:/usr/src/app/media
     environment:
-      DEBUG: 1
-      PYTHONUNBUFFERED: 1
-      DATABASE_URL: psql://edegal:edegal@postgres/edegal
-      ALLOWED_HOSTS: '*'
-      BROKER_URL: redis://redis:6379/1
-      CACHE_URL: rediscache://redis:6379/2
+      <<: *environment
   frontend:
     build: frontend
     init: true
     ports:
       - 3000:3000
-    links:
-      - backend
     volumes:
       - ./frontend/src:/usr/src/app/src
     environment:
       REACT_APP_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
+      CI: "true"
   postgres:
     image: postgres
     volumes:

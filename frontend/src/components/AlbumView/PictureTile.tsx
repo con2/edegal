@@ -6,6 +6,7 @@ interface PictureTileProps {
   path: string;
   height: number;
   width: number;
+  isPublic: boolean;
   title?: string;
   showTitle?: boolean;
   src?: string;
@@ -28,27 +29,41 @@ const Thumbnail = ({ src, width, height, title }: ThumbnailProps) => (
       width: Math.floor(width),
       height: Math.floor(height),
     }}
+    loading="lazy"
   />
 );
 
 export default class PictureTile extends React.PureComponent<PictureTileProps> {
   render() {
-    const { path, width, height, src, title, externalLink, showTitle } = this.props;
+    const { path, width, height, src, title, externalLink, showTitle, isPublic } = this.props;
 
     return externalLink ? (
       <a className="PictureTile" href={externalLink} target="_blank" rel="noopener noreferrer">
         {src ? <Thumbnail src={src} width={width} height={height} title={title} /> : null}
         <div className="PictureTile-title">
-          {title}
           <svg className="PictureTile-icon">
             <use xlinkHref={`${actionIcons}#ic_launch_24px`} />
           </svg>
+          {title}
         </div>
       </a>
     ) : (
-      <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true } }}>
+      <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true } }} title={title}>
         {src ? <Thumbnail src={src} width={width} height={height} title={title} /> : null}
-        {showTitle && title ? <div className="PictureTile-title">{title}</div> : null}
+        {showTitle && title ? (
+          <div className="PictureTile-title">
+            {isPublic ? (
+              title
+            ) : (
+              <>
+                <svg className="PictureTile-icon">
+                  <use xlinkHref={`${actionIcons}#ic_lock_open_24px`} />
+                </svg>
+                <em>{title}</em>
+              </>
+            )}
+          </div>
+        ) : null}
       </Link>
     );
   }

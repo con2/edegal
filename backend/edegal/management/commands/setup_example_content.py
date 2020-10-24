@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import BaseCommand
 
-from ...models import Album, TermsAndConditions, Photographer, Series
+from ...models import Album, TermsAndConditions, Photographer, Picture, Series
 from ...importers.filesystem import FilesystemImporter
 from ...utils import log_get_or_create
 
@@ -116,3 +116,7 @@ class Command(BaseCommand):
                 input_filenames=glob('example_content/*.jpg'),
                 mode='copy',
             ).run()
+
+        some_photo = Picture.objects.filter(album__photographer__isnull=False).first()
+        photographer.cover_picture = some_photo
+        photographer.save()

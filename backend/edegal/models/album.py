@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 
 from mptt.models import MPTTModel, TreeForeignKey
 
-from ..utils import slugify, pick_attrs
+from ..utils import slugify, pick_attrs, strip_photographer_name_from_title
 
 from .album_mixin import AlbumMixin
 from .common import CommonFields
@@ -42,12 +42,29 @@ LAYOUT_CHOICES = [
     ('yearly', 'Yearly'),
 ]
 
+BREADCRUMB_SEPARATOR = " » "
+
+FAKE_ALBUM_DEFAULTS = dict(
+    # path must be provided
+    title='',
+    body='',
+    subalbums=[],
+    pictures=[],
+    redirect_url='',
+    is_downloadable=False,
+    download_url='',
+    date='',
+    layout='simple',
+    credits={},
+)
+
 
 class Album(AlbumMixin, MPTTModel):
     slug = models.CharField(**CommonFields.slug)
     parent = TreeForeignKey('self',
         null=True,
         blank=True,
+        on_delete=models.CASCADE,
         related_name='subalbums',
         db_index=True,
         verbose_name='Parent Album',
@@ -119,33 +136,36 @@ class Album(AlbumMixin, MPTTModel):
         super(Album, self).__init__(*args, **kwargs)
         self.__original_path = self.path
 
-    def as_dict(self, include_hidden=False, format='jpeg'):
-        child_criteria = dict()
-        if not include_hidden:
-            child_criteria.update(is_public=True)
+    def as_dict(self, include_hidden=False, format='jpeg', context='album'):
+        if include_hidden:
+            subalbums = self._get_subalbums(context=context)
+            pictures = self._get_pictures(context=context)
+        else:
+            subalbums = self._get_subalbums(context=context, is_public=True, is_visible=True)
+            pictures = self._get_pictures(context=context, is_public=True)
 
         return pick_attrs(self,
             'slug',
-            'path',
             'title',
             'description',
-            'body',
             'redirect_url',
             'layout',
             'is_downloadable',
 
-            credits=self._make_credits(),
+            path=(f'{self.path}/timeline' if context == 'timeline' else self.path),
+            body=('' if context == 'timeline' else self.body),
+            is_public=self.is_public and self.is_visible,
+            cover_picture=(
+                self.cover_picture.as_dict(format=format)
+                if self.cover_picture
+                else None
+            ),
+            credits=self.make_credits(),
             date=self.date.isoformat() if self.date else '',
-            breadcrumb=self._make_breadcrumbs(),
+            breadcrumb=self._make_breadcrumbs(context=context),
             download_url=self.download_url or '',
-            subalbums=[
-                subalbum._make_subalbum(format=format)
-                for subalbum in self._get_subalbums(is_visible=True, **child_criteria)
-            ],
-            pictures=[
-                picture.as_dict(format=format)
-                for picture in self._get_pictures(**child_criteria)
-            ],
+            subalbums=[subalbum.make_subalbum(format=format) for subalbum in subalbums],
+            pictures=[picture.as_dict(format=format) for picture in pictures],
             terms_and_conditions=(
                 self.terms_and_conditions.as_dict()
                 if self.terms_and_conditions
@@ -153,47 +173,110 @@ class Album(AlbumMixin, MPTTModel):
             ),
             previous_in_series=(
                 self.previous_in_series._make_breadcrumb()
-                if self.previous_in_series
+                if self.series and self.previous_in_series and context == 'album'
                 else None
             ),
             next_in_series=(
                 self.next_in_series._make_breadcrumb()
-                if self.next_in_series
+                if self.series and self.next_in_series and context == 'album'
                 else None
             ),
         )
 
-    def _get_subalbums(self, **child_criteria):
-        return (
-            self.subalbums.filter(cover_picture__media__role='thumbnail', **child_criteria)
-                .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
-                .distinct()
-                .select_related('cover_picture')
-                .order_by(F('date').desc(nulls_last=True), 'tree_id')
-        )
+    @classmethod
+    def fake_album_as_dict(self, *, path, **kwargs):
+        """
+        Many of our views are implemented as returning Album-like JSON objects.
+        Use this method for getting sensible defaults for omitted fields.
+        """
+        result = dict(FAKE_ALBUM_DEFAULTS, path=path, **kwargs)
 
-    def _get_pictures(self, **child_criteria):
-        return (
-            self.pictures.filter(media__role='thumbnail', **child_criteria)
-                .distinct()
-                .prefetch_related('media')
-        )
+        if 'breadcrumb' not in result:
+            result['breadcrumb'] = [
+                Album.objects.get(path='/')._make_breadcrumb(),
+            ]
 
-    def _make_subalbum(self, format):
-        return pick_attrs(self,
-            'path',
-            'title',
-            'redirect_url',
-            date=self.date.isoformat() if self.date else '',
-            thumbnail=self._make_thumbnail(format=format),
-        )
+        return result
 
-    def _make_thumbnail(self, format):
-        # TODO what if the thumbnail is hidden?
-        if self.cover_picture:
-            return self.cover_picture.get_media('thumbnail', format=format).as_dict()
+    def _get_subalbums(self, context='album', **subalbum_criteria):
+        if context == 'album':
+            return self.get_albums(parent=self, **subalbum_criteria)
+        elif context == 'timeline':
+            return Album.objects.none()
         else:
-            return None
+            raise NotImplementedError(context)
+
+    @classmethod
+    def get_albums(cls, **criteria):
+        return (
+            cls.objects.filter(cover_picture__media__role='thumbnail', **criteria)
+            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture', 'is_public', 'is_visible')
+            .distinct()
+            .select_related('cover_picture')
+            .order_by(F('date').desc(nulls_last=True), 'tree_id')
+        )
+
+    def _get_pictures(self, context='album', **subalbum_criteria):
+        if context == 'album':
+            pictures_queryset = self.pictures.all()
+        elif context == 'timeline':
+            pictures_queryset = Picture.objects.filter(
+                album__in=self.get_descendants(include_self=True),
+                taken_at__isnull=False,
+            ).order_by('taken_at')
+        else:
+            raise NotImplementedError(context)
+
+        return (
+            pictures_queryset.filter(media__role='thumbnail', **subalbum_criteria)
+            .distinct()
+            .prefetch_related('media')
+        )
+
+    def make_subalbum(self, format='jpeg', context='parent'):
+        if context == 'parent':
+            return pick_attrs(self,
+                'path',
+                'title',
+                'redirect_url',
+                is_public=self.is_public and self.is_visible,
+                date=self.date.isoformat() if self.date else '',
+                thumbnail=self._make_thumbnail(format=format),
+            )
+        elif context == 'photographer':
+            return pick_attrs(self,
+                'path',
+                'redirect_url',
+                is_public=self.is_public and self.is_visible,
+                title=self.title_in_photographer_context,
+                date=self.date.isoformat() if self.date else '',
+                thumbnail=self._make_thumbnail(format=format),
+            )
+        else:
+            raise NotImplementedError(context)
+
+    @property
+    def title_in_photographer_context(self):
+        parts = []
+
+        for breadcrumb in self.get_ancestors(include_self=True).only('title', 'path'):
+            if breadcrumb.path == '/':
+                # No need to have the gallery title here
+                continue
+
+            title = breadcrumb.title
+
+            if self.photographer and self.photographer.display_name:
+                title = strip_photographer_name_from_title(title, self.photographer.display_name)
+
+            if title:
+                parts.append(title)
+
+        if parts:
+            return BREADCRUMB_SEPARATOR.join(parts)
+        else:
+            # oopsie woopsie
+            return self.title
 
     def _make_path(self):
         if self.parent is None:
@@ -205,7 +288,7 @@ class Album(AlbumMixin, MPTTModel):
                 pth = pth[1:]
             return pth
 
-    def _make_breadcrumbs(self):
+    def _make_breadcrumbs(self, context='album'):
         ancestors = self.get_ancestors().only('path', 'title', 'series')
         series = self.series or next((album.series for album in ancestors if album.series), None)
         breadcrumbs = [ancestor._make_breadcrumb() for ancestor in ancestors]
@@ -213,15 +296,18 @@ class Album(AlbumMixin, MPTTModel):
         if series:
             breadcrumbs.insert(1, series._make_breadcrumb())
 
+        if context == 'timeline':
+            breadcrumbs.append(self._make_breadcrumb())
+
         return breadcrumbs
 
-    def _make_credits(self):
+    def make_credits(self):
         credits = {}
 
         if self.photographer:
-            credits['photographer'] = self.photographer.as_dict()
+            credits['photographer'] = self.photographer.make_credit()
         if self.director:
-            credits['director'] = self.director.as_dict()
+            credits['director'] = self.director.make_credit()
 
         return credits
 
@@ -242,16 +328,17 @@ class Album(AlbumMixin, MPTTModel):
 
         1. Cover picture EXIF data
         2. Known date formats in description or title
+        3. Non-root ancestors
 
         Description is preferred to title because some events might have a fictional date in their title.
         """
-        try:
-            d = self.cover_picture.original.get_exif_datetime().date()
-            logger.debug('Guessed date %s from cover picture EXIF for %s', d.isoformat(), self)
+        # 1. Cover picture EXIF data
+        if self.cover_picture and self.cover_picture.taken_at:
+            d = self.cover_picture.taken_at
+            logger.debug('Guessed date %s from cover picture EXIF data for %s', d.isoformat(), self)
             return d
-        except (RuntimeError, LookupError, TypeError, ValueError, AttributeError):
-            logger.warning('Failed to guess date from cover picture EXIF for %s', self)
 
+        # 2. Known date formats in description or title
         for regex in GUESS_DATE_REGEXEN:
             match = regex.search(self.description) or regex.search(self.title)
             if match:
@@ -265,6 +352,17 @@ class Album(AlbumMixin, MPTTModel):
                 else:
                     logger.debug('Guessed date %s from description/title for %s', d.isoformat(), self)
                     return d
+
+        # 3. Non-root ancestors, nearest first
+        ancestor_with_date = (
+            self.parent.get_ancestors(ascending=True, include_self=True)
+            .exclude(path='/')
+            .filter(date__isnull=False)
+            .first()
+        ) if self.parent else None
+        if ancestor_with_date:
+            logger.debug('Guessed date %s from ancestry (%s)', ancestor_with_date.date.isoformat(), ancestor_with_date.path)
+            return ancestor_with_date.date
 
         logger.warning('No method of date guessing worked for %s', self)
 
@@ -295,7 +393,11 @@ class Album(AlbumMixin, MPTTModel):
         if not self.date:
             self.date = self._guess_date()
 
-        return_value = super(Album, self).save(*args, **kwargs)
+        if not self.series:
+            self.next_in_series = None
+            self.previous_in_series = None
+
+        return_value = super().save(*args, **kwargs)
 
         # In case path changed, update child pictures' paths.
         for picture in self.pictures.all():
@@ -342,9 +444,9 @@ class Album(AlbumMixin, MPTTModel):
         try:
             picture = Picture.objects.only('album_id').get(path=path)
         except Picture.DoesNotExist:
-            query = dict(path=path, cover_picture__media__role='thumbnail', **extra_criteria)
+            query = dict(path=path, **extra_criteria)
         else:
-            query = dict(id=picture.album_id, cover_picture__media__role='thumbnail', **extra_criteria)
+            query = dict(id=picture.album_id, **extra_criteria)
 
         # TODO Can we limit fetched fields in select_related?
         queryset = (

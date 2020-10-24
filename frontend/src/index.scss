@@ -1,0 +1,23 @@
+$font-family-sans-serif: "Roboto", "Franklin Gothic Medium", Tahoma, sans-serif;
+
+@import "~bootstrap/scss/bootstrap";
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,400;0,700;0,900;1,400;1,700&display=swap');
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  background-color: #333;
+  color: #eee;
+  margin-bottom: 35px;
+}
+
+/* Make modal dialogs scrollable */
+.modal-dialog {
+  height: calc(100% - 70px);
+}
+.modal-content {
+  overflow: auto;
+}

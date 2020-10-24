@@ -5,7 +5,7 @@ Edegal is a web picture gallery written in Python 3 and TypeScript and designed 
 This is the "version 2" reboot of the Edegal project. It incorporates the following changes to "version 1":
 
 * MongoDB is dead, long live PostgreSQL (and Redis)
-* Replace the Node.js backend with Python 3.6 and Django 1.10
+* Replace the Node.js backend with Python 3.8 and Django 3.0
 * Rewrite frontend in TypeScript instead of CoffeeScript or ECMAScript 6
 
 High performance is achieved through the usage of a dead simple REST JSON API in which most cache misses only result in two database queries.
@@ -92,7 +92,7 @@ See [here](https://github.com/tracon/ansible-tracon/tree/master/roles/edegal/).
 
     The MIT License (MIT)
 
-    Copyright © 2010–2019 Santtu Pajukanta
+    Copyright © 2010–2020 Santtu Pajukanta
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

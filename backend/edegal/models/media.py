@@ -7,6 +7,7 @@ from os.path import dirname, abspath, getsize
 
 from django.conf import settings
 from django.db import models
+from django.utils.timezone import make_aware
 
 from PIL import Image
 
@@ -36,14 +37,14 @@ EXIF_DATETIME_FORMAT = '%Y:%m:%d %H:%M:%S'
 
 
 class Media(models.Model):
-    picture = models.ForeignKey('edegal.Picture', related_name='media')
+    picture = models.ForeignKey('edegal.Picture', on_delete=models.CASCADE, related_name='media')
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     src = models.FileField(
         unique=True,
         max_length=1023,
     )
-    spec = models.ForeignKey(MediaSpec, null=True, blank=True)
+    spec = models.ForeignKey(MediaSpec, on_delete=models.CASCADE, null=True, blank=True)
     role = models.CharField(
         max_length=max(len(ext) for (ext, label) in ROLE_CHOICES),
         choices=ROLE_CHOICES,
@@ -83,7 +84,11 @@ class Media(models.Model):
 
     def get_exif_datetime(self):
         with self.as_image() as image:
-            return datetime.strptime(image._getexif()[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT)
+            try:
+                return make_aware(datetime.strptime(image._getexif()[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT))
+            except Exception:
+                logger.debug('Failed to extract original datetime from EXIF for %s', self, exc_info=True)
+                return None
 
     def get_canonical_path(self, prefix=settings.MEDIA_ROOT + '/'):
         """
@@ -112,11 +117,17 @@ class Media(models.Model):
 
     @contextmanager
     def as_image(self):
-        image = Image.open(self.src.path)
-        try:
-            yield image
-        finally:
-            image.close()
+        if getattr(self, "_image", None):
+            # nested
+            yield self._image
+        else:
+            # top-level
+            self._image = Image.open(self.src.path)
+            try:
+                yield self._image
+            finally:
+                self._image.close()
+                self._image = None
 
     @contextmanager
     def open(self, mode='rb'):
@@ -141,6 +152,8 @@ class Media(models.Model):
 
         for spec in media_specs:
             cls.get_or_create_scaled_media(original_media, spec)
+
+        picture.save()
 
         if refresh_album:
             picture.album.save()
@@ -207,6 +220,7 @@ class Media(models.Model):
 
             with original_media.as_image() as image:
                 original_media.width, original_media.height = image.size
+                picture.taken_at = original_media.get_exif_datetime()
 
             original_media.save()
 

@@ -1,0 +1,13 @@
+beautifulsoup4
+celery
+django-environ
+django-mptt
+Django
+Pillow
+python-memcached
+git+git://github.com/conikuvat/django-admin-multiupload.git@django3#egg=admin-multiupload
+requests-oauthlib
+requests
+django-ckeditor
+pip-tools
+redis

@@ -196,7 +196,7 @@ class MediaInline(admin.TabularInline):
 
 class PictureAdmin(admin.ModelAdmin):
     model = Picture
-    readonly_fields = ('path', 'created_at', 'updated_at', 'created_by')
+    readonly_fields = ('path', 'taken_at', 'created_at', 'updated_at', 'created_by')
     list_display = ('album', 'path', 'title')
     search_fields = ('path', 'title')
     raw_id_fields = ('album',)
@@ -220,10 +220,44 @@ class MediaSpecAdmin(admin.ModelAdmin):
     actions = [activate_media_specs, deactivate_media_specs]
 
 
+class PhotographerAdminForm(forms.ModelForm):
+    body = forms.CharField(
+        widget=CKEditorUploadingWidget(),
+        required=False,
+        label=Photographer._meta.get_field('body').verbose_name,
+        help_text=Photographer._meta.get_field('body').help_text,
+    )
+
+    class Meta:
+        model = Photographer
+        fields = (
+            'display_name',
+            'slug',
+            'user',
+            'email',
+            'twitter_handle',
+            'instagram_handle',
+            'facebook_handle',
+            'flickr_handle',
+            'default_terms_and_conditions',
+            'body',
+            'cover_picture',
+        )
+
+
+photographer_inlines = []
+
+if 'larppikuvat' in settings.INSTALLED_APPS:
+    from larppikuvat.admin import LarppikuvatPhotographerProfileInlineAdmin
+    photographer_inlines.append(LarppikuvatPhotographerProfileInlineAdmin)
+
+
 class PhotographerAdmin(admin.ModelAdmin):
     model = Photographer
-    list_display = ('display_name', 'user', 'twitter_handle', 'instagram_handle', 'facebook_handle')
-    raw_id_fields = ('default_terms_and_conditions', 'user',)
+    form = PhotographerAdminForm
+    list_display = ('display_name', 'user', 'twitter_handle', 'instagram_handle', 'facebook_handle', 'flickr_handle')
+    raw_id_fields = ('default_terms_and_conditions', 'user', 'cover_picture')
+    inlines = photographer_inlines
 
     def get_changeform_initial_data(self, request):
         return dict(user=request.user)

@@ -1,13 +1,20 @@
 const translations = {
   AlbumView: {
     unknownYear: 'Unknown year',
+  },
+  BreadcrumbBar: {
     downloadAlbumLink: 'Download whole album',
+    aboutPhotographerLink: 'About the photographer',
+    photographers: 'Photographers',
+    timeline: 'Timeline',
   },
   AlbumViewFooter: {
     albumCopyright: 'Album',
   },
   AppBar: {
     adminLink: 'Admin',
+    photographers: 'Photographers',
+    randomPicture: 'Random picture',
   },
   DownloadAlbumDialog: {
     dialogTitle: 'Download album',
@@ -43,6 +50,19 @@ const translations = {
     acceptTermsAndConditions: 'I accept these terms and conditions',
     defaultTerms:
       'Terms and conditions missing. The photo is covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
+  },
+  ErrorBoundary: {
+    defaultMessage:
+      'Something went wrong while loading the album. It is likely that either the album does not exist, you are not authorized to view it or there is a connectivity problem.',
+  },
+  LarppikuvatProfile: {
+    contact: 'How can I be contacted?',
+    hours: 'What amount of hours can I be expected to work while photographing a LARP?',
+    delivery_schedule: 'What is my typical delivery schedule for finished photos?',
+    delivery_practice: 'How will I deliver finished photos to participants and what are the quarantine rules used?',
+    delivery_method: 'How will I publish finished photos to the general public?',
+    copy_protection: 'What can you do with my photos and what kind of protections are applied?',
+    expected_compensation: 'What kind of compensation do I expect for LARP photography?',
   },
   PictureView: {
     backToAlbum: 'Back to Album',

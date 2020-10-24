@@ -79,6 +79,7 @@
   grid-column: 3;
 }
 
+/* the download dialog may be initialized from within the app bar, so restore colors */
 .DownloadDialog {
   color: #212529;
 }

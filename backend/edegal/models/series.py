@@ -53,8 +53,11 @@ class Series(AlbumMixin, models.Model):
 
         return super().save(*args, **kwargs)
 
-    def as_dict(self, include_hidden=False, format='jpeg'):
+    def as_dict(self, include_hidden=False, format='jpeg', context='album'):
         from .album import Album
+
+        if context != 'album':
+            raise NotImplementedError(context)
 
         child_criteria = dict()
         if not include_hidden:
@@ -66,6 +69,8 @@ class Series(AlbumMixin, models.Model):
             'title',
             'description',
             'body',
+            'is_public',
+            'is_visible',
 
             redirect_url='',
             layout='simple',
@@ -74,7 +79,7 @@ class Series(AlbumMixin, models.Model):
                 Album.objects.get(path='/')._make_breadcrumb(),
             ],
             subalbums=[
-                album._make_subalbum(format=format)
+                album.make_subalbum(format=format)
                 for album in self.get_albums(**child_criteria)
             ],
             pictures=[],
@@ -87,7 +92,7 @@ class Series(AlbumMixin, models.Model):
 
         return (
             Album.objects.filter(series=self, **extra_criteria)
-            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture')
+            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture', 'is_public', 'is_visible')
             .select_related('cover_picture')
             .order_by(F('date').desc(nulls_last=True), 'tree_id')
         )

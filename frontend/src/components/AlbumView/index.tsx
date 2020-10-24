@@ -1,37 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { getCached } from '../../helpers/getAlbum';
 import preloadMedia from '../../helpers/preloadMedia';
 import Album from '../../models/Album';
 import Subalbum from '../../models/Subalbum';
 import AppBar from '../AppBar';
-import DownloadDialog from '../DownloadDialog';
 import AlbumGrid from './AlbumGrid';
 
 import './index.css';
 import AlbumViewFooter from './AlbumViewFooter';
 import { T } from '../../translations';
+import PhotographerProfile from './PhotographerProfile';
+import Timeline from './Timeline';
+import BreadcrumbBar from '../BreadcrumbBar';
 
 interface AlbumViewProps {
   album: Album;
 }
 
 interface AlbumViewState {
-  downloadDialogOpen: boolean;
-  downloadDialogPreparing: boolean;
   width: number;
 }
 
 interface Year {
   year: string | null;
   subalbums: Subalbum[];
-}
-
-const downloadAlbumPollingDelay = 3000;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
@@ -52,36 +45,36 @@ function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
   return years;
 }
 
+const isPhotographerView = (album: Album) => album.path.startsWith('/photographers/');
+const isTimelineView = (album: Album) => album.path.endsWith('/timeline');
+
 export default class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
   state: AlbumViewState = {
-    downloadDialogOpen: false,
-    downloadDialogPreparing: false,
     width: document.documentElement ? document.documentElement.clientWidth : 0,
   };
 
-  render() {
+  render(): JSX.Element {
     const { album } = this.props;
-    const { downloadDialogOpen, downloadDialogPreparing, width } = this.state;
-    const canDownload = album.is_downloadable && album.pictures.length;
+    const { width } = this.state;
+    const thisIsPhotographerView = isPhotographerView(album);
     const t = T(r => r.AlbumView);
 
-    const showBody = album.body || album.previous_in_series || album.next_in_series;
+    let body = null;
+    if (thisIsPhotographerView && album.credits.photographer) {
+      body = <PhotographerProfile photographer={album.credits.photographer} coverPicture={album.cover_picture} body={album.body} />;
+    } else if (album.body) {
+      body = <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
+    }
+
+    const showBody = body || album.previous_in_series || album.next_in_series;
+
+    // TODO logic is "this is not a nav-linked view", encap somewhere when it grows hairier?
+    const showBreadcrumb = album.breadcrumb.length && album.path !== '/photographers';
 
     return (
       <>
-        <AppBar
-          album={album}
-          actions={
-            canDownload
-              ? [
-                  {
-                    label: t(r => r.downloadAlbumLink) + '…',
-                    onClick: this.openDownloadDialog,
-                  },
-                ]
-              : []
-          }
-        />
+        <AppBar album={album} />
+        {showBreadcrumb ? <BreadcrumbBar album={album} /> : null}
 
         <main role="main">
           {/* Text body and previous/next links */}
@@ -97,7 +90,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
                   ) : null}
                 </div>
               ) : null}
-              <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />
+              {body ? body : null}
             </div>
           ) : null}
 
@@ -123,69 +116,31 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
 
         <AlbumViewFooter album={album} />
 
-        {/* Download dialog */}
-        {downloadDialogOpen ? (
-          <DownloadDialog
-            album={album}
-            onAccept={this.downloadAlbum}
-            onClose={this.closeDownloadDialog}
-            preparing={downloadDialogPreparing}
-            t={T(r => r.DownloadAlbumDialog)}
-          />
-        ) : null}
+        {isTimelineView(album) && <Timeline pictures={album.pictures} />}
       </>
     );
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     this.preloadFirstPicture();
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(): void {
     this.preloadFirstPicture();
   }
 
-  handleResize = () => {
+  handleResize: () => void = () => {
     this.setState({ width: document.documentElement!.clientWidth });
   };
 
-  preloadFirstPicture() {
+  preloadFirstPicture(): void {
     const firstPicture = this.props.album.pictures[0];
 
     if (firstPicture) {
       preloadMedia(firstPicture);
     }
   }
-
-  // XXX Whytf is setTimeout required here?
-  closeDownloadDialog = () => {
-    setTimeout(() => this.setState({ downloadDialogOpen: false }), 0);
-  };
-  openDownloadDialog = () => {
-    this.setState({ downloadDialogOpen: true });
-  };
-
-  downloadAlbum = async () => {
-    let { album } = this.props;
-
-    if (!album.download_url) {
-      this.setState({ downloadDialogPreparing: true });
-
-      // Trigger zip creation
-      album = await getCached(album.path, 'jpeg', true, true);
-
-      // Poll for zip creation to finish
-      while (!album.download_url) {
-        await sleep(downloadAlbumPollingDelay);
-        album = await getCached(album.path, 'jpeg', true);
-      }
-    }
-
-    this.setState({ downloadDialogPreparing: false });
-
-    window.location.href = album.download_url;
-  };
 }
