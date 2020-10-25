@@ -15,7 +15,7 @@ edegal_storage_pvc: true
 edegal_storage_pvc_storageclass: longhorn-nfs
 edegal_storage_nfs: false
 
-setup_should_run: false
+setup_should_run: true
 
 ingress_letsencrypt_enabled: true
 ingress_letsencrypt_cluster_issuer: letsencrypt-prod

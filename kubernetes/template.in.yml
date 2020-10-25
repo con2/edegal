@@ -83,12 +83,3 @@
 ###########
 ---
 !Include ingress.in.yml
-
-
-##################
-# DATABASE SETUP #
-##################
----
-!If
-  test: !Var setup_should_run
-  then: !Include jobs/setup.in.yml
