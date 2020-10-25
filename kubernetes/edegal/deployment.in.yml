@@ -14,7 +14,7 @@ spec:
         component: edegal
     spec:
       enableServiceLinks: false
-      securityContext: !Var edegal_security_context
+      securityContext: !Var edegal_pod_security_context
       initContainers:
         - !If
             test: !Var setup_should_run
@@ -23,12 +23,14 @@ spec:
               image: !Var edegal_image
               args: ["python", "manage.py", "setup"]
               env: !Var edegal_environment
+              securityContext: !Var edegal_container_security_context
       containers:
         - name: master
           image: !Var edegal_image
           ports:
             - containerPort: 8000
           env: !Var edegal_environment
+          securityContext: !Var edegal_container_security_context
           readinessProbe:
             httpGet:
               path: /api/v3/status

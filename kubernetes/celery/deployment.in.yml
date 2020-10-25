@@ -14,10 +14,12 @@ spec:
         component: celery
     spec:
       enableServiceLinks: false
+      securityContext: !Var edegal_pod_security_context
       containers:
         - name: master
           image: !Var edegal_image
           args: ["celery", "-A", "edegal_site.celery:app", "worker"]
           env: !Var edegal_environment
           volumeMounts: !Var edegal_media_volume_mounts
+          securityContext: !Var edegal_container_security_context
       volumes: !Var edegal_media_volumes_definition

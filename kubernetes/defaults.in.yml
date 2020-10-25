@@ -40,12 +40,13 @@ setup_should_run: true
 
 # Security context for Edegal and Celery pods
 # User 1082 (edegal) is guaranteed to exist in the Docker image, only change if you know what you're doing
-edegal_security_context:
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
+edegal_pod_security_context:
   runAsUser: 1082
   runAsGroup: 1082
   fsGroup: 1082
+edegal_container_security_context:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
 
 # Common environment vars for both edegal and celery pods.
 edegal_environment:
