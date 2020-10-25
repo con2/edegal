@@ -32,6 +32,9 @@ postgres_hostname: postgres
 postgres_database: edegal
 postgres_storage_pvc_storageclass: !Void
 
+# note: managed postgres doesn't provide ssl, only enable if using external postgres
+postgres_ssl: true
+
 setup_should_run: true
 
 # Common environment vars for both edegal and celery pods.
@@ -56,6 +59,11 @@ edegal_environment:
       secretKeyRef:
         name: postgres
         key: password
+  - !If
+      test: !Var postgres_ssl
+      then:
+        name: POSTGRES_EXTRAS
+        value: '?sslmode=require'
   - name: REDIS_HOSTNAME
     value: !Var redis_hostname
 
