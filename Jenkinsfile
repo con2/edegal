@@ -11,13 +11,13 @@ def environmentNameMap = [
 def tag = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
 def environmentName = environmentNameMap[env.BRANCH_NAME]
 
-def tempBackendImage = "conikuvat/edegal:${tag}"
-def finalBackendImage = "conikuvat/edegal:${imageMap[env.BRANCH_NAME]}"
+def tempBackendImage = "harbor.con2.fi/con2/edegal:${tag}"
+def finalBackendImage = "harbor.con2.fi/con2/edegal:${imageMap[env.BRANCH_NAME]}"
 
-def frontendImage = "conikuvat/edegal-frontend:${tag}"
+def frontendImage = "harbor.con2.fi/con2/edegal-frontend:${tag}"
 
-def tempStaticImage = "conikuvat/edegal-static:${tag}"
-def finalStaticImage = "conikuvat/edegal-static:${imageMap[env.BRANCH_NAME]}"
+def tempStaticImage = "harbor.con2.fi/con2/edegal-static:${tag}"
+def finalStaticImage = "harbor.con2.fi/con2/edegal-static:${imageMap[env.BRANCH_NAME]}"
 
 
 node {

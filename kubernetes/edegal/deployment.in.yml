@@ -13,6 +13,7 @@ spec:
         stack: edegal
         component: edegal
     spec:
+      enableServiceLinks: false
       containers:
         - name: master
           image: !Var edegal_image
