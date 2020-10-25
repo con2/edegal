@@ -5,9 +5,10 @@ postgres_hostname: siilo.tracon.fi
 postgres_database: conikuvatdev
 postgres_username: conikuvatdev
 
-redis_image: redis:6.0.8-buster
-redis_storage_pvc: true
-redis_storage_pvc_storageclass: longhorn
+redis_managed: false
+redis_hostname: redis-ha.redis-ha.svc.cluster.local
+redis_broker_database: 1
+redis_cache_database: 2
 
 edegal_repository: harbor.con2.fi/con2/edegal
 edegal_tag: staging
