@@ -6,7 +6,7 @@ postgres_database: conikuvatdev
 postgres_username: conikuvatdev
 
 redis_managed: false
-redis_hostname: redis-ha.redis-ha.svc.cluster.local
+redis_hostname: redis-ha-haproxy.redis-ha.svc.cluster.local
 redis_broker_database: 1
 redis_cache_database: 2
 
