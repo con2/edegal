@@ -55,20 +55,6 @@ node {
     """
   }
 
-  stage("Setup") {
-    if (env.BRANCH_NAME == "development") {
-      sh """
-        kubectl delete job/setup \
-          -n conikuvat-${environmentName} \
-          --ignore-not-found && \
-        emrichen kubernetes/jobs/setup.in.yml \
-          -f kubernetes/${environmentName}.vars.yml \
-          -D edegal_tag=${tag} | \
-        kubectl apply -n conikuvat-${environmentName} -f -
-      """
-    }
-  }
-
   stage("Deploy") {
     if (env.BRANCH_NAME == "development") {
       // Kubernetes deployment
