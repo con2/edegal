@@ -6,6 +6,7 @@ metadata:
     component: redis
   name: redis-data
 spec:
+  storageClass: !Var postgres_storage_pvc_storageclass
   accessModes:
   - ReadWriteOnce
   resources:

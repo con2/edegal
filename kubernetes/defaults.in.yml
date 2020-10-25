@@ -4,14 +4,10 @@ edegal_tag: staging
 edegal_image: !Format conikuvat/edegal:{edegal_tag}
 edegal_static_image: !Format conikuvat/edegal-static:{edegal_tag}
 
-# By default image storage is configured using a PersistentVolumeClaim. In order to use CephFS or NFS, set this to false.
+# By default image storage is configured using a PersistentVolumeClaim. In order to use NFS, set this to false.
 # See also redis_storage_…
 edegal_storage_pvc: true
-
-# To use an existing Rook CephFS file system as the image storage, set edegal_storage_cepfs to the name of the CephFS.
-edegal_storage_cephfs: ''
-edegal_storage_cephfs_namespace: rook-ceph
-edegal_storage_cephfs_path: /conikuvat-staging/edegal-media
+edegal_storage_pvc_storageclass: !Void
 
 # To use an existing NFS export as the image storage, set edegal_storage_nfs to the IP of the server.
 edegal_storage_nfs: ''
@@ -20,44 +16,41 @@ edegal_storage_nfs_path: /
 ingress_public_hostname: edegal.127.0.0.1.xip.io
 ingress_letsencrypt_enabled: false
 
-# For Redis and PostgreSQL, choose between a managed (in-cluster) service or
-# an external one. For external services, set fooservice_managed: false and point
-# fooservice_hostname to the external service, overriding the other defaults if necessary.
-# Also please pin the images using a tag other than latest for production.
-memcached_managed: true
-memcached_image: memcached:alpine
-memcached_hostname: memcached
-
 redis_managed: true
 redis_image: redis
 redis_hostname: redis
 redis_broker_database: 1
 redis_cache_database: 2
 redis_storage_pvc: true
-redis_storage_cephfs: ''
-redis_storage_cephfs_namespace: rook-ceph
-redis_storage_cephfs_path: /conikuvat-staging/redis-data
+redis_storage_pvc_storageclass: !Void
 
 # NOTE: "managed" PostgreSQL should not be considered production-ready.
 postgres_managed: true
 postgres_image: postgres
 postgres_hostname: postgres
 postgres_database: edegal
+postgres_storage_pvc_storageclass: !Void
 
 setup_should_run: true
 
 # Common environment vars for both edegal and celery pods.
 edegal_environment:
-  - name: POSTGRESQL_HOSTNAME
-    value: !Var postgres_hostname
-  - name: POSTGRESQL_DATABASE
-    value: !Var postgres_database
-  - name: POSTGRESQL_USERNAME
+  - name: POSTGRES_HOSTNAME
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: hostname
+  - name: POSTGRES_DATABASE
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: database
+  - name: POSTGRES_USERNAME
     valueFrom:
       secretKeyRef:
         name: postgres
         key: username
-  - name: POSTGRESQL_PASSWORD
+  - name: POSTGRES_PASSWORD
     valueFrom:
       secretKeyRef:
         name: postgres
@@ -86,17 +79,6 @@ edegal_media_volumes_definition:
         name: edegal-media
         persistentVolumeClaim:
           claimName: edegal-media
-  - !If
-      test: !Var edegal_storage_cephfs
-      then:
-        name: edegal-media
-        flexVolume:
-          driver: ceph.rook.io/rook
-          fsType: ceph
-          options:
-            fsName: !Var edegal_storage_cephfs
-            clusterNamespace: !Var edegal_storage_cephfs_namespace
-            path: !Var edegal_storage_cephfs_path
   - !If
       test: !Var edegal_storage_nfs
       then:

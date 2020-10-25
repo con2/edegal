@@ -42,9 +42,7 @@
   then: !Include postgres/pvc.in.yml
 
 ---
-!If
-  test: !Var postgres_managed
-  then: !Include postgres/secret.in.yml
+!Include postgres/secret.in.yml
 
 
 #########################

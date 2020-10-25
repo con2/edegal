@@ -6,6 +6,7 @@ metadata:
     component: edegal
   name: edegal-media
 spec:
+  storageClassName: !Var edegal_storage_pvc_storageclass
   accessModes:
   - ReadWriteMany
   resources:

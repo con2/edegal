@@ -3,16 +3,16 @@ ingress_public_hostname: dev.conikuvat.fi
 postgres_managed: false
 postgres_hostname: siilo.tracon.fi
 postgres_database: conikuvatdev
+postgres_username: conikuvatdev
 
-redis_image: redis:5.0.5-alpine
-redis_storage_pvc: false
-redis_storage_cephfs: qbfs
-redis_storage_cephfs_path: /conikuvat-staging/redis-data
+redis_image: redis:6.0.8-buster
+redis_storage_pvc: true
+redis_storage_pvc_storageclass: longhorn
 
 edegal_tag: staging
-edegal_storage_pvc: false
-edegal_storage_cephfs: qbfs
-edegal_storage_cephfs_path: /conikuvat-staging/edegal-media
+edegal_storage_pvc: true
+edegal_storage_pvc_storageclass: longhorn-nfs
+edegal_storage_nfs: false
 
 setup_should_run: false
 
