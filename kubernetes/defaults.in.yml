@@ -35,7 +35,17 @@ postgres_storage_pvc_storageclass: !Void
 # note: managed postgres doesn't provide ssl, only enable if using external postgres
 postgres_ssl: true
 
+# Whether or not "python manage.py setup" should run as init container
 setup_should_run: true
+
+# Security context for Edegal and Celery pods
+# User 1082 (edegal) is guaranteed to exist in the Docker image, only change if you know what you're doing
+edegal_security_context:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsUser: 1082
+  runAsGroup: 1082
+  fsGroup: 1082
 
 # Common environment vars for both edegal and celery pods.
 edegal_environment:
@@ -81,7 +91,14 @@ edegal_environment:
     value: !Var ingress_public_hostname
 
 # Common volumes for edegal, celery and nginx pods.
+edegal_media_volume_mounts:
+  - mountPath: /usr/src/app/media
+    name: edegal-media
+  - mountPath: /tmp
+    name: edegal-temp
 edegal_media_volumes_definition:
+  - name: edegal-temp
+    emptyDir: {}
   - !If
       test: !Var edegal_storage_pvc
       then:

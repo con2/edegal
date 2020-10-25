@@ -14,6 +14,7 @@ spec:
         component: edegal
     spec:
       enableServiceLinks: false
+      securityContext: !Var edegal_security_context
       initContainers:
         - !If
             test: !Var setup_should_run
@@ -49,4 +50,6 @@ spec:
           volumeMounts:
             - mountPath: /usr/src/app/media
               name: edegal-media
+            - mountPath: /tmp
+              name: edegal-temp
       volumes: !Var edegal_media_volumes_definition
