@@ -1,8 +1,9 @@
 !Defaults
 
 edegal_tag: staging
-edegal_image: !Format conikuvat/edegal:{edegal_tag}
-edegal_static_image: !Format conikuvat/edegal-static:{edegal_tag}
+edegal_repository: harbor.con2.fi/con2/edegal
+edegal_image: !Format "{edegal_repository}:{edegal_tag}"
+edegal_static_image: !Format "{edegal_repository}-static:{edegal_tag}"
 
 # By default image storage is configured using a PersistentVolumeClaim. In order to use NFS, set this to false.
 # See also redis_storage_…

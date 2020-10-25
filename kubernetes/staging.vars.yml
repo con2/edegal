@@ -9,6 +9,7 @@ redis_image: redis:6.0.8-buster
 redis_storage_pvc: true
 redis_storage_pvc_storageclass: longhorn
 
+edegal_repository: harbor.con2.fi/con2/edegal
 edegal_tag: staging
 edegal_storage_pvc: true
 edegal_storage_pvc_storageclass: longhorn-nfs
