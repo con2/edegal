@@ -1,20 +1,27 @@
 !Defaults
 
+# Note: For {dev.,beta.,}conikuvat.fi and larppikuvat.fi, edegal_tag is overridden in Jenkinsfile.
 edegal_tag: staging
 edegal_repository: harbor.con2.fi/con2/edegal
 edegal_image: !Format "{edegal_repository}:{edegal_tag}"
 edegal_static_image: !Format "{edegal_repository}-static:{edegal_tag}"
 
-# By default image storage is configured using a PersistentVolumeClaim. In order to use NFS, set this to false.
+# By default image storage is configured using a PersistentVolumeClaim.
+# In order to use NFS, set this to false.
 # See also redis_storage_…
 edegal_storage_pvc: true
+
+# Storage class used for picture storage, or !Void for default
 edegal_storage_pvc_storageclass: !Void
 
 # To use an existing NFS export as the image storage, set edegal_storage_nfs to the IP of the server.
 edegal_storage_nfs: ''
 edegal_storage_nfs_path: /
 
+# Set this to the public hostname of your service.
 ingress_public_hostname: edegal.127.0.0.1.xip.io
+
+# If you use ingress-nginx and cert-manager, TLS can be automatically configured by setting this to true.
 ingress_letsencrypt_enabled: false
 ingress_letsencrypt_cluster_issuer: letsencrypt-prod
 
