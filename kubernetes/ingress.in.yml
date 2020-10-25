@@ -2,20 +2,9 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: edegal
-  annotations:
-    !If
-      test: !Var ingress_letsencrypt_enabled
-      then:
-        cert-manager.io/cluster-issuer: !Var ingress_letsencrypt_cluster_issuer
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  annotations: !Var ingress_annotations
 spec:
-  tls:
-    - !If
-        test: !Var ingress_letsencrypt_enabled
-        then:
-          hosts:
-            - !Var ingress_public_hostname
-          secretName: ingress-letsencrypt
+  tls: !Var ingress_tls
   rules:
     - host: !Var ingress_public_hostname
       http:

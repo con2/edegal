@@ -16,6 +16,7 @@ edegal_storage_nfs_path: /
 
 ingress_public_hostname: edegal.127.0.0.1.xip.io
 ingress_letsencrypt_enabled: false
+ingress_letsencrypt_cluster_issuer: letsencrypt-prod
 
 redis_managed: true
 redis_image: redis
@@ -37,6 +38,8 @@ postgres_ssl: true
 
 # Whether or not "python manage.py setup" should run as init container
 setup_should_run: true
+
+# Configuration vars end here. Configuration snippets follow. May be overridden for advanced configuration.
 
 # Security context for Edegal and Celery pods
 # User 1082 (edegal) is guaranteed to exist in the Docker image, only change if you know what you're doing
@@ -113,3 +116,20 @@ edegal_media_volumes_definition:
         nfs:
           server: !Var edegal_storage_nfs
           path: !Var edegal_storage_nfs_path
+
+# Default annotations work for nginx ingress with or without LetsEncrypt TLS. Override if you need something else.
+ingress_annotations: !Merge
+  - nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.org/client-max-body-size: "100m"
+  - !If
+      test: !Var ingress_letsencrypt_enabled
+      then:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+ingress_tls: !If
+  test: !Var ingress_letsencrypt_enabled
+  then:
+    - secretName: ingress-letsencrypt
+      hosts:
+        - !Var ingress_public_hostname
