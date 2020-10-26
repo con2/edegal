@@ -69,18 +69,29 @@ Rules of thumb for rolling your own deployment:
 
 The following services are required:
 
-* [kubernetes-secret-generator](https://github.com/mittwald/kubernetes-secret-generator)
 * [ingress-nginx](https://github.com/kubernetes/ingress-nginx) or some other ingress controller
-* [cert-manager](https://github.com/jetstack/cert-manager)
+* [cert-manager](https://github.com/jetstack/cert-manager) if you want TLS (not required for local development)
 
-The Kubernetes templates use [emrichen](https://github.com/con2/emrichen) for substituting variables and reducing repetition (`pip3 install emrichen`).
+The Kubernetes deployment uses [Emskaffolden](https://github.com/con2/emskaffolden) which in turn wraps [Skaffold](https://skaffold.dev) with [Emrichen](https://github.com/con2/emrichen).
 
-To deploy in a K8s cluster:
+To deploy in [Docker Desktop](https://www.docker.com/products/docker-desktop) or similar local Kubernetes:
 
-    kubectl create namespace edegal
-    emrichen kubernetes/template.in.yml | kubectl apply -n edegal -f -
+    # If you don't already have an ingress controller
+    kubectl create namespace ingress-nginx
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    helm install -n ingress-nginx ingress-nginx ingress-nginx/ingress-nginx
 
-For production, you may want to use an external PostgreSQL (and maybe memcached and RabbitMQ).
+    # If you need TLS and don't already have cert-manager
+    kubectl create namespace cert-manager
+    helm repo add jetstack https://charts.jetstack.io
+    helm install -n cert-manager cert-manager jetstack/cert-manager --set installCRDs=true
+
+    # Once you have the above requirements installed
+    emskaffolden run
+
+To customize, first see `kubernetes/default.vars.yaml` and make a copy of `kubernetes/staging.vars.yaml` under your environment name (eg. `kubernetes/myenv.vars.yaml`). Then activate your environment with `-E myenv`. For a non-local Kubernetes cluster, you also need to add your private registry using `--default-repo`. Eg.
+
+    emskaffolden run -E myenv -- --default-repo=harbor.con2.fi/con2
 
 ### Ansible & Docker
 
