@@ -6,6 +6,10 @@ def environmentMap = [
 pipeline {
   agent any
 
+  environment {
+    PYTHONUNBUFFERED = "1"
+  }
+
   stages {
     stage("Build") {
       steps {
