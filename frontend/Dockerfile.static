@@ -1,5 +1,6 @@
-ARG BACKEND_IMAGE=conikuvat/edegal:latest
-ARG FRONTEND_IMAGE=conikuvat/edegal-frontend:latest
+ARG FRONTEND_IMAGE
+ARG BACKEND_IMAGE
+
 FROM $FRONTEND_IMAGE
 USER root
 RUN node_modules/.bin/react-scripts build && find build -type f \! -iname '*.gz' -exec gzip -k \{\} +

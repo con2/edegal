@@ -15,7 +15,7 @@ spec:
     spec:
       enableServiceLinks: false
       containers:
-        - name: master
+        - name: redis
           image: !Var redis_image
           args:
             - redis-server

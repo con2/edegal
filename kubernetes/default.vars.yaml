@@ -1,10 +1,13 @@
-!Defaults
-
 # Note: For {dev.,beta.,}conikuvat.fi and larppikuvat.fi, edegal_tag is overridden in Jenkinsfile.
-edegal_tag: staging
-edegal_repository: harbor.con2.fi/con2/edegal
-edegal_image: !Format "{edegal_repository}:{edegal_tag}"
-edegal_static_image: !Format "{edegal_repository}-static:{edegal_tag}"
+
+# Note: If you use Skaffold/Emskaffolden, leave these at defaults and let Skaffold manage the images
+edegal_image: edegal
+edegal_static_image: edegal-static
+
+# edegal_tag: staging
+# edegal_repository: harbor.con2.fi/con2/edegal
+# edegal_image: !Format "{edegal_repository}:{edegal_tag}"
+# edegal_static_image: !Format "{edegal_repository}-static:{edegal_tag}"
 
 # By default image storage is configured using a PersistentVolumeClaim.
 # In order to use NFS, set this to false.
@@ -18,8 +21,11 @@ edegal_storage_pvc_storageclass: !Void
 edegal_storage_nfs: ''
 edegal_storage_nfs_path: /
 
+# Leave empty if you have kubernetes-secret-generator installed in your cluster and want to have it generate a SECRET_KEY for you
+edegal_secret_key: ''
+
 # Set this to the public hostname of your service.
-ingress_public_hostname: edegal.127.0.0.1.xip.io
+ingress_public_hostname: edegal.localhost
 
 # If you use ingress-nginx and cert-manager, TLS can be automatically configured by setting this to true.
 ingress_letsencrypt_enabled: false
@@ -37,11 +43,15 @@ redis_storage_pvc_storageclass: !Void
 postgres_managed: true
 postgres_image: postgres
 postgres_hostname: postgres
+postgres_username: edegal
 postgres_database: edegal
 postgres_storage_pvc_storageclass: !Void
 
+# Leave empty if you want to let kubernetes-secret-generator generate one for you
+postgres_password: ''
+
 # note: managed postgres doesn't provide ssl, only enable if using external postgres
-postgres_ssl: true
+postgres_ssl: false
 
 # Whether or not "python manage.py setup" should run as init container
 setup_should_run: true

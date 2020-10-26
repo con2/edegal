@@ -4,6 +4,7 @@ postgres_managed: false
 postgres_hostname: siilo.tracon.fi
 postgres_database: conikuvatdev
 postgres_username: conikuvatdev
+postgres_ssl: true
 
 redis_managed: false
 redis_hostname: redis-ha-haproxy.redis-ha.svc.cluster.local

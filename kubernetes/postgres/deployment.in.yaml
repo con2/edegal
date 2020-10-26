@@ -15,7 +15,7 @@ spec:
     spec:
       enableServiceLinks: false
       containers:
-      - name: master
+      - name: postgres
         image: !Var postgres_image
         ports:
         - containerPort: 5432

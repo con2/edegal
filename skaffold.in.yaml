@@ -1,0 +1,29 @@
+apiVersion: skaffold/v2beta9
+kind: Config
+metadata:
+  name: edegal
+
+build:
+  local:
+    useBuildkit: true
+  artifacts:
+    - image: edegal
+      context: backend
+    - image: edegal-frontend
+      context: frontend
+      docker:
+        dockerfile: Dockerfile
+    - image: edegal-static
+      context: frontend
+      docker:
+        dockerfile: Dockerfile.static
+      requires:
+        - image: edegal
+          alias: BACKEND_IMAGE
+        - image: edegal-frontend
+          alias: FRONTEND_IMAGE
+
+deploy:
+  kubectl:
+    manifests:
+      - kubernetes/template.compiled.yaml

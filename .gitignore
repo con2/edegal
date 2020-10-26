@@ -21,3 +21,4 @@ docker-compose.secret.yml
 .env
 *.sql
 .vscode
+*.compiled.yaml

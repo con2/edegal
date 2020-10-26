@@ -25,7 +25,7 @@ spec:
               env: !Var edegal_environment
               securityContext: !Var edegal_container_security_context
       containers:
-        - name: master
+        - name: edegal
           image: !Var edegal_image
           ports:
             - containerPort: 8000

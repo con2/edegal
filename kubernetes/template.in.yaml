@@ -1,7 +1,5 @@
 # edegal deployment using Kubernetes
-# usage: emrichen kubernetes.in.yml | kubectl apply -n edegal -f -
-
-!Include defaults.in.yml
+# usage: emrichen -f default.vars.yaml kubernetes.in.yaml | kubectl apply -n edegal -f -
 
 
 #########
@@ -10,17 +8,17 @@
 ---
 !If
   test: !Var redis_managed
-  then: !Include redis/service.in.yml
+  then: !Include redis/service.in.yaml
 
 ---
 !If
   test: !Var redis_managed
-  then: !Include redis/deployment.in.yml
+  then: !Include redis/deployment.in.yaml
 
 ---
 !If
   test: !All [!Var redis_managed, !Var redis_storage_pvc]
-  then: !Include redis/pvc.in.yml
+  then: !Include redis/pvc.in.yaml
 
 
 ##############
@@ -29,57 +27,57 @@
 ---
 !If
   test: !Var postgres_managed
-  then: !Include postgres/service.in.yml
+  then: !Include postgres/service.in.yaml
 
 ---
 !If
   test: !Var postgres_managed
-  then: !Include postgres/deployment.in.yml
+  then: !Include postgres/deployment.in.yaml
 
 ---
 !If
   test: !Var postgres_managed
-  then: !Include postgres/pvc.in.yml
+  then: !Include postgres/pvc.in.yaml
 
 ---
 !If
   test: !Var postgres_managed
-  then: !Include postgres/secret.in.yml
+  then: !Include postgres/secret.in.yaml
 
 
 #########################
 # GUNICORN (Web server) #
 #########################
 ---
-!Include edegal/service.in.yml
+!Include edegal/service.in.yaml
 ---
-!Include edegal/deployment.in.yml
+!Include edegal/deployment.in.yaml
 ---
 !If
   test: !Var edegal_storage_pvc
-  then: !Include edegal/pvc.in.yml
+  then: !Include edegal/pvc.in.yaml
 ---
-!Include edegal/secret.in.yml
+!Include edegal/secret.in.yaml
 
 
 ##############################
 # CELERY (Background worker) #
 ##############################
 ---
-!Include celery/deployment.in.yml
+!Include celery/deployment.in.yaml
 
 
 ###############################
 # NGINX (Static file serving) #
 ###############################
 ---
-!Include nginx/service.in.yml
+!Include nginx/service.in.yaml
 ---
-!Include nginx/deployment.in.yml
+!Include nginx/deployment.in.yaml
 
 
 ###########
 # INGRESS #
 ###########
 ---
-!Include ingress.in.yml
+!Include ingress.in.yaml

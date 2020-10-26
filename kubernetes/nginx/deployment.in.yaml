@@ -15,7 +15,7 @@ spec:
     spec:
       enableServiceLinks: false
       containers:
-        - name: master
+        - name: nginx
           image: !Var edegal_static_image
           ports:
             - containerPort: 80
