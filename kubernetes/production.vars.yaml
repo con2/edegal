@@ -9,7 +9,7 @@ postgres_ssl: true
 redis_managed: false
 redis_hostname: redis-ha-haproxy.redis-ha.svc.cluster.local
 redis_broker_database: 3
-redis_cache_database: 4
+redis_cache_database: 3
 
 edegal_repository: harbor.con2.fi/con2/edegal
 edegal_tag: latest
