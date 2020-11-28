@@ -1,6 +1,7 @@
 def environmentMap = [
   "development": ["staging"],
-  "master": ["production", "larppikuvat"],
+  // "master": ["production", "larppikuvat"],
+  "master": ["production"],
 ]
 
 def namespaceMap = [
