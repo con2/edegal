@@ -1,6 +1,12 @@
 def environmentMap = [
-  "development": "staging",
-  "master": "production",
+  "development": ["staging"],
+  "master": ["production", "larppikuvat"],
+]
+
+def namespaceMap = [
+  "staging": "conikuvat-staging",
+  "production": "conikuvat-production",
+  "larppikuvat": "larppikuvat",
 ]
 
 pipeline {
@@ -8,18 +14,23 @@ pipeline {
 
   environment {
     PYTHONUNBUFFERED = "1"
+    SKAFFOLD_DEFAULT_REPO = "harbor.con2.fi/con2"
   }
 
   stages {
     stage("Build") {
       steps {
-        sh "emskaffolden -E ${environmentMap[env.BRANCH_NAME]} -- build --default-repo=harbor.con2.fi/con2 --file-output build.json"
+        sh "emskaffolden -- build --file-output build.json"
       }
     }
 
     stage("Deploy") {
       steps {
-        sh "emskaffolden -E ${environmentMap[env.BRANCH_NAME]} -- deploy -n conikuvat-${environmentMap[env.BRANCH_NAME]} -a=build.json"
+        script {
+          for (environmentName in environmentMap.get(env.BRANCH_NAME, [])) {
+            sh "emskaffolden -E ${environmentName} -- deploy -n ${namespaceMap[environmentName]} -a=build.json"
+          }
+        }
       }
     }
   }

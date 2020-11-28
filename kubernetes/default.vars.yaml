@@ -1,13 +1,8 @@
 # Note: For {dev.,beta.,}conikuvat.fi and larppikuvat.fi, edegal_tag is overridden in Jenkinsfile.
 
-# Note: If you use Skaffold/Emskaffolden, leave these at defaults and let Skaffold manage the images
 edegal_image: edegal
 edegal_static_image: edegal-static
-
-# edegal_tag: staging
-# edegal_repository: harbor.con2.fi/con2/edegal
-# edegal_image: !Format "{edegal_repository}:{edegal_tag}"
-# edegal_static_image: !Format "{edegal_repository}-static:{edegal_tag}"
+edegal_admins: []
 
 # By default image storage is configured using a PersistentVolumeClaim.
 # In order to use NFS, set this to false.
@@ -23,6 +18,14 @@ edegal_storage_nfs_path: /
 
 # Leave empty if you have kubernetes-secret-generator installed in your cluster and want to have it generate a SECRET_KEY for you
 edegal_secret_key: ''
+edegal_secret_managed: true
+
+# Kompassi OAuth2 (NOTE: do not set if djangoapp_secret_managed: false)
+kompassi_client_id: ''
+kompassi_client_secret: ''
+
+smtp_server: ''
+smtp_default_from_email: ''
 
 # Set this to the public hostname of your service.
 ingress_public_hostname: edegal.localhost
@@ -108,8 +111,26 @@ edegal_environment:
       secretKeyRef:
         name: edegal
         key: secretKey
+  - name: KOMPASSI_OAUTH2_CLIENT_ID
+    valueFrom:
+      secretKeyRef:
+        name: edegal
+        key: kompassiClientId
+  - name: KOMPASSI_OAUTH2_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: edegal
+        key: kompassiClientSecret
   - name: ALLOWED_HOSTS
     value: !Var ingress_public_hostname
+  - name: EMAIL_HOST
+    value: !Var smtp_server
+  - name: DEFAULT_FROM_EMAIL
+    value: !Var smtp_default_from_email
+  - name: ADMINS
+    value: !Join
+      items: !Var edegal_admins
+      separator: ","
 
 # Common volumes for edegal, celery and nginx pods.
 edegal_media_volume_mounts:

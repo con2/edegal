@@ -57,7 +57,9 @@
   test: !Var edegal_storage_pvc
   then: !Include edegal/pvc.in.yaml
 ---
-!Include edegal/secret.in.yaml
+!If
+  test: !Var edegal_secret_managed
+  then: !Include edegal/secret.in.yaml
 
 
 ##############################

@@ -22,4 +22,5 @@ docker-compose.secret.yml
 *.sql
 .vscode
 *.compiled.yaml
+*.local.yaml
 build.json

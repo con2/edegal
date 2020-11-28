@@ -1,19 +1,18 @@
-ingress_public_hostname: dev.conikuvat.fi
+ingress_public_hostname: larppikuvat.fi
 
 postgres_managed: false
 postgres_hostname: siilo.tracon.fi
-postgres_database: conikuvatdev
-postgres_username: conikuvatdev
+postgres_database: larppikuvat
+postgres_username: larppikuvat
 postgres_ssl: true
 
 redis_managed: false
 redis_hostname: redis-ha-haproxy.redis-ha.svc.cluster.local
-redis_broker_database: 1
-redis_cache_database: 1
+redis_broker_database: 5
+redis_cache_database: 5
 
-edegal_storage_pvc: true
-edegal_storage_pvc_storageclass: longhorn-nfs
-edegal_storage_nfs: false
+edegal_storage_pvc: false
+edegal_storage_nfs: 91.105.251.66
 edegal_secret_managed: false
 edegal_admins:
 - Santtu Pajukanta <santtu@pajukanta.fi>
