@@ -22,14 +22,14 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}        
       - name: Build backend
-        id: docker_build
+        id: docker_build_backend
         uses: docker/build-push-action@v2
         with:
           context: backend
           push: true
           tags: harbor.con2.fi/con2/edegal:gha-test
-      - name: Build backend
-        id: docker_build
+      - name: Build frontend
+        id: docker_build_frontend
         uses: docker/build-push-action@v2
         with:
           context: frontend
