@@ -65,5 +65,5 @@ jobs:
           tags: ${{ steps.docker_meta_static.outputs.tags }}
           labels: ${{ steps.docker_meta_static.outputs.labels }}
           build-args: |
-            FRONTEND_IMAGE=${{ steps.docker_build_frontend.outputs.digest }}
-            BACKEND_IMAGE=${{ steps.docker_build_backend.outputs.digest }}
+            FRONTEND_IMAGE=${{ steps.docker_meta_frontend.outputs.tags[0] }}@${{ steps.docker_build_frontend.outputs.digest }}
+            BACKEND_IMAGE=${{ steps.docker_meta_backend.outputs.tags[0] }}@${{ steps.docker_build_backend.outputs.digest }}
