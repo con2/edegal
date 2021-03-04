@@ -24,3 +24,4 @@ docker-compose.secret.yml
 *.compiled.yaml
 *.local.yaml
 build.json
+.secrets

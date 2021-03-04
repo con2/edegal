@@ -5,7 +5,6 @@ on:
     branches:
       - gha-test
 
-
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -67,3 +66,13 @@ jobs:
           build-args: |
             FRONTEND_IMAGE=harbor.con2.fi/con2/edegal-frontend@${{ steps.docker_build_frontend.outputs.digest }}
             BACKEND_IMAGE=harbor.con2.fi/con2/edegal@${{ steps.docker_build_backend.outputs.digest }}
+    outputs:
+      backend_image: harbor.con2.fi/con2/edegal@${{ steps.docker_build_backend.outputs.digest }}
+      static_image: harbor.con2.fi/con2/edegal-static@${{ steps.docker_build_static.outputs.digest }}
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - run: echo ${{ needs.build.outputs.backend_image }} ${{ needs.build.outputs.static_image }}
