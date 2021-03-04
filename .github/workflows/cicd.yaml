@@ -95,8 +95,8 @@ jobs:
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
           build-args: |
-            FRONTEND_IMAGE=harbor.con2.fi/con2/edegal-frontend@${{ needs.build_frontend.outputs.digest }}
-            BACKEND_IMAGE=harbor.con2.fi/con2/edegal@${{ needs.build_backend.outputs.digest }}
+            FRONTEND_IMAGE=harbor.con2.fi/con2/edegal-frontend@${{ needs.build_frontend.outputs.image }}
+            BACKEND_IMAGE=harbor.con2.fi/con2/edegal@${{ needs.build_backend.outputs.image }}
     outputs:
       image: harbor.con2.fi/con2/edegal-static@${{ steps.docker_build.outputs.digest }}
 
