@@ -73,6 +73,6 @@ jobs:
   deploy_staging:
     needs: build
     runs-on: self-hosted
-    if: ${{ github.event_name == 'push' && github.ref == "refs/heads/development" }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/development' }}
     steps:
       - run: echo ${{ needs.build.outputs.backend_image }} ${{ needs.build.outputs.static_image }}
