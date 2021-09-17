@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: edegal
@@ -9,15 +9,24 @@ spec:
     - host: !Var ingress_public_hostname
       http:
         paths:
-          - path: /admin
+          - pathType: Prefix
+            path: /admin
             backend:
-              serviceName: edegal
-              servicePort: 8000
-          - path: /api
+              service:
+                name: edegal
+                port:
+                  number: 8000
+          - pathType: Prefix
+            path: /api
             backend:
-              serviceName: edegal
-              servicePort: 8000
-          - path: /
+              service:
+                name: edegal
+                port:
+                  number: 8000
+          - pathType: Prefix
+            path: /
             backend:
-              serviceName: nginx
-              servicePort: 80
+              service:
+                name: nginx
+                port:
+                  number: 80
