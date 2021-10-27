@@ -5,7 +5,7 @@ metadata:
 
 build:
   local:
-    useBuildkit: true
+    # useBuildkit: true
   artifacts:
     - image: edegal
       context: backend

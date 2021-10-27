@@ -3,7 +3,7 @@ ARG BACKEND_IMAGE
 
 FROM $FRONTEND_IMAGE
 USER root
-RUN node_modules/.bin/react-scripts build && find build -type f \! -iname '*.gz' -exec gzip -k \{\} +
+RUN node_modules/.bin/vite build && find build -type f \! -iname '*.gz' -exec gzip -k \{\} +
 
 FROM $BACKEND_IMAGE
 

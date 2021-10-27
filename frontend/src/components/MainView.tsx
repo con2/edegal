@@ -17,8 +17,7 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
   const [error, setError] = React.useState<unknown>(null);
 
   React.useEffect(() => {
-    // TODO: not exactly NodeJS, fix tsconfig
-    let timeout: NodeJS.Timeout | null = null;
+    let timeout: number | null = null;
 
     (async () => {
       // Only show the loading indicator if the request is slow.
