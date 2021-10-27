@@ -24,6 +24,10 @@ edegal_secret_managed: true
 kompassi_client_id: ''
 kompassi_client_secret: ''
 
+# admin group members get django is_superuser, editor group members get only is_staff and privileges to eg. upload photos
+kompassi_admin_group: admins
+kompassi_editor_group: conikuvat-staff
+
 smtp_server: ''
 smtp_default_from_email: ''
 
@@ -121,6 +125,10 @@ edegal_environment:
       secretKeyRef:
         name: edegal
         key: kompassiClientSecret
+  - name: KOMPASSI_ADMIN_GROUP
+    value: !Var kompassi_admin_group
+  - name: KOMPASSI_EDITOR_GROUP
+    value: !Var kompassi_editor_group
   - name: ALLOWED_HOSTS
     value: !Var ingress_public_hostname
   - name: EMAIL_HOST

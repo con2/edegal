@@ -25,3 +25,5 @@ smtp_default_from_email: root@tracon.fi
 
 ingress_letsencrypt_enabled: true
 ingress_letsencrypt_cluster_issuer: letsencrypt-prod
+
+kompassi_editor_group: larppikuvat-staff
