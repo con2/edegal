@@ -26,17 +26,11 @@ interface ThumbnailProps {
 }
 
 const Thumbnail = ({ src, width, height, title, additionalFormats }: ThumbnailProps) => (
-  <picture
-    style={{
-      display: 'block',
-      width: Math.floor(width),
-      height: Math.floor(height),
-    }}
-  >
+  <picture>
     {additionalFormats.map(format => (
       <source key={format} srcSet={replaceFormat(src, format)} type={`image/${format}`} />
     ))}
-    <img src={src} alt={title} loading="lazy" />
+    <img src={src} alt={title} loading="lazy" width={Math.floor(width)} height={Math.floor(height)} />
   </picture>
 );
 
