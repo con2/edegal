@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Spinner from 'react-svg-spinner';
+// import Spinner from 'react-svg-spinner';
 
 // TODO Replace spinner with sth like https://github.com/danilowoz/react-content-loader
 // TODO Figure out how to center this vertically without breaking sticky footer
@@ -8,7 +8,7 @@ import Spinner from 'react-svg-spinner';
 const Loading: React.FC<{}> = () => (
   <div className="container pt-5">
     <div className="row justify-content-center align-items-center">
-      <Spinner color="#eee" size="6vw" speed="slow" gap={1} />
+      {/* <Spinner color="#eee" size="6vw" speed="slow" gap={1} /> */}
     </div>
   </div>
 );
