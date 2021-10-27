@@ -1,30 +1,23 @@
 import Config from '../Config';
 import AlbumCache from '../helpers/AlbumCache';
 import Album from '../models/Album';
-import { Format } from '../models/Media';
 import Picture from '../models/Picture';
-import supportsWebp from './supportsWebp';
 
 // The result of these endpoints may change on every request.
-const nonCachedPaths = [
-  '/random',
-];
+const nonCachedPaths = ['/random'];
 
 /**
  * The "low level" album getter.
  */
-export async function getCached(path: string, format: Format, bypassCache = false, download = false): Promise<Album> {
+export async function getCached(path: string, bypassCache = false, download = false): Promise<Album> {
   const cached = AlbumCache.get(path);
   if (cached && !bypassCache) {
     return cached;
   }
 
-  const params = new URLSearchParams({ format });
-  if (download) {
-    params.set('download', '1');
-  }
+  const params = download ? '?download=1' : '';
 
-  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}?${params.toString()}`;
+  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}${path}${params}`;
   const response = await fetch(url, {
     headers: {
       accept: 'application/json',
@@ -59,8 +52,6 @@ export interface Content {
   picture?: Picture;
 }
 
-const webpSupportedPromise = supportsWebp();
-
 /**
  * Fetches an Album from the backend API. As any path may refer to an Album
  * or a Picture, we determine which we got after receiving results.
@@ -68,15 +59,12 @@ const webpSupportedPromise = supportsWebp();
  * @param path Path to an Album or Picture.
  */
 export const getAlbum = async (path: string): Promise<Content> => {
-  const webpSupported = await webpSupportedPromise;
-  const format = webpSupported ? 'webp' : 'jpeg';
-
   // Remove trailing slash
   if (path !== '/' && path.slice(-1) === '/') {
     path = path.slice(0, -1);
   }
 
-  const album = await getCached(path, format);
+  const album = await getCached(path);
 
   if (album.path === path) {
     return { album };

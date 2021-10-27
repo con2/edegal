@@ -11,6 +11,7 @@ import { T } from '../../translations';
 import DownloadDialog from '../DownloadDialog';
 
 import './index.css';
+import replaceFormat from '../../helpers/replaceFormat';
 
 type Direction = 'next' | 'previous' | 'album';
 const keyMap: { [keyCode: number]: Direction } = {
@@ -37,17 +38,19 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   render() {
     const t = T(r => r.PictureView);
     const { album, picture } = this.props;
-    const { preview } = picture;
+    const { preview, title } = picture;
+    const { src } = preview;
+    const additionalFormats = preview.additional_formats ?? [];
     const { downloadDialogOpen } = this.state;
 
     return (
       <div className="PictureView">
-        <div
-          className="PictureView-img"
-          style={{
-            backgroundImage: `url(${preview.src})`,
-          }}
-        />
+        <picture className="PictureView-img">
+          {additionalFormats.map(format => (
+            <source key={format} srcSet={replaceFormat(src, format)} type={`image/${format}`} />
+          ))}
+          <img src={src} alt={title} />
+        </picture>
 
         {picture.previous ? (
           <div
@@ -62,14 +65,22 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
         ) : null}
 
         {picture.next ? (
-          <div onClick={() => this.goTo('next')} className="PictureView-nav PictureView-nav-next" title={t(r => r.nextPicture)}>
+          <div
+            onClick={() => this.goTo('next')}
+            className="PictureView-nav PictureView-nav-next"
+            title={t(r => r.nextPicture)}
+          >
             <svg className="PictureView-icon">
               <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
             </svg>
           </div>
         ) : null}
 
-        <div onClick={() => this.goTo('album')} className="PictureView-action PictureView-action-exit" title={t(r => r.backToAlbum)}>
+        <div
+          onClick={() => this.goTo('album')}
+          className="PictureView-action PictureView-action-exit"
+          title={t(r => r.backToAlbum)}
+        >
           <svg className="PictureView-icon">
             <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
           </svg>

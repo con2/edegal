@@ -58,16 +58,25 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
   return (
     <div>
       {rows.map((row, index) => (
-        <div key={index} className="AlbumView-row" style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}>
+        <div
+          key={index}
+          className="AlbumView-row"
+          style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}
+        >
           {row.items.map(item => (
             <PictureTile
               key={item.path}
               path={item.path}
-              width={item.thumbnail ? item.thumbnail.width * row.scaleFactor : defaultThumbnailWidth * row.scaleFactor}
+              width={
+                item.thumbnail
+                  ? item.thumbnail.width * row.scaleFactor
+                  : defaultThumbnailWidth * row.scaleFactor
+              }
               height={row.height}
               title={item.title}
               showTitle={showTitle}
               src={item.thumbnail ? item.thumbnail.src : undefined}
+              additionalFormats={item.thumbnail?.additional_formats ?? []}
               externalLink={item.redirect_url}
               isPublic={item.is_public}
             />

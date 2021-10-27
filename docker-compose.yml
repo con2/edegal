@@ -35,6 +35,8 @@ services:
       - 3000:3000
     volumes:
       - ./frontend/src:/usr/src/app/src
+    tmpfs:
+      - /usr/src/app/node_modules/.cache
     environment:
       REACT_APP_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
       CI: "true"

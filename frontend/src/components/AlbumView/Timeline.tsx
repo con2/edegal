@@ -20,7 +20,14 @@ const Timeline: React.FC<TimelineProps> = ({ pictures }) => {
     <svg
       viewBox={`0, 0, ${numBuckets}, 1`}
       preserveAspectRatio="none"
-      style={{ width: '100%', height: 40, borderTop: '1px solid black', position: 'fixed', bottom: 0, backgroundColor: '#333' }}
+      style={{
+        width: '100%',
+        height: 40,
+        borderTop: '1px solid black',
+        position: 'fixed',
+        bottom: 0,
+        backgroundColor: '#333',
+      }}
     >
       {pictures.map(picture => {
         const x = ((dateStrToSeconds(picture.taken_at!) - minTime) / timeSpan) * numBuckets;

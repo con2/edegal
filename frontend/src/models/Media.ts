@@ -1,4 +1,4 @@
-export type Format = 'jpeg' | 'webp';
+export type Format = 'jpeg' | 'webp' | 'avif';
 export type Role = 'original' | 'preview' | 'thumbnail';
 
 export interface Media {
@@ -6,8 +6,7 @@ export interface Media {
   width: number;
   height: number;
   quality: number;
-  format: Format;
-  role: Role;
+  additional_formats: Format[];
 }
 
 export const nullMedia: Media = {
@@ -15,8 +14,7 @@ export const nullMedia: Media = {
   width: 0,
   height: 0,
   quality: 0,
-  format: 'jpeg',
-  role: 'thumbnail',
+  additional_formats: [],
 };
 
 // export default Media;

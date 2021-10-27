@@ -11,7 +11,9 @@ const detectedLanguage = (navigator.languages || [navigator.language])[0] || def
 const translations: Translations = (languages as any)[detectedLanguage] || languages[defaultLanguage];
 
 export type TranslationKeyFunction<LocalTranslations = Translations> = (r: LocalTranslations) => string;
-export type TranslationFunction<LocalTranslations = Translations> = (fn: TranslationKeyFunction<LocalTranslations>) => string;
+export type TranslationFunction<LocalTranslations = Translations> = (
+  fn: TranslationKeyFunction<LocalTranslations>
+) => string;
 
 export type HigherOrderTranslationKeyFunction<LocalTranslations> = (r: Translations) => LocalTranslations;
 

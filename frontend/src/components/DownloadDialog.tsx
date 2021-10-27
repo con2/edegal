@@ -40,7 +40,14 @@ export function useDownloadDialogState() {
   return { isDownloadDialogOpen, openDownloadDialog, closeDownloadDialog };
 }
 
-export function DownloadDialog({ album, onAccept, onClose, t, isPreparing, isOpen }: DownloadDialogProps): JSX.Element {
+export function DownloadDialog({
+  album,
+  onAccept,
+  onClose,
+  t,
+  isPreparing,
+  isOpen,
+}: DownloadDialogProps): JSX.Element {
   const [isTermsAndConditionsAccepted, setTermsAndConditionsAccepted] = React.useState(false);
   const [downloadButtonClicked, setDownloadButtonClicked] = React.useState(false);
   const handleAccept = React.useCallback(() => {
@@ -60,7 +67,8 @@ export function DownloadDialog({ album, onAccept, onClose, t, isPreparing, isOpe
   const { photographer, director } = album.credits;
 
   const haveTwitter = (photographer && photographer.twitter_handle) || (director && director.twitter_handle);
-  const haveInstagram = (photographer && photographer.instagram_handle) || (director && director.instagram_handle);
+  const haveInstagram =
+    (photographer && photographer.instagram_handle) || (director && director.instagram_handle);
   const haveCredit = (photographer && photographer.display_name) || (director && director.display_name);
 
   return (
@@ -88,9 +96,16 @@ export function DownloadDialog({ album, onAccept, onClose, t, isPreparing, isOpe
             </p>
             <p>
               {photographer ? (
-                <>📸 {photographer.twitter_handle ? `@${photographer.twitter_handle}` : photographer.display_name} </>
+                <>
+                  📸{' '}
+                  {photographer.twitter_handle
+                    ? `@${photographer.twitter_handle}`
+                    : photographer.display_name}{' '}
+                </>
               ) : null}
-              {director ? <>🎬 {director.twitter_handle ? `@${director.twitter_handle}` : director.display_name} </> : null}
+              {director ? (
+                <>🎬 {director.twitter_handle ? `@${director.twitter_handle}` : director.display_name} </>
+              ) : null}
             </p>
           </>
         ) : null}
@@ -104,13 +119,16 @@ export function DownloadDialog({ album, onAccept, onClose, t, isPreparing, isOpe
               {photographer ? (
                 <>
                   {t(r => r.photographer)}:{' '}
-                  {photographer.instagram_handle ? `@${photographer.instagram_handle}` : photographer.display_name}
+                  {photographer.instagram_handle
+                    ? `@${photographer.instagram_handle}`
+                    : photographer.display_name}
                   <br />
                 </>
               ) : null}
               {director ? (
                 <>
-                  {t(r => r.director)}: {director.instagram_handle ? `@${director.instagram_handle}` : director.display_name}
+                  {t(r => r.director)}:{' '}
+                  {director.instagram_handle ? `@${director.instagram_handle}` : director.display_name}
                   <br />
                 </>
               ) : null}
@@ -121,7 +139,9 @@ export function DownloadDialog({ album, onAccept, onClose, t, isPreparing, isOpe
         {haveCredit ? (
           <>
             <p>
-              <strong>{haveTwitter || haveInstagram ? t(r => r.genericCredit) : t(r => r.genericCreditAlternative)}</strong>
+              <strong>
+                {haveTwitter || haveInstagram ? t(r => r.genericCredit) : t(r => r.genericCreditAlternative)}
+              </strong>
             </p>
             <p>
               {photographer && photographer.display_name ? (
@@ -158,8 +178,14 @@ export function DownloadDialog({ album, onAccept, onClose, t, isPreparing, isOpe
           disabled={!isTermsAndConditionsAccepted || isPreparing}
           onClick={handleAccept}
         >
-          {isPreparing ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden={true} /> : null}
-          {` ${isPreparing ? t(r => r.preparingDownloadButtonText ?? r.downloadButtonText) + '…' : t(r => r.downloadButtonText)}`}
+          {isPreparing ? (
+            <>
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden={true} />{' '}
+              {t(r => r.preparingDownloadButtonText ?? r.downloadButtonText) + '…'}
+            </>
+          ) : (
+            <>{t(r => r.downloadButtonText)}</>
+          )}
         </button>
         <button type="button" className="btn btn-secondary" onClick={handleClose}>
           {t(r => r.closeButtonText)}

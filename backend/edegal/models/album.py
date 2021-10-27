@@ -2,6 +2,7 @@ import logging
 import re
 import os
 from datetime import date
+from typing import Any
 from zipfile import ZipFile
 
 from django.conf import settings
@@ -24,51 +25,54 @@ logger = logging.getLogger(__name__)
 # Presets for Album._guess_date.
 # Could use datetime.strptime(…).date, but then would have to spell the same thing twice as we do not know
 # at which point in title/description the date is present (if at all).
-YEAR = r'(?P<year>\d{4})'
-MONTH = r'(?P<month>[01]?\d)'
-DAY = r'(?P<day>[0-3]?\d)'
+YEAR = r"(?P<year>\d{4})"
+MONTH = r"(?P<month>[01]?\d)"
+DAY = r"(?P<day>[0-3]?\d)"
 GUESS_DATE_REGEXEN = (
     # ISO format
-    re.compile(f'{YEAR}-{MONTH}-{DAY}'),
-
+    re.compile(f"{YEAR}-{MONTH}-{DAY}"),
     # Finnish format
-    re.compile(f'{DAY}.{MONTH}.{YEAR}'),
-
+    re.compile(f"{DAY}.{MONTH}.{YEAR}"),
     # Not supporting slashful formats because the order can be anything (Y/D/M, Y/M/D, M/D/Y, D/M/Y…)
 )
 
 LAYOUT_CHOICES = [
-    ('simple', 'Simple'),
-    ('yearly', 'Yearly'),
+    ("simple", "Simple"),
+    ("yearly", "Yearly"),
 ]
 
 BREADCRUMB_SEPARATOR = " » "
 
 FAKE_ALBUM_DEFAULTS = dict(
     # path must be provided
-    title='',
-    body='',
+    title="",
+    body="",
     subalbums=[],
     pictures=[],
-    redirect_url='',
+    redirect_url="",
     is_downloadable=False,
-    download_url='',
-    date='',
-    layout='simple',
+    download_url="",
+    date="",
+    layout="simple",
     credits={},
 )
 
 
 class Album(AlbumMixin, MPTTModel):
+    # TODO
+    pictures: Any
+    subalbums: Any
+
     slug = models.CharField(**CommonFields.slug)
-    parent = TreeForeignKey('self',
+    parent = TreeForeignKey(
+        "self",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name='subalbums',
+        related_name="subalbums",
         db_index=True,
-        verbose_name='Parent Album',
-        help_text='The album under which this album will reside. The root album (/) has no parent album.'
+        verbose_name="Parent Album",
+        help_text="The album under which this album will reside. The root album (/) has no parent album.",
     )
     path = models.CharField(**CommonFields.path)
 
@@ -80,8 +84,8 @@ class Album(AlbumMixin, MPTTModel):
     redirect_url = models.CharField(
         max_length=1023,
         blank=True,
-        verbose_name='Redirect URL',
-        help_text='If set, users that stumble upon this album will be redirected to this URL.',
+        verbose_name="Redirect URL",
+        help_text="If set, users that stumble upon this album will be redirected to this URL.",
     )
 
     layout = models.CharField(
@@ -90,34 +94,42 @@ class Album(AlbumMixin, MPTTModel):
         choices=LAYOUT_CHOICES,
     )
 
-    cover_picture = models.ForeignKey('Picture',
+    cover_picture = models.ForeignKey(
+        "Picture",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='+',
+        related_name="+",
     )
 
     is_public = models.BooleanField(**CommonFields.is_public)
     is_visible = models.BooleanField(**CommonFields.is_visible)
-    is_downloadable = models.BooleanField(default=True, help_text=(
-        'Controls whether or not site visitors can download original photos from this album, or the whole album as a zip file.'
-    ))
+    is_downloadable = models.BooleanField(
+        default=True,
+        help_text=(
+            "Controls whether or not site visitors can download original photos from this album, or the whole album as a zip file."
+        ),
+    )
 
-    photographer = models.ForeignKey('edegal.Photographer', null=True, blank=True, on_delete=models.SET_NULL, related_name='albums')
+    photographer = models.ForeignKey(
+        "edegal.Photographer", null=True, blank=True, on_delete=models.SET_NULL, related_name="albums"
+    )
     director = models.ForeignKey(
-        'edegal.Photographer',
+        "edegal.Photographer",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='directed_albums',
+        related_name="directed_albums",
     )
-    terms_and_conditions = models.ForeignKey('edegal.TermsAndConditions', null=True, blank=True, on_delete=models.SET_NULL)
+    terms_and_conditions = models.ForeignKey(
+        "edegal.TermsAndConditions", null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     date = models.DateField(
         null=True,
         help_text=(
-            'When did the events portrayed in this album happen? '
-            'Note that this may differ from album creation date which is tracked automatically.'
+            "When did the events portrayed in this album happen? "
+            "Note that this may differ from album creation date which is tracked automatically."
         ),
     )
 
@@ -126,17 +138,23 @@ class Album(AlbumMixin, MPTTModel):
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
 
-    series = models.ForeignKey('edegal.Series', blank=True, null=True, on_delete=models.SET_NULL, related_name='albums')
+    series = models.ForeignKey(
+        "edegal.Series", blank=True, null=True, on_delete=models.SET_NULL, related_name="albums"
+    )
 
     # denormalized from `series`
-    previous_in_series = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
-    next_in_series = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
+    previous_in_series = models.ForeignKey(
+        "self", blank=True, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    next_in_series = models.ForeignKey(
+        "self", blank=True, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
 
     def __init__(self, *args, **kwargs):
         super(Album, self).__init__(*args, **kwargs)
         self.__original_path = self.path
 
-    def as_dict(self, include_hidden=False, format='jpeg', context='album'):
+    def as_dict(self, include_hidden=False, context="album"):
         if include_hidden:
             subalbums = self._get_subalbums(context=context)
             pictures = self._get_pictures(context=context)
@@ -144,64 +162,56 @@ class Album(AlbumMixin, MPTTModel):
             subalbums = self._get_subalbums(context=context, is_public=True, is_visible=True)
             pictures = self._get_pictures(context=context, is_public=True)
 
-        return pick_attrs(self,
-            'slug',
-            'title',
-            'description',
-            'redirect_url',
-            'layout',
-            'is_downloadable',
-
-            path=(f'{self.path}/timeline' if context == 'timeline' else self.path),
-            body=('' if context == 'timeline' else self.body),
+        return pick_attrs(
+            self,
+            "slug",
+            "title",
+            "description",
+            "redirect_url",
+            "layout",
+            "is_downloadable",
+            path=(f"{self.path}/timeline" if context == "timeline" else self.path),
+            body=("" if context == "timeline" else self.body),
             is_public=self.is_public and self.is_visible,
-            cover_picture=(
-                self.cover_picture.as_dict(format=format)
-                if self.cover_picture
-                else None
-            ),
+            cover_picture=(self.cover_picture.as_dict() if self.cover_picture else None),
             credits=self.make_credits(),
-            date=self.date.isoformat() if self.date else '',
+            date=self.date.isoformat() if self.date else "",
             breadcrumb=self._make_breadcrumbs(context=context),
-            download_url=self.download_url or '',
-            subalbums=[subalbum.make_subalbum(format=format) for subalbum in subalbums],
-            pictures=[picture.as_dict(format=format) for picture in pictures],
-            terms_and_conditions=(
-                self.terms_and_conditions.as_dict()
-                if self.terms_and_conditions
-                else None
-            ),
+            download_url=self.download_url or "",
+            subalbums=[subalbum.make_subalbum() for subalbum in subalbums],
+            pictures=[picture.as_dict() for picture in pictures],
+            terms_and_conditions=(self.terms_and_conditions.as_dict() if self.terms_and_conditions else None),
             previous_in_series=(
                 self.previous_in_series._make_breadcrumb()
-                if self.series and self.previous_in_series and context == 'album'
+                if self.series and self.previous_in_series and context == "album"
                 else None
             ),
             next_in_series=(
                 self.next_in_series._make_breadcrumb()
-                if self.series and self.next_in_series and context == 'album'
+                if self.series and self.next_in_series and context == "album"
                 else None
             ),
         )
 
     @classmethod
-    def fake_album_as_dict(self, *, path, **kwargs):
+    def fake_album_as_dict(cls, *, path, **kwargs):
         """
         Many of our views are implemented as returning Album-like JSON objects.
         Use this method for getting sensible defaults for omitted fields.
         """
         result = dict(FAKE_ALBUM_DEFAULTS, path=path, **kwargs)
 
-        if 'breadcrumb' not in result:
-            result['breadcrumb'] = [
-                Album.objects.get(path='/')._make_breadcrumb(),
+        if "breadcrumb" not in result:
+            result["breadcrumb"] = [
+                cls.objects.get(path="/")._make_breadcrumb(),
             ]
 
         return result
 
-    def _get_subalbums(self, context='album', **subalbum_criteria):
-        if context == 'album':
+    def _get_subalbums(self, context="album", **subalbum_criteria):
+        if context == "album":
             return self.get_albums(parent=self, **subalbum_criteria)
-        elif context == 'timeline':
+        elif context == "timeline":
             return Album.objects.none()
         else:
             raise NotImplementedError(context)
@@ -209,48 +219,50 @@ class Album(AlbumMixin, MPTTModel):
     @classmethod
     def get_albums(cls, **criteria):
         return (
-            cls.objects.filter(cover_picture__media__role='thumbnail', **criteria)
-            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture', 'is_public', 'is_visible')
+            cls.objects.filter(cover_picture__media__role="thumbnail", **criteria)
+            .only("id", "path", "title", "redirect_url", "date", "cover_picture", "is_public", "is_visible")
             .distinct()
-            .select_related('cover_picture')
-            .order_by(F('date').desc(nulls_last=True), 'tree_id')
+            .select_related("cover_picture")
+            .order_by(F("date").desc(nulls_last=True), "tree_id")
         )
 
-    def _get_pictures(self, context='album', **subalbum_criteria):
-        if context == 'album':
+    def _get_pictures(self, context="album", **subalbum_criteria):
+        if context == "album":
             pictures_queryset = self.pictures.all()
-        elif context == 'timeline':
+        elif context == "timeline":
             pictures_queryset = Picture.objects.filter(
                 album__in=self.get_descendants(include_self=True),
                 taken_at__isnull=False,
-            ).order_by('taken_at')
+            ).order_by("taken_at")
         else:
             raise NotImplementedError(context)
 
         return (
-            pictures_queryset.filter(media__role='thumbnail', **subalbum_criteria)
+            pictures_queryset.filter(media__role="thumbnail", **subalbum_criteria)
             .distinct()
-            .prefetch_related('media')
+            .prefetch_related("media")
         )
 
-    def make_subalbum(self, format='jpeg', context='parent'):
-        if context == 'parent':
-            return pick_attrs(self,
-                'path',
-                'title',
-                'redirect_url',
+    def make_subalbum(self, context="parent"):
+        if context == "parent":
+            return pick_attrs(
+                self,
+                "path",
+                "title",
+                "redirect_url",
                 is_public=self.is_public and self.is_visible,
-                date=self.date.isoformat() if self.date else '',
-                thumbnail=self._make_thumbnail(format=format),
+                date=self.date.isoformat() if self.date else "",
+                thumbnail=self._make_thumbnail(),
             )
-        elif context == 'photographer':
-            return pick_attrs(self,
-                'path',
-                'redirect_url',
+        elif context == "photographer":
+            return pick_attrs(
+                self,
+                "path",
+                "redirect_url",
                 is_public=self.is_public and self.is_visible,
                 title=self.title_in_photographer_context,
-                date=self.date.isoformat() if self.date else '',
-                thumbnail=self._make_thumbnail(format=format),
+                date=self.date.isoformat() if self.date else "",
+                thumbnail=self._make_thumbnail(),
             )
         else:
             raise NotImplementedError(context)
@@ -259,8 +271,8 @@ class Album(AlbumMixin, MPTTModel):
     def title_in_photographer_context(self):
         parts = []
 
-        for breadcrumb in self.get_ancestors(include_self=True).only('title', 'path'):
-            if breadcrumb.path == '/':
+        for breadcrumb in self.get_ancestors(include_self=True).only("title", "path"):
+            if breadcrumb.path == "/":
                 # No need to have the gallery title here
                 continue
 
@@ -280,23 +292,23 @@ class Album(AlbumMixin, MPTTModel):
 
     def _make_path(self):
         if self.parent is None:
-            return '/'
+            return "/"
         else:
             # XX ugly
-            pth = self.parent.path + '/' + self.slug
-            if pth.startswith('//'):
+            pth = self.parent.path + "/" + self.slug
+            if pth.startswith("//"):
                 pth = pth[1:]
             return pth
 
-    def _make_breadcrumbs(self, context='album'):
-        ancestors = self.get_ancestors().only('path', 'title', 'series')
+    def _make_breadcrumbs(self, context="album"):
+        ancestors = self.get_ancestors().only("path", "title", "series")
         series = self.series or next((album.series for album in ancestors if album.series), None)
         breadcrumbs = [ancestor._make_breadcrumb() for ancestor in ancestors]
 
         if series:
             breadcrumbs.insert(1, series._make_breadcrumb())
 
-        if context == 'timeline':
+        if context == "timeline":
             breadcrumbs.append(self._make_breadcrumb())
 
         return breadcrumbs
@@ -305,14 +317,14 @@ class Album(AlbumMixin, MPTTModel):
         credits = {}
 
         if self.photographer:
-            credits['photographer'] = self.photographer.make_credit()
+            credits["photographer"] = self.photographer.make_credit()
         if self.director:
-            credits['director'] = self.director.make_credit()
+            credits["director"] = self.director.make_credit()
 
         return credits
 
     def _select_cover_picture(self):
-        first_subalbum = self.subalbums.filter(cover_picture__media__role='thumbnail').first()
+        first_subalbum = self.subalbums.filter(cover_picture__media__role="thumbnail").first()
         if first_subalbum is not None:
             return first_subalbum.cover_picture
 
@@ -335,7 +347,7 @@ class Album(AlbumMixin, MPTTModel):
         # 1. Cover picture EXIF data
         if self.cover_picture and self.cover_picture.taken_at:
             d = self.cover_picture.taken_at
-            logger.debug('Guessed date %s from cover picture EXIF data for %s', d.isoformat(), self)
+            logger.debug("Guessed date %s from cover picture EXIF data for %s", d.isoformat(), self)
             return d
 
         # 2. Known date formats in description or title
@@ -343,28 +355,38 @@ class Album(AlbumMixin, MPTTModel):
             match = regex.search(self.description) or regex.search(self.title)
             if match:
                 try:
-                    d = date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
+                    d = date(int(match.group("year")), int(match.group("month")), int(match.group("day")))
                 except (ValueError, TypeError):
                     logger.warning(
-                        'The format was good but the data was bad (year=%s, month=%s, day=%s)',
-                        match.group('year'), match.group('month'), match.group('day'),
+                        "The format was good but the data was bad (year=%s, month=%s, day=%s)",
+                        match.group("year"),
+                        match.group("month"),
+                        match.group("day"),
                     )
                 else:
-                    logger.debug('Guessed date %s from description/title for %s', d.isoformat(), self)
+                    logger.debug("Guessed date %s from description/title for %s", d.isoformat(), self)
                     return d
 
         # 3. Non-root ancestors, nearest first
         ancestor_with_date = (
-            self.parent.get_ancestors(ascending=True, include_self=True)
-            .exclude(path='/')
-            .filter(date__isnull=False)
-            .first()
-        ) if self.parent else None
+            (
+                self.parent.get_ancestors(ascending=True, include_self=True)
+                .exclude(path="/")
+                .filter(date__isnull=False)
+                .first()
+            )
+            if self.parent
+            else None
+        )
         if ancestor_with_date:
-            logger.debug('Guessed date %s from ancestry (%s)', ancestor_with_date.date.isoformat(), ancestor_with_date.path)
+            logger.debug(
+                "Guessed date %s from ancestry (%s)",
+                ancestor_with_date.date.isoformat(),
+                ancestor_with_date.path,
+            )
             return ancestor_with_date.date
 
-        logger.warning('No method of date guessing worked for %s', self)
+        logger.warning("No method of date guessing worked for %s", self)
 
     def save(self, *args, **kwargs):
         """
@@ -374,13 +396,13 @@ class Album(AlbumMixin, MPTTModel):
         The default for `traverse` is True. However, when `Album.save(traverse=True)` saves other
         albums, those saves are done `save=False` in order to stop recursion.
         """
-        traverse = kwargs.pop('traverse', True)
+        traverse = kwargs.pop("traverse", True)
 
         if self.title and not self.slug:
             if self.parent:
                 self.slug = slugify(self.title)
             else:
-                self.slug = '-root-album'
+                self.slug = "-root-album"
 
         path_changed = False
         if self.slug:
@@ -429,7 +451,7 @@ class Album(AlbumMixin, MPTTModel):
         for album in family:
             # Cannot use identity or id because self might not be saved yet!
             if album.path != self.path:
-                logger.debug('Album.save(traverse=True) visiting {path}'.format(path=album.path))
+                logger.debug("Album.save(traverse=True) visiting {path}".format(path=album.path))
                 album.save(traverse=False)
 
     @classmethod
@@ -442,7 +464,7 @@ class Album(AlbumMixin, MPTTModel):
 
         # Is it a Picture?
         try:
-            picture = Picture.objects.only('album_id').get(path=path)
+            picture = Picture.objects.only("album_id").get(path=path)
         except Picture.DoesNotExist:
             query = dict(path=path, **extra_criteria)
         else:
@@ -453,13 +475,13 @@ class Album(AlbumMixin, MPTTModel):
             cls.objects.filter(**query)
             .distinct()
             .select_related(
-                'previous_in_series',
-                'next_in_series',
-                'photographer',
-                'director',
-                'terms_and_conditions',
+                "previous_in_series",
+                "next_in_series",
+                "photographer",
+                "director",
+                "terms_and_conditions",
             )
-            .prefetch_related('cover_picture__media')
+            .prefetch_related("cover_picture__media")
         )
 
         if or_404:
@@ -467,8 +489,8 @@ class Album(AlbumMixin, MPTTModel):
         else:
             return queryset.get()
 
-    def get_download_file_path(self, prefix=settings.MEDIA_ROOT + '/'):
-        return f'{prefix}downloads{self.path}.zip'
+    def get_download_file_path(self, prefix=settings.MEDIA_ROOT + "/"):
+        return f"{prefix}downloads{self.path}.zip"
 
     @property
     def is_download_ready(self):
@@ -477,7 +499,7 @@ class Album(AlbumMixin, MPTTModel):
     @property
     def download_url(self):
         if self.is_download_ready:
-            return self.get_download_file_path(prefix='/media/')
+            return self.get_download_file_path(prefix="/media/")
         else:
             return None
 
@@ -486,47 +508,48 @@ class Album(AlbumMixin, MPTTModel):
         lines = [
             self.title,
             self.get_absolute_url(),
-            '',
+            "",
         ]
 
         if self.photographer:
-            lines.append(f'Photographer: {self.photographer.display_name}')
+            lines.append(f"Photographer: {self.photographer.display_name}")
             if self.photographer.twitter_handle:
-                lines.append(f'Twitter: @{self.photographer.twitter_handle}')
+                lines.append(f"Twitter: @{self.photographer.twitter_handle}")
             if self.photographer.instagram_handle:
-                lines.append(f'Instagram: @{self.photographer.instagram_handle}')
-            lines.append('')
+                lines.append(f"Instagram: @{self.photographer.instagram_handle}")
+            lines.append("")
 
         if self.director:
-            lines.append(f'Director: {self.director.display_name}')
+            lines.append(f"Director: {self.director.display_name}")
             if self.director.twitter_handle:
-                lines.append(f'Twitter: @{self.director.twitter_handle}')
+                lines.append(f"Twitter: @{self.director.twitter_handle}")
             if self.director.instagram_handle:
-                lines.append(f'Instagram: @{self.director.instagram_handle}')
-            lines.append('')
+                lines.append(f"Instagram: @{self.director.instagram_handle}")
+            lines.append("")
 
         if self.description:
-            lines.extend((self.description, ''))
+            lines.extend((self.description, ""))
 
         if self.terms_and_conditions:
-            lines.extend((self.terms_and_conditions.text, ''))
+            lines.extend((self.terms_and_conditions.text, ""))
 
             if self.terms_and_conditions.url:
-                lines.extend((self.terms_and_conditions.url, ''))
+                lines.extend((self.terms_and_conditions.url, ""))
 
-        return '\n'.join(lines).strip() + '\n'
+        return "\n".join(lines).strip() + "\n"
 
     def ensure_download(self):
         if not self.is_download_ready:
             from ..tasks import album_ensure_download
-            album_ensure_download.delay(self.id)
+
+            album_ensure_download.delay(self.id)  # type: ignore
 
     def _ensure_download(self):
         if not self.is_downloadable:
-            logger.warn('Tried to Album._ensure_download an undownloadable album %s', self)
+            logger.warn("Tried to Album._ensure_download an undownloadable album %s", self)
             return
         if self.is_download_ready:
-            logger.warn('Album._ensure_download %s called while download file already exists', self)
+            logger.warn("Album._ensure_download %s called while download file already exists", self)
             return
 
         zip_file_path = self.get_download_file_path()
@@ -537,43 +560,43 @@ class Album(AlbumMixin, MPTTModel):
         # on the same FS as the final file. Also conveniently locks this album so that no two processes
         # will try to generate the same file at the same time (ZipFile(mode='x') will error on collision).
         # Our slugs do not contain underscores so no collision danger there.
-        temp_file_basename = f'_{zip_file_basename}'
+        temp_file_basename = f"_{zip_file_basename}"
         temp_file_path = os.path.join(zip_file_dir, temp_file_basename)
 
-        logger.info('Creating zip file into temporary path %s', temp_file_path)
+        logger.info("Creating zip file into temporary path %s", temp_file_path)
 
         os.makedirs(os.path.dirname(zip_file_path), exist_ok=True)
 
         try:
-            with ZipFile(temp_file_path, 'x') as zip_file:
-                with zip_file.open('README.txt', 'w') as readme_file:
-                    logger.info('Writing README.txt')
-                    readme_file.write(self.readme_file_content.encode('UTF-8'))
+            with ZipFile(temp_file_path, "x") as zip_file:
+                with zip_file.open("README.txt", "w") as readme_file:
+                    logger.info("Writing README.txt")
+                    readme_file.write(self.readme_file_content.encode("UTF-8"))
 
                 for picture in self.pictures.filter(is_public=True):
                     original = picture.original
                     if not original:
-                        logger.warn('Not adding %s to zip because it has no original media', self, picture)
+                        logger.warn("Not adding %s to zip because it has no original media", self, picture)
                         continue
 
-                    picture_file_name = f'{picture.slug}.jpg'
-                    logger.info('Writing %s', picture_file_name)
-                    with zip_file.open(picture_file_name, 'w') as zip_picture_file:
+                    picture_file_name = f"{picture.slug}.jpg"
+                    logger.info("Writing %s", picture_file_name)
+                    with zip_file.open(picture_file_name, "w") as zip_picture_file:
                         with original.open() as original_picture_file:
                             zip_picture_file.write(original_picture_file.read())
         except Exception:
             try:
-                logger.exception('Creating zip file failed. Trying to delete temporary file.')
+                logger.exception("Creating zip file failed. Trying to delete temporary file.")
                 os.unlink(temp_file_path)
             except Exception:
-                logger.exception('Removing temp file failed.')
+                logger.exception("Removing temp file failed.")
 
             raise
 
         os.rename(temp_file_path, zip_file_path)
-        logger.info('Successfully created zip file %s', zip_file_path)
+        logger.info("Successfully created zip file %s", zip_file_path)
 
     class Meta:
-        verbose_name = 'Album'
-        verbose_name_plural = 'Albums'
-        unique_together = [('parent', 'slug')]
+        verbose_name = "Album"
+        verbose_name_plural = "Albums"
+        unique_together = [("parent", "slug")]

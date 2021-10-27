@@ -27,7 +27,8 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
   const larppikuvaT = T(r => r.LarppikuvatProfile);
 
   // Portrait photos get slightly less width budget to prevent them from becoming overtly tall.
-  const className = coverPicture && coverPicture.thumbnail.height > coverPicture.thumbnail.width ? 'col-md-3' : 'col-md-4';
+  const className =
+    coverPicture && coverPicture.thumbnail.height > coverPicture.thumbnail.width ? 'col-md-3' : 'col-md-4';
 
   // TODO Icons
   const socialMediaLinks = [
@@ -99,13 +100,17 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
                 {coverPicture.credits.photographer ? (
                   <div>
                     <strong>{t(r => r.photographer)}:</strong>{' '}
-                    <Link to={coverPicture.credits.photographer.path}>{coverPicture.credits.photographer.display_name}</Link>
+                    <Link to={coverPicture.credits.photographer.path}>
+                      {coverPicture.credits.photographer.display_name}
+                    </Link>
                   </div>
                 ) : null}
                 {coverPicture.credits.director ? (
                   <div>
                     <strong>{t(r => r.director)}:</strong>{' '}
-                    <Link to={coverPicture.credits.director.path}>{coverPicture.credits.director.display_name}</Link>
+                    <Link to={coverPicture.credits.director.path}>
+                      {coverPicture.credits.director.display_name}
+                    </Link>
                   </div>
                 ) : null}
               </figcaption>

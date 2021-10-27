@@ -2,14 +2,17 @@ from django.db import models
 
 
 FORMAT_CHOICES = [
-    ('jpeg', 'JPEG'),
-    ('webp', 'WebP'),
+    ("avif", "AVIF"),
+    ("webp", "WebP"),
+    ("jpeg", "JPEG"),
 ]
 
 ROLE_CHOICES = [
-    ('thumbnail', 'Thumbnail'),
-    ('preview', 'Preview'),
+    ("thumbnail", "Thumbnail"),
+    ("preview", "Preview"),
 ]
+
+DEFAULT_FORMAT = "jpeg"
 
 
 class MediaSpec(models.Model):
@@ -19,13 +22,13 @@ class MediaSpec(models.Model):
 
     format = models.CharField(
         max_length=max(len(ext) for (ext, label) in FORMAT_CHOICES),
-        default='jpeg',
+        default=DEFAULT_FORMAT,
     )
 
     role = models.CharField(
         max_length=max(len(ext) for (ext, label) in ROLE_CHOICES),
         choices=ROLE_CHOICES,
-        default='thumbnail',  # XXX
+        default="thumbnail",  # XXX
     )
 
     active = models.BooleanField(default=True)

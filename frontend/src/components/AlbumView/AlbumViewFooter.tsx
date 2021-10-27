@@ -19,12 +19,13 @@ const AlbumViewFooter: React.FC<FooterProps> = ({ album }) => {
     <footer className="AlbumViewFooter">
       {photographer ? (
         <>
-          {t(r => r.albumCopyright)} &copy; {getYear(album)} <Link to={photographer.path}>{photographer.display_name}</Link>.{' '}
+          {t(r => r.albumCopyright)} &copy; {getYear(album)}{' '}
+          <Link to={photographer.path}>{photographer.display_name}</Link>.{' '}
         </>
       ) : null}
       Edegal &copy; 2010–2020 <a href="https://github.com/conikuvat/edegal">Santtu Pajukanta</a>.
     </footer>,
-    document.body,
+    document.body
   );
 };
 

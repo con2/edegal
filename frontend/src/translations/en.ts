@@ -18,7 +18,8 @@ const translations = {
   },
   DownloadAlbumDialog: {
     dialogTitle: 'Download album',
-    termsAndConditions: 'In order to use these pictures, you must agree to the following terms and conditions:',
+    termsAndConditions:
+      'In order to use these pictures, you must agree to the following terms and conditions:',
     contact: 'If your intended use is not covered by the above conditions, please contact:',
     creditInstructions: 'When using these pictures, credit the authors as follows:',
     closeButtonText: 'Close',
@@ -59,7 +60,8 @@ const translations = {
     contact: 'How can I be contacted?',
     hours: 'What amount of hours can I be expected to work while photographing a LARP?',
     delivery_schedule: 'What is my typical delivery schedule for finished photos?',
-    delivery_practice: 'How will I deliver finished photos to participants and what are the quarantine rules used?',
+    delivery_practice:
+      'How will I deliver finished photos to participants and what are the quarantine rules used?',
     delivery_method: 'How will I publish finished photos to the general public?',
     copy_protection: 'What can you do with my photos and what kind of protections are applied?',
     expected_compensation: 'What kind of compensation do I expect for LARP photography?',

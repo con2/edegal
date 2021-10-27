@@ -17,7 +17,10 @@ import './index.scss';
 
 const breadcrumbSeparator = ' » ';
 
-function getBreadcrumbTitle(breadcrumb: Breadcrumb, t: TranslationFunction<{ photographers: string; timeline: string }>) {
+function getBreadcrumbTitle(
+  breadcrumb: Breadcrumb,
+  t: TranslationFunction<{ photographers: string; timeline: string }>
+) {
   if (breadcrumb.path === '/photographers') {
     return t(r => r.photographers);
   } else if (breadcrumb.path.endsWith('/timeline')) {
@@ -36,7 +39,11 @@ function sleep(ms: number): Promise<void> {
 export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
   const t = React.useMemo(() => T(r => r.BreadcrumbBar), []);
   const { path, title, breadcrumb } = album;
-  const fullBreadcrumb = React.useMemo(() => breadcrumb.slice(1).concat([{ path, title }]), [breadcrumb, path, title]);
+  const fullBreadcrumb = React.useMemo(() => breadcrumb.slice(1).concat([{ path, title }]), [
+    breadcrumb,
+    path,
+    title,
+  ]);
   const canDownload = album.is_downloadable && album.pictures.length;
 
   const [isDownloadPreparing, setDownloadPreparing] = React.useState(false);
@@ -49,12 +56,12 @@ export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
       setDownloadPreparing(true);
 
       // Trigger zip creation
-      downloadableAlbum = await getCached(album.path, 'jpeg', true, true);
+      downloadableAlbum = await getCached(album.path, true, true);
 
       // Poll for zip creation to finish
       while (!downloadableAlbum.download_url) {
         await sleep(downloadAlbumPollingDelay);
-        downloadableAlbum = await getCached(album.path, 'jpeg', true);
+        downloadableAlbum = await getCached(album.path, true);
       }
     }
 

@@ -9,11 +9,10 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MEDIA_SPECS = [
     # w, h, q, fmt, role
-    (900, 240, 60, 'jpeg', 'thumbnail'),
-    (2400, 1350, 85, 'jpeg', 'preview'),
-
-    (900, 240, 75, 'webp', 'thumbnail'),
-    (2400, 1350, 90, 'webp', 'preview'),
+    (900, 240, 60, "jpeg", "thumbnail"),
+    (2400, 1350, 85, "jpeg", "preview"),
+    (900, 240, 75, "webp", "thumbnail"),
+    (2400, 1350, 90, "webp", "preview"),
 ]
 
 
@@ -32,6 +31,6 @@ class Command(BaseCommand):
                     ),
                 )
             except MediaSpec.MultipleObjectsReturned:
-                log_get_or_create(logger, spec, False)
+                log_get_or_create(logger, spec, False)  # type: ignore
             else:
                 log_get_or_create(logger, spec, created)

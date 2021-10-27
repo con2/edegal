@@ -14,7 +14,7 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
   const path = location.pathname;
   const [loading, setLoading] = React.useState(true);
   const [content, setContent] = React.useState<Content | null>(null);
-  const [error, setError] = React.useState<Error | null>(null);
+  const [error, setError] = React.useState<unknown>(null);
 
   React.useEffect(() => {
     // TODO: not exactly NodeJS, fix tsconfig

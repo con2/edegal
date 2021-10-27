@@ -11,87 +11,72 @@ SUPPORTED_FORMATS = {format for (format, disp) in FORMAT_CHOICES}
 
 class StatusView(View):
     def get(self, request):
-        return JsonResponse(dict(status='OK'))
+        return JsonResponse(dict(status="OK"))
 
 
 class ApiV3View(View):
-    http_method_names = ['get', 'head']
+    http_method_names = ["get", "head"]
 
     def get(self, request, path):
-        context = 'album'
+        context = "album"
 
-        if path == '':
-            path = '/'
-        elif path.endswith('/timeline'):
+        if path == "":
+            path = "/"
+        elif path.endswith("/timeline"):
             # NOTE order: timeline of the root album is disallowed by design because it would contain _all_ photos of the gallery
-            context = 'timeline'
-            path = path[:-len('/timeline')]
-
-        format = request.GET.get('format', 'jpeg').lower()
-        if format == 'jpg':
-            format = 'jpeg'
-        if format not in SUPPORTED_FORMATS:
-            return JsonResponse({
-                "status": 400,
-                "message": "unsupported format (try jpeg or webp)",
-            }, status=400)
+            context = "timeline"
+            path = path[: -len("/timeline")]
 
         extra_criteria = dict()
         if not request.user.is_staff:
             extra_criteria.update(is_public=True)
 
         album = Album.get_album_by_path(path, or_404=True, **extra_criteria)
-        response = JsonResponse(album.as_dict(
-            include_hidden=request.user.is_staff,
-            format=format,
-            context=context,
-        ))
+        response = JsonResponse(
+            album.as_dict(
+                include_hidden=request.user.is_staff,
+                context=context,
+            )
+        )
 
-        download = request.GET.get('download', 'false')
-        if download.lower() not in ('false', 'no', '0'):
+        download = request.GET.get("download", "false")
+        if download.lower() not in ("false", "no", "0"):
             album.ensure_download()
 
         return response
 
 
 class PhotographersApiV3View(View):
-    http_method_names = ['get', 'head']
+    http_method_names = ["get", "head"]
 
     def get(self, request):
-        format = request.GET.get('format', 'jpeg').lower()
-        if format == 'jpg':
-            format = 'jpeg'
-        if format not in SUPPORTED_FORMATS:
-            return JsonResponse({
-                "status": 400,
-                "message": "unsupported format (try jpeg or webp)",
-            }, status=400)
+        pseudoalbum = Album.objects.filter(path="/photographers").first()
 
-        pseudoalbum = Album.objects.filter(path='/photographers').first()
-
-        return JsonResponse(dict(
-            path='/photographers',
-            title='Photographers',
-            body=pseudoalbum.body if pseudoalbum else '',
-            subalbums=[
-                photog.make_subalbum(format=format)
-                for photog in Photographer.objects.filter(cover_picture__isnull=False)
-            ],
-            pictures=[],
-            breadcrumb=[
-                Album.objects.get(path='/')._make_breadcrumb(),
-            ],
-            redirect_url='',
-            is_downloadable=False,
-            download_url='',
-            date='',
-            layout='simple',
-            credits={},
-        ))
+        return JsonResponse(
+            dict(
+                path="/photographers",
+                title="Photographers",
+                body=pseudoalbum.body if pseudoalbum else "",
+                subalbums=[
+                    photog.make_subalbum()
+                    for photog in Photographer.objects.filter(cover_picture__isnull=False)
+                ],
+                pictures=[],
+                breadcrumb=[
+                    Album.objects.get(path="/")._make_breadcrumb(),
+                ],
+                redirect_url="",
+                is_downloadable=False,
+                download_url="",
+                date="",
+                layout="simple",
+                credits={},
+            )
+        )
 
 
 class PhotographerApiV3View(View):
-    http_method_names = ['get', 'head']
+    http_method_names = ["get", "head"]
 
     def get(self, request, photographer_slug):
         try:
@@ -100,30 +85,30 @@ class PhotographerApiV3View(View):
             # Fallback to album view on 404 to allow info pages like /photographers/privacy
             return api_v3_view(request, path=f"/photographers/{photographer_slug}")
 
-        format = request.GET.get('format', 'jpeg').lower()
-        if format == 'jpg':
-            format = 'jpeg'
-        if format not in SUPPORTED_FORMATS:
-            return JsonResponse({
-                "status": 400,
-                "message": "unsupported format (try jpeg or webp)",
-            }, status=400)
-
-        return JsonResponse(photographer.make_album(format=format))
+        return JsonResponse(photographer.make_album())
 
 
 class RandomPictureAPIV3View(View):
-    http_method_names = ['get', 'head']
+    http_method_names = ["get", "head"]
 
     def get(self, request):
         picture = Picture.get_random_picture()
 
-        response = JsonResponse(Album.fake_album_as_dict(
-            path='/random',
-            title='Random Picture',
-            redirect_url=picture.path,
-        ))
-        response['Cache-Control'] = 'no-store'
+        if picture:
+            response = JsonResponse(
+                Album.fake_album_as_dict(
+                    path="/random",
+                    title="Random Picture",
+                    redirect_url=picture.path,
+                )
+            )
+        else:
+            response = JsonResponse(
+                {"status": 404, "message": "the server has no photos :("},
+                status_code=404,
+            )
+
+        response["Cache-Control"] = "no-store"
 
         return response
 

@@ -61,7 +61,13 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
 
     let body = null;
     if (thisIsPhotographerView && album.credits.photographer) {
-      body = <PhotographerProfile photographer={album.credits.photographer} coverPicture={album.cover_picture} body={album.body} />;
+      body = (
+        <PhotographerProfile
+          photographer={album.credits.photographer}
+          coverPicture={album.cover_picture}
+          body={album.body}
+        />
+      );
     } else if (album.body) {
       body = <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
     }
@@ -82,7 +88,9 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
             <div className="TextContent">
               {album.next_in_series || album.previous_in_series ? (
                 <div className="container d-flex mb-3">
-                  {album.next_in_series ? <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link> : null}
+                  {album.next_in_series ? (
+                    <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link>
+                  ) : null}
                   {album.previous_in_series ? (
                     <Link className="ml-auto" to={album.previous_in_series.path}>
                       {album.previous_in_series.title} &raquo;

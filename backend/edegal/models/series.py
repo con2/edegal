@@ -28,6 +28,7 @@ class Series(AlbumMixin, models.Model):
     Having /desucon as the Series URL and /desucon-2019 as the Album URL saves space while remaining just as
     informative as /desucon/desucon-2019.
     """
+
     title = models.CharField(**CommonFields.title)
     slug = models.CharField(**CommonFields.slug)
     description = models.TextField(**CommonFields.description)
@@ -49,39 +50,36 @@ class Series(AlbumMixin, models.Model):
             self.slug = slugify(self.title)
 
         if self.slug and not self.path:
-            self.path = f'/{self.slug}'
+            self.path = f"/{self.slug}"
 
         return super().save(*args, **kwargs)
 
-    def as_dict(self, include_hidden=False, format='jpeg', context='album'):
+    def as_dict(self, include_hidden=False, context="album"):
         from .album import Album
 
-        if context != 'album':
+        if context != "album":
             raise NotImplementedError(context)
 
         child_criteria = dict()
         if not include_hidden:
             child_criteria.update(is_public=True, is_visible=True)
 
-        return pick_attrs(self,
-            'slug',
-            'path',
-            'title',
-            'description',
-            'body',
-            'is_public',
-            'is_visible',
-
-            redirect_url='',
-            layout='simple',
+        return pick_attrs(
+            self,
+            "slug",
+            "path",
+            "title",
+            "description",
+            "body",
+            "is_public",
+            "is_visible",
+            redirect_url="",
+            layout="simple",
             date=None,
             breadcrumb=[
-                Album.objects.get(path='/')._make_breadcrumb(),
+                Album.objects.get(path="/")._make_breadcrumb(),
             ],
-            subalbums=[
-                album.make_subalbum(format=format)
-                for album in self.get_albums(**child_criteria)
-            ],
+            subalbums=[album.make_subalbum() for album in self.get_albums(**child_criteria)],
             pictures=[],
             terms_and_conditions=None,
             credits={},
@@ -92,9 +90,9 @@ class Series(AlbumMixin, models.Model):
 
         return (
             Album.objects.filter(series=self, **extra_criteria)
-            .only('id', 'path', 'title', 'redirect_url', 'date', 'cover_picture', 'is_public', 'is_visible')
-            .select_related('cover_picture')
-            .order_by(F('date').desc(nulls_last=True), 'tree_id')
+            .only("id", "path", "title", "redirect_url", "date", "cover_picture", "is_public", "is_visible")
+            .select_related("cover_picture")
+            .order_by(F("date").desc(nulls_last=True), "tree_id")
         )
 
     def resequence(self):
@@ -105,21 +103,23 @@ class Series(AlbumMixin, models.Model):
 
         # iterated oldest first
         for album in self.get_albums().reverse():
-            logger.debug('Setting predecessor (older) in series %s of %s to %s', self, album, previous_album)
+            logger.debug("Setting predecessor (older) in series %s of %s to %s", self, album, previous_album)
             album.previous_in_series = previous_album
 
             if previous_album:
-                logger.debug('Setting successor (newer) in series %s of %s to %s', self, previous_album, album)
+                logger.debug(
+                    "Setting successor (newer) in series %s of %s to %s", self, previous_album, album
+                )
                 previous_album.next_in_series = album
                 previous_album.save(traverse=False)
 
             previous_album = album
 
         if previous_album:
-            logger.debug('Setting successor (newer) in series %s of %s to None', self, previous_album)
+            logger.debug("Setting successor (newer) in series %s of %s to None", self, previous_album)
             previous_album.next_in_series = None
             previous_album.save(traverse=False)
 
     class Meta:
-        verbose_name = 'Series'
-        verbose_name_plural = 'Series'
+        verbose_name = "Series"
+        verbose_name_plural = "Series"

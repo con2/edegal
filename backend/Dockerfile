@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.10
 WORKDIR /usr/src/app
 COPY requirements.txt requirements-production.txt requirements-coppermine-importer.txt /usr/src/app/
 RUN groupadd -g 1082 -r conikuvat && useradd -r -u 1082 -g conikuvat -G users conikuvat && \

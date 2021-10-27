@@ -54,7 +54,8 @@ const translations: Translations = {
       'Kuvan käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvan käyttöön.',
   },
   ErrorBoundary: {
-    defaultMessage: 'Albumin lataus epäonnistui. Todennäköisesti albumia ei ole olemassa tai sinulla ei ole käyttöoikeutta siihen.',
+    defaultMessage:
+      'Albumin lataus epäonnistui. Todennäköisesti albumia ei ole olemassa tai sinulla ei ole käyttöoikeutta siihen.',
   },
   LarppikuvatProfile: {
     contact: 'Miten saat minuun yhteyden?',

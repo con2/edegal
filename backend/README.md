@@ -4,9 +4,9 @@
 
 This is the REST API backend for Edegal. Technology choices include the following:
 
-* Python 3.8
-* Django 1.11
-* PostgreSQL 11
+* Python (3.10 or greater)
+* Django
+* PostgreSQL
 * Redis (TBD; replacing RabbitMQ)
 * [nginx](https://github.com/nginx/nginx)
 
@@ -32,7 +32,7 @@ Cheats for Debian/Ubuntu:
 Set up backend development environment
 
     git clone https://github.com/conikuvat/edegal
-    python3 -m venv venv3-edegal # or python3.4 -m virtualenv
+    python3 -m venv venv3-edegal
     source venv3-edegal/bin/activate
     cd edegal/backend
     pip install -r requirements.txt

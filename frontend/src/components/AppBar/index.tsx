@@ -10,7 +10,15 @@ import { T } from '../../translations';
 
 import './index.scss';
 
-function NavLink({ path, title, isActive }: { path: string; title: string; isActive?: boolean }): JSX.Element {
+function NavLink({
+  path,
+  title,
+  isActive,
+}: {
+  path: string;
+  title: string;
+  isActive?: boolean;
+}): JSX.Element {
   return (
     <Nav.Item key={path}>
       <LinkContainer to={path}>
@@ -34,7 +42,11 @@ function AppBar({ album }: { album: Album }): JSX.Element {
       <Navbar.Toggle aria-controls="AppBar-nav" />
       <Navbar.Collapse id="AppBar-nav">
         <Nav className="mr-auto">
-          <NavLink path="/photographers" title={t(r => r.photographers)} isActive={path.startsWith('/photographers')} />
+          <NavLink
+            path="/photographers"
+            title={t(r => r.photographers)}
+            isActive={path.startsWith('/photographers')}
+          />
           <NavLink path="/random" title={t(r => r.randomPicture)} />
         </Nav>
         <Nav>
