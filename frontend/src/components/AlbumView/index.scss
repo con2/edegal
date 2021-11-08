@@ -43,6 +43,14 @@
   color: #333;
   padding-top: 36px;
   padding-bottom: 20px;
+
+  a {
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
 .YearlyView h2 {
