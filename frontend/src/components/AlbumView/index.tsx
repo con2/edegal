@@ -1,18 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import Container from 'react-bootstrap/Container';
+
 import preloadMedia from '../../helpers/preloadMedia';
 import Album from '../../models/Album';
 import Subalbum from '../../models/Subalbum';
 import AppBar from '../AppBar';
 import AlbumGrid from './AlbumGrid';
-
-import './index.scss';
 import AlbumViewFooter from './AlbumViewFooter';
 import { T } from '../../translations';
 import PhotographerProfile from './PhotographerProfile';
 import Timeline from './Timeline';
 import BreadcrumbBar from '../BreadcrumbBar';
+
+import './index.scss';
 
 interface AlbumViewProps {
   album: Album;
@@ -69,7 +71,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
         />
       );
     } else if (album.body) {
-      body = <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
+      body = <Container as="article" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
     }
 
     const showBody = body || album.previous_in_series || album.next_in_series;
