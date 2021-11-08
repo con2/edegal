@@ -94,7 +94,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
                     <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link>
                   ) : null}
                   {album.previous_in_series ? (
-                    <Link className="ml-auto" to={album.previous_in_series.path}>
+                    <Link className="ms-auto" to={album.previous_in_series.path}>
                       {album.previous_in_series.title} &raquo;
                     </Link>
                   ) : null}
