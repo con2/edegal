@@ -6,6 +6,4 @@ COPY package.json package-lock.json tsconfig.json tslint.json index.html vite.co
 RUN npm ci
 COPY src /usr/src/app/src
 
-USER node
-
 CMD ["node_modules/.bin/vite"]
