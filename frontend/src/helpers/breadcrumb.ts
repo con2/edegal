@@ -3,20 +3,33 @@ import Breadcrumb from '../models/Breadcrumb';
 import Picture from '../models/Picture';
 import { TranslationFunction } from '../translations';
 
+/**
+ * Transforms album.breadcrumb for visual use.
+ */
 export function getFullBreadcrumb(album: Album, picture?: Picture, startAt = 0): Breadcrumb[] {
-  const { path, title } = album;
-  const breadcrumb = album.breadcrumb.slice(startAt).concat([{ path, title }]);
+  // startAt=1: Breadcrumb bar omits name of gallery because it is in app bar.
+  // startAt=0= Page title includes name of gallery.
+  const breadcrumb = album.breadcrumb.slice(startAt);
 
+  // album.breadcrumb does not include current album but it is desired in visual breadcrumbs
+  const { path, title } = album;
+  breadcrumb.push({ path, title });
+
+  // when in picture view, include picture title in breadcrumb
   if (picture) {
-    const { path, title } = album;
+    const { path, title } = picture;
     breadcrumb.push({ path, title });
   }
 
   return breadcrumb;
 }
 
+/// Separates breadcrumbs in page title and breadcrumb bar
 export const breadcrumbSeparator = ' » ';
 
+/**
+ * Some breadcrumb elements are translated in a special fashion.
+ */
 export function getBreadcrumbTitle(
   breadcrumb: Breadcrumb,
   t: TranslationFunction<{ photographers: string; timeline: string }>
@@ -30,6 +43,9 @@ export function getBreadcrumbTitle(
   }
 }
 
+/**
+ * Renders a string suitable for use in `document.title`.
+ */
 export function getDocumentTitle(
   t: TranslationFunction<{ photographers: string; timeline: string }>,
   album: Album,
