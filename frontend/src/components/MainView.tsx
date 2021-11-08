@@ -1,12 +1,14 @@
 import React from 'react';
 
+import { RouteComponentProps } from 'react-router';
+
 import AlbumView from './AlbumView';
 import Loading from './Loading';
 import PictureView from './PictureView';
 import { Content, getAlbum } from '../helpers/getAlbum';
-import { RouteComponentProps } from 'react-router';
 import ErrorMessage from './ErrorMessage';
 import { T } from '../translations';
+import { getDocumentTitle } from '../helpers/breadcrumb';
 
 const loadingViewDelayMillis = 500;
 
@@ -15,6 +17,8 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
   const [loading, setLoading] = React.useState(true);
   const [content, setContent] = React.useState<Content | null>(null);
   const [error, setError] = React.useState<unknown>(null);
+  const tError = T(r => r.ErrorBoundary);
+  const tBreadcrumb = T(r => r.BreadcrumbBar);
 
   React.useEffect(() => {
     let timeout: number | null = null;
@@ -35,6 +39,11 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
       setContent(content);
       setError(error);
       setLoading(false);
+
+      if (content) {
+        const { album, picture } = content;
+        document.title = getDocumentTitle(tBreadcrumb, album, picture);
+      }
     })();
 
     return () => {
@@ -45,8 +54,7 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
   }, [path]);
 
   if (error) {
-    const t = T(r => r.ErrorBoundary);
-    return <ErrorMessage>{t(r => r.defaultMessage)}</ErrorMessage>;
+    return <ErrorMessage>{tError(r => r.defaultMessage)}</ErrorMessage>;
   } else if (loading || !content) {
     return <Loading />;
   } else {

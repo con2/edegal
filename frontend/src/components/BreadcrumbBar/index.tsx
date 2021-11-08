@@ -2,33 +2,17 @@ import React from 'react';
 
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
-import { LinkContainer } from 'react-router-bootstrap';
 import { Link } from 'react-router-dom';
 import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
 import socialIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-social-symbol.svg';
 
 import { getCached } from '../../helpers/getAlbum';
 import Album from '../../models/Album';
-import Breadcrumb from '../../models/Breadcrumb';
-import { T, TranslationFunction } from '../../translations';
+import { T } from '../../translations';
 import DownloadDialog, { useDownloadDialogState } from '../DownloadDialog';
 
 import './index.scss';
-
-const breadcrumbSeparator = ' » ';
-
-function getBreadcrumbTitle(
-  breadcrumb: Breadcrumb,
-  t: TranslationFunction<{ photographers: string; timeline: string }>
-) {
-  if (breadcrumb.path === '/photographers') {
-    return t(r => r.photographers);
-  } else if (breadcrumb.path.endsWith('/timeline')) {
-    return t(r => r.timeline);
-  } else {
-    return breadcrumb.title;
-  }
-}
+import { breadcrumbSeparator, getBreadcrumbTitle, getFullBreadcrumb } from '../../helpers/breadcrumb';
 
 const downloadAlbumPollingDelay = 3000;
 
@@ -38,12 +22,7 @@ function sleep(ms: number): Promise<void> {
 
 export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
   const t = React.useMemo(() => T(r => r.BreadcrumbBar), []);
-  const { path, title, breadcrumb } = album;
-  const fullBreadcrumb = React.useMemo(() => breadcrumb.slice(1).concat([{ path, title }]), [
-    breadcrumb,
-    path,
-    title,
-  ]);
+  const fullBreadcrumb = React.useMemo(() => getFullBreadcrumb(album, undefined, 1), [album]);
   const canDownload = album.is_downloadable && album.pictures.length;
 
   const [isDownloadPreparing, setDownloadPreparing] = React.useState(false);
@@ -68,10 +47,6 @@ export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
     setDownloadPreparing(false);
     window.location.href = downloadableAlbum.download_url;
   }, [album]);
-
-  React.useEffect(() => {
-    document.title = fullBreadcrumb.map(crumb => getBreadcrumbTitle(crumb, t)).join(breadcrumbSeparator);
-  }, [fullBreadcrumb, t]);
 
   return (
     <Container fluid className="BreadcrumbBar d-flex flex-column flex-sm-row justify-content-between">
@@ -107,15 +82,14 @@ export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
             {t(r => r.downloadAlbumLink)}…
           </Button>
         ) : null}
+        {/* FIXME why does this need `as any`? it works */}
         {album.credits.photographer ? (
-          <LinkContainer to={album.credits.photographer.path}>
-            <Button variant="link" size="sm">
-              <svg className="BreadcrumbBar-icon">
-                <use xlinkHref={`${socialIcons}#ic_person_24px`} />
-              </svg>
-              {t(r => r.aboutPhotographerLink)}
-            </Button>
-          </LinkContainer>
+          <Button as={Link as any} to={album.credits.photographer.path} variant="link" size="sm">
+            <svg className="BreadcrumbBar-icon">
+              <use xlinkHref={`${socialIcons}#ic_person_24px`} />
+            </svg>
+            {t(r => r.aboutPhotographerLink)}
+          </Button>
         ) : null}
       </nav>
 
