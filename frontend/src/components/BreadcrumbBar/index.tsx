@@ -24,6 +24,8 @@ export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
   const t = React.useMemo(() => T(r => r.BreadcrumbBar), []);
   const fullBreadcrumb = React.useMemo(() => getFullBreadcrumb(album, undefined, 1), [album]);
   const canDownload = album.is_downloadable && album.pictures.length;
+  const isPhotographerLinkShown =
+    album.credits.photographer && album.credits.photographer.path !== album.path;
 
   const [isDownloadPreparing, setDownloadPreparing] = React.useState(false);
   const { isDownloadDialogOpen, openDownloadDialog, closeDownloadDialog } = useDownloadDialogState();
@@ -83,8 +85,8 @@ export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
           </Button>
         ) : null}
         {/* FIXME why does this need `as any`? it works */}
-        {album.credits.photographer ? (
-          <Button as={Link as any} to={album.credits.photographer.path} variant="link" size="sm">
+        {isPhotographerLinkShown ? (
+          <Button as={Link as any} to={album.credits.photographer!.path} variant="link" size="sm">
             <svg className="BreadcrumbBar-icon">
               <use xlinkHref={`${socialIcons}#ic_person_24px`} />
             </svg>
