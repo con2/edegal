@@ -33,6 +33,7 @@ smtp_default_from_email: ''
 
 # Set this to the public hostname of your service.
 ingress_public_hostname: edegal.localhost
+edegal_frontend_url: !Format https://{ingress_public_hostname}
 
 # If you use ingress-nginx and cert-manager, TLS can be automatically configured by setting this to true.
 ingress_letsencrypt_enabled: false
@@ -139,6 +140,8 @@ edegal_environment:
     value: !Join
       items: !Var edegal_admins
       separator: ","
+  - name: EDEGAL_FRONTEND_URL
+    value: !Var edegal_frontend_url
 
 # Common volumes for edegal, celery and nginx pods.
 edegal_media_volume_mounts:

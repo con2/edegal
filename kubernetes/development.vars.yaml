@@ -1,2 +1,3 @@
 edegal_secret_key: not a very secret key
+edegal_frontend_url: !Format http://{ingress_public_hostname}
 postgres_password: edegal
