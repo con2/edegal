@@ -6,6 +6,11 @@
     &, a, a:active, a:visited, .btn-link {
         line-height: 16px;
         color: #c9c9c9;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
     }
 
     .btn-link {

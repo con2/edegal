@@ -7,7 +7,7 @@ import Subalbum from '../../models/Subalbum';
 import AppBar from '../AppBar';
 import AlbumGrid from './AlbumGrid';
 
-import './index.css';
+import './index.scss';
 import AlbumViewFooter from './AlbumViewFooter';
 import { T } from '../../translations';
 import PhotographerProfile from './PhotographerProfile';

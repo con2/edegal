@@ -60,10 +60,15 @@
   font-size: 80%;
   text-align: center;
   color: #666;
-}
 
-.AlbumViewFooter a {
-  color: #888;
+  a {
+    color: #888;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
 .PhotographerProfile-socialMediaLinks {

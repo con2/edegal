@@ -1,12 +1,15 @@
-import { LinkContainer } from 'react-router-bootstrap';
+import React from 'react';
+
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
+import Container from 'react-bootstrap/Container';
 
 import Config from '../../Config';
 import Album from '../../models/Album';
 import { T } from '../../translations';
 
 import './index.scss';
+import { Link } from 'react-router-dom';
 
 function NavLink({
   path,
@@ -19,9 +22,9 @@ function NavLink({
 }): JSX.Element {
   return (
     <Nav.Item key={path}>
-      <LinkContainer to={path}>
-        <Nav.Link active={!!isActive}>{title}</Nav.Link>
-      </LinkContainer>
+      <Nav.Link active={!!isActive} as={Link} to={path}>
+        {title}
+      </Nav.Link>
     </Nav.Item>
   );
 }
@@ -33,26 +36,28 @@ function AppBar({ album }: { album: Album }): JSX.Element {
 
   return (
     <Navbar variant="dark" className="AppBar" expand="sm">
-      <LinkContainer to={rootAlbum.path}>
-        <Navbar.Brand href="#home">{rootAlbum.title}</Navbar.Brand>
-      </LinkContainer>
+      <Container fluid>
+        <Navbar.Brand as={Link} to={rootAlbum.path}>
+          {rootAlbum.title}
+        </Navbar.Brand>
 
-      <Navbar.Toggle aria-controls="AppBar-nav" />
-      <Navbar.Collapse id="AppBar-nav">
-        <Nav className="mr-auto">
-          <NavLink
-            path="/photographers"
-            title={t(r => r.photographers)}
-            isActive={path.startsWith('/photographers')}
-          />
-          <NavLink path="/random" title={t(r => r.randomPicture)} />
-        </Nav>
-        <Nav>
-          <Nav.Item>
-            <Nav.Link href={Config.loginUrl}>{t(r => r.adminLink)}</Nav.Link>
-          </Nav.Item>
-        </Nav>
-      </Navbar.Collapse>
+        <Navbar.Toggle aria-controls="AppBar-nav" />
+        <Navbar.Collapse id="AppBar-nav">
+          <Nav className="me-auto">
+            <NavLink
+              path="/photographers"
+              title={t(r => r.photographers)}
+              isActive={path.startsWith('/photographers')}
+            />
+            <NavLink path="/random" title={t(r => r.randomPicture)} />
+          </Nav>
+          <Nav>
+            <Nav.Item>
+              <Nav.Link href={Config.loginUrl}>{t(r => r.adminLink)}</Nav.Link>
+            </Nav.Item>
+          </Nav>
+        </Navbar.Collapse>
+      </Container>
     </Navbar>
   );
 }

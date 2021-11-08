@@ -162,7 +162,7 @@ export function DownloadDialog({
       </div>
 
       <div className="modal-footer">
-        <label className="mr-auto mt-2">
+        <label className="me-auto mt-2">
           <input
             type="checkbox"
             disabled={downloadButtonClicked}
