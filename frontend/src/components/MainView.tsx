@@ -14,6 +14,7 @@ const loadingViewDelayMillis = 500;
 
 interface LocationState {
   fromAlbumView?: boolean;
+  fromPicture?: string;
 }
 
 const MainView: React.FC<RouteComponentProps<{}, StaticContext, LocationState>> = ({ location, history }) => {
@@ -26,6 +27,7 @@ const MainView: React.FC<RouteComponentProps<{}, StaticContext, LocationState>> 
 
   // Attempt at fixing scroll position after navigating back from picture view to album view.
   const fromAlbumView = location.state?.fromAlbumView ?? false;
+  const fromPicture = location.state?.fromPicture;
 
   React.useEffect(() => {
     let timeout: number | null = null;
@@ -78,7 +80,7 @@ const MainView: React.FC<RouteComponentProps<{}, StaticContext, LocationState>> 
     } else if (picture) {
       return <PictureView album={album} picture={picture} fromAlbumView={fromAlbumView} />;
     } else {
-      return <AlbumView album={album} />;
+      return <AlbumView album={album} fromPicture={fromPicture} />;
     }
   }
 };

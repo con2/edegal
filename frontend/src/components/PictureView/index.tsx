@@ -164,9 +164,10 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           // arrived from album view
           // act as the browser back button
           history.goBack();
+          history.replace(destination.path, { fromPicture: picture.path });
         } else {
           // arrived using direct link
-          history.push(destination.path);
+          history.push(destination.path, { fromPicture: picture.path });
         }
       } else {
         history.replace(destination.path);

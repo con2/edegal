@@ -18,6 +18,7 @@ import './index.scss';
 
 interface AlbumViewProps {
   album: Album;
+  fromPicture?: string;
 }
 
 interface AlbumViewState {
@@ -132,10 +133,18 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
   }
 
   componentDidMount(): void {
+    const { fromPicture } = this.props;
     this.preloadFirstPicture();
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
+
+    if (fromPicture) {
+      const el = document.querySelector(`a[href=${fromPicture}`);
+      if (el) {
+        window.scrollTo(0, el.clientTop);
+      }
+    }
   }
 
   componentDidUpdate(): void {
