@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { RouteComponentProps } from 'react-router';
+import { RouteComponentProps, StaticContext } from 'react-router';
 
 import AlbumView from './AlbumView';
 import Loading from './Loading';
@@ -12,13 +12,20 @@ import { getDocumentTitle } from '../helpers/breadcrumb';
 
 const loadingViewDelayMillis = 500;
 
-const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
+interface LocationState {
+  fromAlbumView?: boolean;
+}
+
+const MainView: React.FC<RouteComponentProps<{}, StaticContext, LocationState>> = ({ location, history }) => {
   const path = location.pathname;
   const [loading, setLoading] = React.useState(true);
   const [content, setContent] = React.useState<Content | null>(null);
   const [error, setError] = React.useState<unknown>(null);
   const tError = T(r => r.ErrorBoundary);
   const tBreadcrumb = T(r => r.BreadcrumbBar);
+
+  // Attempt at fixing scroll position after navigating back from picture view to album view.
+  const fromAlbumView = location.state?.fromAlbumView ?? false;
 
   React.useEffect(() => {
     let timeout: number | null = null;
@@ -69,7 +76,7 @@ const MainView: React.FC<RouteComponentProps<{}>> = ({ location, history }) => {
 
       return <Loading />;
     } else if (picture) {
-      return <PictureView album={album} picture={picture} />;
+      return <PictureView album={album} picture={picture} fromAlbumView={fromAlbumView} />;
     } else {
       return <AlbumView album={album} />;
     }
