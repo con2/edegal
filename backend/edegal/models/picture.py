@@ -68,6 +68,9 @@ class Picture(models.Model):
     def get_media_dict(self, role: str):
         # do this client-side to support prefetch_related and reduce hits to database
         all_media = sorted(list(self.media.all()), key=lambda medium: -medium.width)
+        if not all_media:
+            return {}
+
         base_media_item = next(
             (
                 media_item

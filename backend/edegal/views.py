@@ -59,7 +59,7 @@ class PhotographersApiV3View(View):
                 body=pseudoalbum.body if pseudoalbum else "",
                 subalbums=[
                     photog.make_subalbum()
-                    for photog in Photographer.objects.filter(cover_picture__isnull=False)
+                    for photog in Photographer.objects.filter(cover_picture__media__isnull=False).distinct()
                 ],
                 pictures=[],
                 breadcrumb=[
