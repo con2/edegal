@@ -53,7 +53,7 @@ idna==3.3
     # via requests
 kombu==5.2.1
     # via celery
-oauthlib==3.1.1
+oauthlib==3.2.2
     # via requests-oauthlib
 pep517==0.12.0
     # via pip-tools
