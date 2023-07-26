@@ -26,6 +26,7 @@ FORMAT_OPTIONS = dict(
     webp=dict(
         method=6,
     ),
+    avif=dict(),
 )
 
 ROLE_CHOICES = ROLE_CHOICES + [

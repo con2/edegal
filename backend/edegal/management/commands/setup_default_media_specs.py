@@ -12,7 +12,10 @@ DEFAULT_MEDIA_SPECS = [
     (900, 240, 60, "jpeg", "thumbnail"),
     (2400, 1350, 85, "jpeg", "preview"),
     (900, 240, 75, "webp", "thumbnail"),
-    (2400, 1350, 90, "webp", "preview"),
+    # (2400, 1350, 90, "webp", "preview"),
+    # XXX avif thumbnails actually bigger than webp/jpeg, disable for now
+    # (900, 240, 30, "avif", "thumbnail"),
+    (2400, 1350, 60, "avif", "preview"),
 ]
 
 

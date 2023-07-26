@@ -8,6 +8,7 @@ django-redis
 git+https://github.com/con2/django-admin-multiupload.git@django3#egg=admin-multiupload
 gunicorn
 Pillow
+pillow-avif-plugin
 pip-tools
 psycopg2
 python-memcached

@@ -86,6 +86,9 @@ class Picture(models.Model):
         ]
         additional_formats = list({media_item.format for media_item in additional_media})
 
+        # hack: avif precedes webp in alphabetical order
+        additional_formats.sort()
+
         return base_media_item.as_dict(additional_formats=additional_formats)
 
     def refresh_media(self, dry_run=False):

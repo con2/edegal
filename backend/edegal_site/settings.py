@@ -2,6 +2,7 @@ import os
 from email.utils import parseaddr
 
 import environ
+import pillow_avif
 
 from .settings_defaults import *  # noqa
 
