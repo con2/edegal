@@ -4,10 +4,10 @@
 
 This is the REST API backend for Edegal. Technology choices include the following:
 
-* Python (3.10 or greater)
-* Django
-* PostgreSQL
-* Redis (TBD; replacing RabbitMQ)
+* Python (3.11+)
+* Django (4.2+)
+* PostgreSQL (15+)
+* Redis
 * [nginx](https://github.com/nginx/nginx)
 
 ## Getting started

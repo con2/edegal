@@ -136,11 +136,6 @@ class Media(models.Model):
                 self._image.close()
                 self._image = None
 
-    @contextmanager
-    def open(self, mode="rb"):
-        with open(self.src.path, mode, encoding=None) as picture_file:
-            yield picture_file
-
     @classmethod
     def import_local_media(
         cls,

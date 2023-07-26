@@ -62,6 +62,7 @@ class Album(AlbumMixin, MPTTModel):
     # TODO
     pictures: Any
     subalbums: Any
+    id: Any
 
     slug = models.CharField(**CommonFields.slug)
     parent = TreeForeignKey(
@@ -324,6 +325,10 @@ class Album(AlbumMixin, MPTTModel):
         return credits
 
     def _select_cover_picture(self):
+        if not self.id:
+            # not saved yet so can't have subalbums either
+            return
+
         first_subalbum = self.subalbums.filter(cover_picture__media__role="thumbnail").first()
         if first_subalbum is not None:
             return first_subalbum.cover_picture
