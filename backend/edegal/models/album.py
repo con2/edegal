@@ -580,14 +580,14 @@ class Album(AlbumMixin, MPTTModel):
 
                 for picture in self.pictures.filter(is_public=True):
                     original = picture.original
-                    if not original:
+                    if not original or not original.src:
                         logger.warn("Not adding %s to zip because it has no original media", self, picture)
                         continue
 
                     picture_file_name = f"{picture.slug}.jpg"
                     logger.info("Writing %s", picture_file_name)
                     with zip_file.open(picture_file_name, "w") as zip_picture_file:
-                        with original.open() as original_picture_file:
+                        with original.src.open() as original_picture_file:
                             zip_picture_file.write(original_picture_file.read())
         except Exception:
             try:
