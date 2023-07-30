@@ -34,6 +34,6 @@ class Command(BaseCommand):
                     ),
                 )
             except MediaSpec.MultipleObjectsReturned:
-                log_get_or_create(logger, spec, False)  # type: ignore
+                logger.warn("Multiple MediaSpecs for %s %s", format, role)
             else:
                 log_get_or_create(logger, spec, created)
