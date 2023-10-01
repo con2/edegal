@@ -1,8 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
-import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
-import socialIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-social-symbol.svg';
+import personIcon from 'material-design-icons/social/svg/production/ic_person_24px.svg';
 
 import { getCached } from '../../helpers/getAlbum';
 import Album from '../../models/Album';
@@ -85,9 +85,7 @@ export function BreadcrumbBar({ album }: { album: Album }): JSX.Element {
         FIXME why does this need `as any`? it works */}
         {isPhotographerLinkShown ? (
           <Link className="btn btn-link btn-sm" href={album.credits.photographer!.path}>
-            <svg className="BreadcrumbBar-icon">
-              <use xlinkHref={`${socialIcons}#ic_person_24px`} />
-            </svg>
+            <Image className="BreadcrumbBar-icon" src={personIcon} alt="" />
             {t(r => r.aboutPhotographerLink)}
           </Link>
         ) : null}

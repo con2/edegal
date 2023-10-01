@@ -1,19 +1,21 @@
-import React from 'react';
+// TODO make server component
+"use client";
+
+import React from "react";
 import Link from "next/link";
 
+import preloadMedia from "../../helpers/preloadMedia";
+import Album from "../../models/Album";
+import Subalbum from "../../models/Subalbum";
+import AppBar from "../AppBar";
+import AlbumGrid from "./AlbumGrid";
+import AlbumViewFooter from "./AlbumViewFooter";
+import { T } from "../../translations";
+import PhotographerProfile from "./PhotographerProfile";
+import Timeline from "./Timeline";
+import BreadcrumbBar from "../BreadcrumbBar";
 
-import preloadMedia from '../../helpers/preloadMedia';
-import Album from '../../models/Album';
-import Subalbum from '../../models/Subalbum';
-import AppBar from '../AppBar';
-import AlbumGrid from './AlbumGrid';
-import AlbumViewFooter from './AlbumViewFooter';
-import { T } from '../../translations';
-import PhotographerProfile from './PhotographerProfile';
-import Timeline from './Timeline';
-import BreadcrumbBar from '../BreadcrumbBar';
-
-import './index.scss';
+import "./index.scss";
 
 interface AlbumViewProps {
   album: Album;
@@ -32,8 +34,8 @@ function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
   let currentYear: Year | null = null;
   const years: Year[] = [];
 
-  subalbums.forEach(subalbum => {
-    const year = subalbum.date ? subalbum.date.split('-')[0] : null;
+  subalbums.forEach((subalbum) => {
+    const year = subalbum.date ? subalbum.date.split("-")[0] : null;
 
     if (!currentYear || currentYear.year !== year) {
       currentYear = { year, subalbums: [] };
@@ -46,19 +48,23 @@ function groupAlbumsByYear(subalbums: Subalbum[]): Year[] {
   return years;
 }
 
-const isPhotographerView = (album: Album) => album.path.startsWith('/photographers/');
-const isTimelineView = (album: Album) => album.path.endsWith('/timeline');
+const isPhotographerView = (album: Album) =>
+  album.path.startsWith("/photographers/");
+const isTimelineView = (album: Album) => album.path.endsWith("/timeline");
 
-export default class AlbumView extends React.Component<AlbumViewProps, AlbumViewState> {
+export default class AlbumView extends React.Component<
+  AlbumViewProps,
+  AlbumViewState
+> {
   state: AlbumViewState = {
-    width: document.documentElement ? document.documentElement.clientWidth : 0,
+    width: document?.documentElement?.clientWidth ?? 0,
   };
 
   render(): JSX.Element {
     const { album } = this.props;
     const { width } = this.state;
     const thisIsPhotographerView = isPhotographerView(album);
-    const t = T(r => r.AlbumView);
+    const t = T((r) => r.AlbumView);
 
     let body = null;
     if (thisIsPhotographerView && album.credits.photographer) {
@@ -70,13 +76,19 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
         />
       );
     } else if (album.body) {
-      body = <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
+      body = (
+        <article
+          className="container"
+          dangerouslySetInnerHTML={{ __html: album.body || "" }}
+        />
+      );
     }
 
     const showBody = body || album.previous_in_series || album.next_in_series;
 
     // TODO logic is "this is not a nav-linked view", encap somewhere when it grows hairier?
-    const showBreadcrumb = album.breadcrumb.length && album.path !== '/photographers';
+    const showBreadcrumb =
+      album.breadcrumb.length && album.path !== "/photographers";
 
     return (
       <>
@@ -90,10 +102,15 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
               {album.next_in_series || album.previous_in_series ? (
                 <div className="container d-flex mb-3">
                   {album.next_in_series ? (
-                    <Link to={album.next_in_series.path}>&laquo; {album.next_in_series.title}</Link>
+                    <Link href={album.next_in_series.path}>
+                      &laquo; {album.next_in_series.title}
+                    </Link>
                   ) : null}
                   {album.previous_in_series ? (
-                    <Link className="ms-auto" to={album.previous_in_series.path}>
+                    <Link
+                      className="ms-auto"
+                      href={album.previous_in_series.path}
+                    >
                       {album.previous_in_series.title} &raquo;
                     </Link>
                   ) : null}
@@ -104,13 +121,17 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
           ) : null}
 
           {/* Subalbums */}
-          {album.layout === 'yearly' ? (
+          {album.layout === "yearly" ? (
             <div className="YearlyView">
               {groupAlbumsByYear(album.subalbums).map(({ year, subalbums }) => {
                 return (
-                  <div key={year ? year : 'unknownYear'}>
-                    <h2>{year ? year : t(r => r.unknownYear)}</h2>
-                    <AlbumGrid width={width} tiles={subalbums} showTitle={true} />
+                  <div key={year ? year : "unknownYear"}>
+                    <h2>{year ? year : t((r) => r.unknownYear)}</h2>
+                    <AlbumGrid
+                      width={width}
+                      tiles={subalbums}
+                      showTitle={true}
+                    />
                   </div>
                 );
               })}
@@ -133,7 +154,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
   componentDidMount(): void {
     this.preloadFirstPicture();
 
-    window.addEventListener('resize', this.handleResize);
+    window.addEventListener("resize", this.handleResize);
     this.handleResize();
   }
 

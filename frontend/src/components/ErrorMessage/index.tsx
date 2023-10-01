@@ -1,17 +1,16 @@
-import React from 'react';
-import alertIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-alert-symbol.svg';
+import React from "react";
+import Image from "next/image";
+import warningIcon from "material-design-icons/alert/svg/production/ic_warning_24px.svg";
 
-import './index.css';
+import "./index.css";
 
-const ErrorMessage: React.FC<{}> = ({ children }) => (
-  <div className="container pt-5">
-    <div className="row justify-content-center align-items-center">
-      <svg className="ErrorMessage-icon">
-        <use xlinkHref={`${alertIcons}#ic_warning_24px`} />
-      </svg>
-      {children}
+export default function ErrorMessage(children?: React.ReactNode) {
+  return (
+    <div className="container pt-5">
+      <div className="row justify-content-center align-items-center">
+        <Image src={warningIcon} alt="Warning" className="ErrorMessage-icon" />
+        {children}
+      </div>
     </div>
-  </div>
-);
-
-export default ErrorMessage;
+  );
+}

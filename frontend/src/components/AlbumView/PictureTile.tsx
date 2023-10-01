@@ -1,9 +1,11 @@
-import React from 'react';
-import Link from 'next/link';
-import actionIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-action-symbol.svg';
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import launchIcon from "material-design-icons/action/svg/production/ic_launch_24px.svg";
+import lockOpenIcon from "material-design-icons/action/svg/production/ic_lock_open_24px.svg";
 
-import { Format } from '../../models/Media';
-import replaceFormat from '../../helpers/replaceFormat';
+import { Format } from "../../models/Media";
+import replaceFormat from "../../helpers/replaceFormat";
 
 interface PictureTileProps {
   path: string;
@@ -25,73 +27,88 @@ interface ThumbnailProps {
   additionalFormats: Format[];
 }
 
-const Thumbnail = ({ src, width, height, title, additionalFormats }: ThumbnailProps) => (
+const Thumbnail = ({
+  src,
+  width,
+  height,
+  title,
+  additionalFormats,
+}: ThumbnailProps) => (
   <picture>
-    {additionalFormats.map(format => (
-      <source key={format} srcSet={replaceFormat(src, format)} type={`image/${format}`} />
+    {additionalFormats.map((format) => (
+      <source
+        key={format}
+        srcSet={replaceFormat(src, format)}
+        type={`image/${format}`}
+      />
     ))}
-    <img src={src} alt={title} loading="lazy" width={Math.floor(width)} height={Math.floor(height)} />
+    <img
+      src={src}
+      alt={title}
+      loading="lazy"
+      width={Math.floor(width)}
+      height={Math.floor(height)}
+    />
   </picture>
 );
 
-export default class PictureTile extends React.PureComponent<PictureTileProps> {
-  render() {
-    const {
-      path,
-      width,
-      height,
-      src,
-      title,
-      additionalFormats,
-      externalLink,
-      showTitle,
-      isPublic,
-    } = this.props;
-
-    return externalLink ? (
-      <a className="PictureTile" href={externalLink} target="_blank" rel="noopener noreferrer">
-        {src ? (
-          <Thumbnail
-            src={src}
-            width={width}
-            height={height}
-            title={title}
-            additionalFormats={additionalFormats}
-          />
-        ) : null}
+export default function PictureTile({
+  path,
+  width,
+  height,
+  src,
+  title,
+  additionalFormats,
+  externalLink,
+  showTitle,
+  isPublic,
+}: React.PropsWithChildren<PictureTileProps>): JSX.Element {
+  return externalLink ? (
+    <a
+      className="PictureTile"
+      href={externalLink}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {src ? (
+        <Thumbnail
+          src={src}
+          width={width}
+          height={height}
+          title={title}
+          additionalFormats={additionalFormats}
+        />
+      ) : null}
+      <div className="PictureTile-title">
+        <svg className="PictureTile-icon">
+          <use xlinkHref={launchIcon} />
+        </svg>
+        {title}
+      </div>
+    </a>
+  ) : (
+    <Link className="PictureTile" href={path} title={title}>
+      {src ? (
+        <Thumbnail
+          src={src}
+          width={width}
+          height={height}
+          title={title}
+          additionalFormats={additionalFormats}
+        />
+      ) : null}
+      {showTitle && title ? (
         <div className="PictureTile-title">
-          <svg className="PictureTile-icon">
-            <use xlinkHref={`${actionIcons}#ic_launch_24px`} />
-          </svg>
-          {title}
+          {isPublic ? (
+            title
+          ) : (
+            <>
+              <Image className="PictureTile-icon" src={lockOpenIcon} alt="Hidden" />
+              <em>{title}</em>
+            </>
+          )}
         </div>
-      </a>
-    ) : (
-      <Link className="PictureTile" href={path} title={title}>
-        {src ? (
-          <Thumbnail
-            src={src}
-            width={width}
-            height={height}
-            title={title}
-            additionalFormats={additionalFormats}
-          />
-        ) : null}
-        {showTitle && title ? (
-          <div className="PictureTile-title">
-            {isPublic ? (
-              title
-            ) : (
-              <>
-                <svg className="PictureTile-icon">
-                  <use xlinkHref={`${actionIcons}#ic_lock_open_24px`} />
-                </svg>
-                <em>{title}</em>
-              </>
-            )}
-          </div>
-        ) : null}
-      </Link>
-    );
-  }
+      ) : null}
+    </Link>
+  );
 }

@@ -1,9 +1,12 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
-import editorIcons from "material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg";
-import navigationIcons from "material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg";
+import chevronLeftIcon from "material-design-icons/navigation/svg/production/ic_chevron_left_24px.svg";
+import chevronRightIcon from "material-design-icons/navigation/svg/production/ic_chevron_right_24px.svg";
+import closeIcon from "material-design-icons/navigation/svg/production/ic_close_24px.svg";
+import verticalAlignBottomIcon from "material-design-icons/editor/svg/production/ic_vertical_align_bottom_24px.svg";
 
 import preloadMedia from "../../helpers/preloadMedia";
 import Album from "../../models/Album";
@@ -63,9 +66,11 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-previous"
             title={t((r) => r.previousPicture)}
           >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
-            </svg>
+            <Image
+              className="PictureView-icon"
+              src={chevronLeftIcon}
+              alt="Previous"
+            />
           </div>
         ) : null}
 
@@ -75,9 +80,11 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-nav PictureView-nav-next"
             title={t((r) => r.nextPicture)}
           >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
-            </svg>
+            <Image
+              className="PictureView-icon"
+              src={chevronRightIcon}
+              alt="Next"
+            />
           </div>
         ) : null}
 
@@ -86,9 +93,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           className="PictureView-action PictureView-action-exit"
           title={t((r) => r.backToAlbum)}
         >
-          <svg className="PictureView-icon">
-            <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
-          </svg>
+          <Image className="PictureView-icon" src={closeIcon} alt="Close" />
         </div>
 
         {album.is_downloadable && picture.original ? (
@@ -97,9 +102,11 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
             className="PictureView-action PictureView-action-download"
             title={t((r) => r.downloadOriginal)}
           >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
-            </svg>
+            <Image
+              className="PictureView-icon"
+              src={verticalAlignBottomIcon}
+              alt="Download"
+            />
             {/* <DownloadDialog
               key={picture.path}
               t={T((r) => r.DownloadDialog)}

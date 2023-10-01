@@ -5,9 +5,9 @@ export type Translations = typeof en;
 
 const languages = { en, fi };
 const defaultLanguage = 'en';
-const detectedLanguage = (navigator.languages || [navigator.language])[0] || defaultLanguage;
+// const detectedLanguage = (navigator.languages || [navigator.language])[0] || defaultLanguage;
+const detectedLanguage = 'en';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const translations: Translations = (languages as any)[detectedLanguage] || languages[defaultLanguage];
 
 export type TranslationKeyFunction<LocalTranslations = Translations> = (r: LocalTranslations) => string;

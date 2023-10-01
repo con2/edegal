@@ -1,6 +1,6 @@
 const config = {
   backend: {
-    baseUrl: "" + (process.env.EDEGAL_BACKEND_URL || ""),
+    baseUrl: "https://conikuvat.fi",
     apiPrefix: "/api/v3",
   },
   loginUrl:
