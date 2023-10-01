@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import AlbumView from "../../components/AlbumView";
 import PictureView from "../../components/PictureView";
 import { getAlbum } from "../../helpers/getAlbum";
+import { getDocumentTitle, getFullBreadcrumb } from "@/helpers/breadcrumb";
 
 export const revalidate = 300;
 
@@ -21,9 +22,12 @@ export async function generateMetadata({
   params: Params;
 }) {
   const { album, picture } = await getAlbum(expandPath(path));
+  const fullBreadcrumb = getFullBreadcrumb(album, picture);
+  // XXX bogus translation function
+  const title = getDocumentTitle((r: unknown) => "", album, picture);
   return {
     // TODO include breadcrumb
-    title: picture ? picture.title : album.title,
+    title,
   };
 }
 
