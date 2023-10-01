@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 
 import Album from '../../models/Album';
 import { T } from '../../translations';
-import { Link } from 'react-router-dom';
+import Link from "next/link";
 
 const getYear = (album: Album) => (album.date ? new Date(album.date).getUTCFullYear() : '');
 
@@ -20,7 +20,7 @@ const AlbumViewFooter: React.FC<FooterProps> = ({ album }) => {
       {photographer ? (
         <>
           {t(r => r.albumCopyright)} &copy; {getYear(album)}{' '}
-          <Link to={photographer.path}>{photographer.display_name}</Link>.{' '}
+          <Link href={photographer.path}>{photographer.display_name}</Link>.{' '}
         </>
       ) : null}
       Edegal &copy; 2010–2022 <a href="https://github.com/con2/edegal">Santtu Pajukanta</a>.

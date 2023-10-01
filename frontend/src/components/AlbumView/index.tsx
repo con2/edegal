@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from "next/link";
 
-import Container from 'react-bootstrap/Container';
 
 import preloadMedia from '../../helpers/preloadMedia';
 import Album from '../../models/Album';
@@ -71,7 +70,7 @@ export default class AlbumView extends React.Component<AlbumViewProps, AlbumView
         />
       );
     } else if (album.body) {
-      body = <Container as="article" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
+      body = <article className="container" dangerouslySetInnerHTML={{ __html: album.body || '' }} />;
     }
 
     const showBody = body || album.previous_in_series || album.next_in_series;

@@ -1,15 +1,11 @@
 import React from 'react';
 
-import Navbar from 'react-bootstrap/Navbar';
-import Nav from 'react-bootstrap/Nav';
-import Container from 'react-bootstrap/Container';
-
 import Config from '../../Config';
 import Album from '../../models/Album';
 import { T } from '../../translations';
 
 import './index.scss';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 function NavLink({
   path,
@@ -21,11 +17,11 @@ function NavLink({
   isActive?: boolean;
 }): JSX.Element {
   return (
-    <Nav.Item key={path}>
-      <Nav.Link active={!!isActive} as={Link} to={path}>
+    <div className="nav-item" key={path}>
+      <Link className="nav-link" href={path}>
         {title}
-      </Nav.Link>
-    </Nav.Item>
+      </Link>
+    </div>
   );
 }
 
@@ -35,30 +31,27 @@ function AppBar({ album }: { album: Album }): JSX.Element {
   const rootAlbum = album.breadcrumb[0] || { path, title };
 
   return (
-    <Navbar variant="dark" className="AppBar" expand="sm">
-      <Container fluid>
-        <Navbar.Brand as={Link} to={rootAlbum.path}>
+    <div className="navbar navbar-dark AppBar">
+      <div className="container container-fluid">
+        <Link className="navbar-brand" href={rootAlbum.path}>
           {rootAlbum.title}
-        </Navbar.Brand>
+        </Link>
 
-        <Navbar.Toggle aria-controls="AppBar-nav" />
-        <Navbar.Collapse id="AppBar-nav">
-          <Nav className="me-auto">
+        {/* <Navbar.Toggle aria-controls="AppBar-nav" /> */}
+        {/* TODO navbar-collapse */}
+        <div className="AppBar-nav">
+          <div className="nav navbar-nav me-auto">
             <NavLink
               path="/photographers"
               title={t(r => r.photographers)}
               isActive={path.startsWith('/photographers')}
             />
             <NavLink path="/random" title={t(r => r.randomPicture)} />
-          </Nav>
-          <Nav>
-            <Nav.Item>
-              <Nav.Link href={Config.loginUrl}>{t(r => r.adminLink)}</Nav.Link>
-            </Nav.Item>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+            <NavLink path={Config.loginUrl} title={t(r => r.adminLink)} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import actionIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-action-symbol.svg';
 
 import { Format } from '../../models/Media';
@@ -67,7 +67,7 @@ export default class PictureTile extends React.PureComponent<PictureTileProps> {
         </div>
       </a>
     ) : (
-      <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true } }} title={title}>
+      <Link className="PictureTile" href={path} title={title}>
         {src ? (
           <Thumbnail
             src={src}

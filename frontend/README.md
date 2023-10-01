@@ -1,37 +1,36 @@
-# Edegal – Fast Web Image Gallery
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Responsive Web Frontend
+## Getting Started
 
-This is the browser frontend for desktop & mobile browsers. Technology choices include
+First, run the development server:
 
-* TypeScript
-* React
-  * Simple state management, no Redux etc.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Getting started
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### The Docker Compose Way
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This is the recommended way to develop Edegal. There is a single unified Docker Compose development environment for both the frontend and the backend. For instructions, see `README.md` in the parent directory.
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-When developing with Docker Compose, the frontend will use the local backend running under Docker Compose.
+## Learn More
 
-### The Traditional Way
+To learn more about Next.js, take a look at the following resources:
 
-If, for some reason, you want to develop the Edegal frontend without using Docker, follow these instructions.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-When developing without Docker, the frontend will, by default, use the Conikuvat.fi live production backend. If you want to use another backend, change `proxy` in `package.json`.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-Requirements:
+## Deploy on Vercel
 
-* Node.js 12.x (10.x or 8.x may work, but are not supported)
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Yarn is not supported, only `npm` is.
-
-You should get up and running with the following commands:
-
-    git clone git@github.com:conikuvat/edegal
-    cd edegal/frontend
-    npm install
-    npm start
-    iexplore http://localhost:3000
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.

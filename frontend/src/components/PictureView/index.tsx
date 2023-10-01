@@ -1,28 +1,29 @@
-import React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
+"use client";
 
-import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
-import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg';
+import React from "react";
 
-import preloadMedia from '../../helpers/preloadMedia';
-import Album from '../../models/Album';
-import Picture from '../../models/Picture';
-import { T } from '../../translations';
-import DownloadDialog from '../DownloadDialog';
+import editorIcons from "material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg";
+import navigationIcons from "material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg";
 
-import './index.css';
-import replaceFormat from '../../helpers/replaceFormat';
+import preloadMedia from "../../helpers/preloadMedia";
+import Album from "../../models/Album";
+import Picture from "../../models/Picture";
+import { T } from "../../translations";
+// import DownloadDialog from "../DownloadDialog";
 
-type Direction = 'next' | 'previous' | 'album';
+import "./index.css";
+import replaceFormat from "../../helpers/replaceFormat";
+
+type Direction = "next" | "previous" | "album";
 const keyMap: { [keyCode: number]: Direction } = {
-  27: 'album', // escape
-  33: 'previous', // page up
-  34: 'next', // page down
-  37: 'previous', // left arrow
-  39: 'next', // right arrow
+  27: "album", // escape
+  33: "previous", // page up
+  34: "next", // page down
+  37: "previous", // left arrow
+  39: "next", // right arrow
 };
 
-type PictureViewProps = RouteComponentProps<{ path: string }> & {
+type PictureViewProps = {
   album: Album;
   picture: Picture;
   fromAlbumView?: boolean;
@@ -36,7 +37,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   state: PictureViewState = { downloadDialogOpen: false };
 
   render() {
-    const t = T(r => r.PictureView);
+    const t = T((r) => r.PictureView);
     const { album, picture } = this.props;
     const { preview, title } = picture;
     const { src } = preview;
@@ -46,17 +47,21 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     return (
       <div className="PictureView">
         <picture className="PictureView-img">
-          {additionalFormats.map(format => (
-            <source key={format} srcSet={replaceFormat(src, format)} type={`image/${format}`} />
+          {additionalFormats.map((format) => (
+            <source
+              key={format}
+              srcSet={replaceFormat(src, format)}
+              type={`image/${format}`}
+            />
           ))}
           <img src={src} alt={title} />
         </picture>
 
         {picture.previous ? (
           <div
-            onClick={() => this.goTo('previous')}
+            onClick={() => this.goTo("previous")}
             className="PictureView-nav PictureView-nav-previous"
-            title={t(r => r.previousPicture)}
+            title={t((r) => r.previousPicture)}
           >
             <svg className="PictureView-icon">
               <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
@@ -66,9 +71,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
         {picture.next ? (
           <div
-            onClick={() => this.goTo('next')}
+            onClick={() => this.goTo("next")}
             className="PictureView-nav PictureView-nav-next"
-            title={t(r => r.nextPicture)}
+            title={t((r) => r.nextPicture)}
           >
             <svg className="PictureView-icon">
               <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
@@ -77,9 +82,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
         ) : null}
 
         <div
-          onClick={() => this.goTo('album')}
+          onClick={() => this.goTo("album")}
           className="PictureView-action PictureView-action-exit"
-          title={t(r => r.backToAlbum)}
+          title={t((r) => r.backToAlbum)}
         >
           <svg className="PictureView-icon">
             <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
@@ -90,19 +95,19 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           <div
             onClick={this.openDownloadDialog}
             className="PictureView-action PictureView-action-download"
-            title={t(r => r.downloadOriginal)}
+            title={t((r) => r.downloadOriginal)}
           >
             <svg className="PictureView-icon">
               <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
             </svg>
-            <DownloadDialog
+            {/* <DownloadDialog
               key={picture.path}
-              t={T(r => r.DownloadDialog)}
+              t={T((r) => r.DownloadDialog)}
               album={album}
               onAccept={this.downloadPicture}
               onClose={this.closeDownloadDialog}
               isOpen={downloadDialogOpen}
-            />
+            /> */}
           </div>
         ) : null}
       </div>
@@ -110,13 +115,13 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   }
 
   componentDidMount() {
-    document.addEventListener('keydown', this.onKeyDown);
+    document.addEventListener("keydown", this.onKeyDown);
 
     this.preloadPreviousAndNext(this.props.picture);
   }
 
   componentWillUnmount() {
-    document.removeEventListener('keydown', this.onKeyDown);
+    document.removeEventListener("keydown", this.onKeyDown);
   }
 
   componentDidUpdate(prevProps: PictureViewProps) {
@@ -143,10 +148,11 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
       return;
     }
 
-    if (event.key === 'r' || event.key === 'R') {
-      this.props.history.push('/random');
-      return;
-    }
+    // TODO
+    // if (event.key === "r" || event.key === "R") {
+    //   this.props.history.push("/random");
+    //   return;
+    // }
 
     const direction = keyMap[event.keyCode];
     if (direction) {
@@ -156,21 +162,23 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
   goTo(direction: Direction) {
     // TODO hairy due to refactoring .album away from picture, ameliorate
-    const { album, picture, fromAlbumView, history } = this.props;
-    const destination = direction === 'album' ? album : picture[direction];
+    // const { album, picture, fromAlbumView, history } = this.props;
+    const { album, picture } = this.props;
+    const destination = direction === "album" ? album : picture[direction];
     if (destination) {
-      if (direction === 'album') {
-        if (fromAlbumView) {
-          // arrived from album view
-          // act as the browser back button
-          history.goBack();
-        } else {
-          // arrived using direct link
-          history.push(destination.path);
-        }
-      } else {
-        history.replace(destination.path);
-      }
+      // if (direction === "album") {
+      //   if (fromAlbumView) {
+      //     // arrived from album view
+      //     // act as the browser back button
+      //     history.goBack();
+      //   } else {
+      //     // arrived using direct link
+      //     history.push(destination.path);
+      //   }
+      // } else {
+      //   history.replace(destination.path);
+      // }
+      // redirect(destination.path);
     }
   }
 
@@ -186,4 +194,4 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   };
 }
 
-export default withRouter(PictureView);
+export default PictureView;
