@@ -5,6 +5,7 @@ import Photographer, { LarppikuvatProfile } from '../../models/Photographer';
 import Picture from '../../models/Picture';
 import Linebreaks from '../Linebreaks';
 import { T } from '../../translations';
+import replaceFormat from '../../helpers/replaceFormat';
 
 interface PhotographerProfileProps {
   photographer: Photographer;
@@ -86,14 +87,12 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
         {coverPicture ? (
           <figure className={className}>
             <Link to={coverPicture.path}>
-              <img
-                src={coverPicture.preview.src}
-                alt={coverPicture.title}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                }}
-              />
+              <picture>
+                {(coverPicture.preview.additional_formats ?? []).map(format => (
+                  <source key={format} srcSet={replaceFormat(coverPicture.preview.src, format)} type={`image/${format}`} />
+                ))}
+                <img src={coverPicture.preview.src} alt={coverPicture.title} style={{ display: "block", width: "100%" }} />
+              </picture>
             </Link>
             {coverPicture.credits ? (
               <figcaption className="small text-muted text-right">
