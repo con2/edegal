@@ -87,7 +87,7 @@ const PhotographerProfile: React.FC<PhotographerProfileProps> = ({ photographer,
           <figure className={className}>
             <Link to={coverPicture.path}>
               <img
-                src={coverPicture.thumbnail.src}
+                src={coverPicture.preview.src}
                 alt={coverPicture.title}
                 style={{
                   display: 'block',
