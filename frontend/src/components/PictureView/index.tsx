@@ -47,6 +47,9 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     const additionalFormats = preview.additional_formats ?? [];
     const { downloadDialogOpen } = this.state;
 
+    const previous: Picture | undefined = album.pictures[picture.index - 1];
+    const next: Picture | undefined = album.pictures[picture.index + 1];
+
     return (
       <div className="PictureView">
         <picture className="PictureView-img">
@@ -60,7 +63,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           <img src={src} alt={title} />
         </picture>
 
-        {picture.previous ? (
+        {previous ? (
           <div
             onClick={() => this.goTo("previous")}
             className="PictureView-nav PictureView-nav-previous"
@@ -74,7 +77,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
           </div>
         ) : null}
 
-        {picture.next ? (
+        {next ? (
           <div
             onClick={() => this.goTo("next")}
             className="PictureView-nav PictureView-nav-next"
@@ -124,7 +127,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
   componentDidMount() {
     document.addEventListener("keydown", this.onKeyDown);
 
-    this.preloadPreviousAndNext(this.props.picture);
+    this.preloadPreviousAndNext(this.props.album, this.props.picture);
   }
 
   componentWillUnmount() {
@@ -133,19 +136,22 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
 
   componentDidUpdate(prevProps: PictureViewProps) {
     if (this.props.picture.path !== prevProps.picture.path) {
-      this.preloadPreviousAndNext(this.props.picture);
+      this.preloadPreviousAndNext(this.props.album, this.props.picture);
     }
   }
 
-  preloadPreviousAndNext(picture: Picture) {
+  preloadPreviousAndNext(album: Album, picture: Picture) {
     // use setTimeout to not block rendering of current picture – improves visible latency
+    const previous: Picture | undefined = album.pictures[picture.index - 1];
+    const next: Picture | undefined = album.pictures[picture.index + 1];
+
     setTimeout(() => {
-      if (picture.previous) {
-        preloadMedia(picture.previous);
+      if (previous) {
+        preloadMedia(previous);
       }
 
-      if (picture.next) {
-        preloadMedia(picture.next);
+      if (next) {
+        preloadMedia(next);
       }
     }, 0);
   }
@@ -171,8 +177,12 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
     // TODO hairy due to refactoring .album away from picture, ameliorate
     // const { album, picture, fromAlbumView, history } = this.props;
     const { album, picture } = this.props;
-    const destination = direction === "album" ? album : picture[direction];
-    if (destination) {
+
+    const previous: Picture | undefined = album.pictures[picture.index - 1];
+    const next: Picture | undefined = album.pictures[picture.index + 1];
+
+    // const destination = direction === "album" ? album : picture[direction];
+    // if (destination) {
       // if (direction === "album") {
       //   if (fromAlbumView) {
       //     // arrived from album view
@@ -186,7 +196,7 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
       //   history.replace(destination.path);
       // }
       // redirect(destination.path);
-    }
+    // }
   }
 
   // XXX Whytf is setTimeout required here?

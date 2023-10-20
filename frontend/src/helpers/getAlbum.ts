@@ -39,15 +39,9 @@ export async function getCached(
   }
 
   // Cache the Album for Pictures and set .previous and .next
-  let previous: Picture;
-  album.pictures.forEach((picture) => {
-    if (previous) {
-      previous.next = picture;
-      picture.previous = previous;
-    }
-
+  album.pictures.forEach((picture, index) => {
+    picture.index = index;
     AlbumCache.set(picture.path, album);
-    previous = picture;
   });
 
   return album;

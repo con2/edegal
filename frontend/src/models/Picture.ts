@@ -3,8 +3,8 @@ import TileItem from './TileItem';
 import Credits from './Credits';
 
 interface Picture extends TileItem {
-  next?: Picture;
-  previous?: Picture;
+  // not present in server picture, set in client
+  index: number;
 
   original: Media;
   preview: Media;

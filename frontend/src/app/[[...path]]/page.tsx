@@ -26,7 +26,6 @@ export async function generateMetadata({
   // XXX bogus translation function
   const title = getDocumentTitle((r: unknown) => "", album, picture);
   return {
-    // TODO include breadcrumb
     title,
   };
 }
