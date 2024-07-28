@@ -13,7 +13,7 @@ redis_cache_database: 1
 
 edegal_storage_pvc: true
 edegal_storage_pvc_storageclass: longhorn-nfs
-edegal_storage_nfs: false
+edegal_storage_nfs_host: false
 edegal_secret_managed: false
 edegal_admins:
 - Santtu Pajukanta <santtu@pajukanta.fi>

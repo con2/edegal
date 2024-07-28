@@ -12,8 +12,8 @@ redis_broker_database: 5
 redis_cache_database: 5
 
 edegal_storage_pvc: false
-edegal_storage_nfs: 91.105.251.66
-edegal_storage_nfs_path: /larppikuvat
+edegal_storage_nfs_host: 91.105.252.80
+edegal_storage_nfs_path: /opt/conikuvat/larppikuvat
 edegal_secret_managed: false
 edegal_admins:
 - Santtu Pajukanta <santtu@pajukanta.fi>

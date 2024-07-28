@@ -12,9 +12,9 @@ edegal_storage_pvc: true
 # Storage class used for picture storage, or !Void for default
 edegal_storage_pvc_storageclass: !Void
 
-# To use an existing NFS export as the image storage, set edegal_storage_nfs to the IP of the server.
-edegal_storage_nfs: ''
-edegal_storage_nfs_path: /
+# To use an existing NFS export as the image storage, set edegal_storage_nfs_host to the IP of the server.
+edegal_storage_nfs_host: ''
+edegal_storage_nfs_path: /opt/conikuvat
 
 # Leave empty if you have kubernetes-secret-generator installed in your cluster and want to have it generate a SECRET_KEY for you
 edegal_secret_key: ''
@@ -159,11 +159,11 @@ edegal_media_volumes_definition:
         persistentVolumeClaim:
           claimName: edegal-media
   - !If
-      test: !Var edegal_storage_nfs
+      test: !Var edegal_storage_nfs_host
       then:
         name: edegal-media
         nfs:
-          server: !Var edegal_storage_nfs
+          server: !Var edegal_storage_nfs_host
           path: !Var edegal_storage_nfs_path
 
 # Default annotations work for nginx ingress with or without LetsEncrypt TLS. Override if you need something else.

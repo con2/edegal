@@ -12,7 +12,7 @@ redis_broker_database: 3
 redis_cache_database: 3
 
 edegal_storage_pvc: false
-edegal_storage_nfs: 91.105.251.66
+edegal_storage_nfs_host: 91.105.252.80
 edegal_secret_managed: false
 edegal_admins:
 - Santtu Pajukanta <santtu@pajukanta.fi>
