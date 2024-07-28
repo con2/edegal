@@ -27,6 +27,7 @@ jobs:
       - uses: docker/setup-buildx-action@v1
       - id: build
         run: |
+          python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
           emskaffolden -E staging -- build --file-output build.json
           echo "::set-output name=build_json::$(base64 -w 0 < build.json)"
@@ -49,6 +50,7 @@ jobs:
           skaffold: '1.20.0'
       - uses: docker/setup-buildx-action@v1
       - run: |
+          python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
           base64 -d <<< "${{ needs.build.outputs.build_json }}" > build.json
           emskaffolden -E staging -- deploy -n conikuvat-staging -a build.json
@@ -68,6 +70,7 @@ jobs:
           skaffold: '1.20.0'
       - uses: docker/setup-buildx-action@v1
       - run: |
+          python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
           base64 -d <<< "${{ needs.build.outputs.build_json }}" > build.json
           emskaffolden -E production -- deploy -n conikuvat-production -a build.json
@@ -87,6 +90,7 @@ jobs:
           skaffold: '1.20.0'
       - uses: docker/setup-buildx-action@v1
       - run: |
+          python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
           base64 -d <<< "${{ needs.build.outputs.build_json }}" > build.json
           emskaffolden -E larppikuvat -- deploy -n larppikuvat -a build.json
