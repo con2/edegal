@@ -3,94 +3,155 @@ name: cicd
 on:
   push:
     branches:
-      - development
-      - master
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILDKIT: "1"
+      COMPOSE_DOCKER_CLI_BUILD: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: docker compose -f docker-compose.test.yml up --exit-code-from test
+
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
     env:
       SKAFFOLD_DEFAULT_REPO: ghcr.io/con2
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - uses: pairity/setup-cd-tools@30acb848f9ff747aff4810dac40c5cc0971f485d
+
+      - id: cache-bin
+        uses: actions/cache@v3
         with:
-          skaffold: '1.20.0'
-      - uses: docker/login-action@v1
+          path: bin
+          key: ${{ runner.os }}-bin-2
+      - if: steps.cache-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir bin
+          curl -Lo bin/skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          curl -Lo bin/kubectl https://dl.k8s.io/release/v1.22.0/bin/linux/amd64/kubectl
+          chmod +x bin/skaffold bin/kubectl
+      - run: echo "$PWD/bin" >> $GITHUB_PATH
+
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_PASSWORD }}
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v3
       - id: build
         run: |
           python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
           emskaffolden -E staging -- build --file-output build.json
-          echo "::set-output name=build_json::$(base64 -w 0 < build.json)"
-    outputs:
-      build_json: ${{ steps.build.outputs.build_json }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-json
+          path: build.json
 
   # TODO DRY
   deploy_staging:
     runs-on: self-hosted
     needs: build
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/development' }}
+    environment: staging
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-json
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - uses: pairity/setup-cd-tools@30acb848f9ff747aff4810dac40c5cc0971f485d
+
+      - id: cache-bin
+        uses: actions/cache@v3
         with:
-          kubectl: '1.20.4'
-          skaffold: '1.20.0'
-      - uses: docker/setup-buildx-action@v1
+          path: bin
+          key: ${{ runner.os }}-bin-2
+      - if: steps.cache-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir bin
+          curl -Lo bin/skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          curl -Lo bin/kubectl https://dl.k8s.io/release/v1.22.0/bin/linux/amd64/kubectl
+          chmod +x bin/skaffold bin/kubectl
+      - run: echo "$PWD/bin" >> $GITHUB_PATH
+
       - run: |
           python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
-          base64 -d <<< "${{ needs.build.outputs.build_json }}" > build.json
           emskaffolden -E staging -- deploy -n conikuvat-staging -a build.json
 
   deploy_conikuvat:
     runs-on: self-hosted
     needs: build
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    environment: production
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-json
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - uses: pairity/setup-cd-tools@30acb848f9ff747aff4810dac40c5cc0971f485d
+
+      - id: cache-bin
+        uses: actions/cache@v3
         with:
-          kubectl: '1.20.4'
-          skaffold: '1.20.0'
-      - uses: docker/setup-buildx-action@v1
+          path: bin
+          key: ${{ runner.os }}-bin-2
+      - if: steps.cache-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir bin
+          curl -Lo bin/skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          curl -Lo bin/kubectl https://dl.k8s.io/release/v1.22.0/bin/linux/amd64/kubectl
+          chmod +x bin/skaffold bin/kubectl
+      - run: echo "$PWD/bin" >> $GITHUB_PATH
+
       - run: |
           python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
-          base64 -d <<< "${{ needs.build.outputs.build_json }}" > build.json
           emskaffolden -E production -- deploy -n conikuvat-production -a build.json
 
   deploy_larppikuvat:
     runs-on: self-hosted
     needs: build
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    environment: production
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-json
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - uses: pairity/setup-cd-tools@30acb848f9ff747aff4810dac40c5cc0971f485d
+
+      - id: cache-bin
+        uses: actions/cache@v3
         with:
-          kubectl: '1.20.4'
-          skaffold: '1.20.0'
-      - uses: docker/setup-buildx-action@v1
+          path: bin
+          key: ${{ runner.os }}-bin-2
+      - if: steps.cache-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir bin
+          curl -Lo bin/skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+          curl -Lo bin/kubectl https://dl.k8s.io/release/v1.22.0/bin/linux/amd64/kubectl
+          chmod +x bin/skaffold bin/kubectl
+      - run: echo "$PWD/bin" >> $GITHUB_PATH
+
       - run: |
           python3 -m pip install -U pip setuptools wheel
           python3 -m pip install emskaffolden
-          base64 -d <<< "${{ needs.build.outputs.build_json }}" > build.json
           emskaffolden -E larppikuvat -- deploy -n larppikuvat -a build.json

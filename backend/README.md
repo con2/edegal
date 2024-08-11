@@ -4,7 +4,7 @@
 
 This is the REST API backend for Edegal. Technology choices include the following:
 
-* Python (3.11+)
+* Python (3.12+)
 * Django (4.2+)
 * PostgreSQL (15+)
 * Redis

@@ -7,10 +7,9 @@ from django.db import models
 from django.db.utils import ProgrammingError
 from django.utils.translation import gettext_lazy as _
 
-from ..utils import slugify, pick_attrs
+from ..utils import pick_attrs, slugify
 from .common import CommonFields
 from .media_spec import DEFAULT_FORMAT, MediaSpec
-
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,12 @@ class Picture(models.Model):
     media: Any
 
     slug = models.CharField(**CommonFields.slug)
-    album = models.ForeignKey("edegal.Album", related_name="pictures", on_delete=models.CASCADE)
+    album = models.ForeignKey(
+        "edegal.Album",
+        related_name="pictures",
+        on_delete=models.CASCADE,
+        db_index=False,  # have "fat" indexes on album, slug etc.
+    )
     order = models.IntegerField(**CommonFields.order)
     path = models.CharField(**CommonFields.path)
 
@@ -37,7 +41,9 @@ class Picture(models.Model):
         help_text="EXIF original date time of the original media",
     )
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
 
     def as_dict(self, include_credits=False):
         result = pick_attrs(
@@ -84,7 +90,9 @@ class Picture(models.Model):
             for media_item in all_media
             if media_item.role == role and media_item.format != base_media_item.format
         ]
-        additional_formats = list({media_item.format for media_item in additional_media})
+        additional_formats = list(
+            {media_item.format for media_item in additional_media}
+        )
 
         # hack: avif precedes webp in alphabetical order
         additional_formats.sort()
@@ -94,7 +102,9 @@ class Picture(models.Model):
     def refresh_media(self, dry_run=False):
         current_specs = MediaSpec.objects.filter(active=True)
 
-        media_to_remove = self.media.all().exclude(role="original").exclude(spec__in=current_specs)
+        media_to_remove = (
+            self.media.all().exclude(role="original").exclude(spec__in=current_specs)
+        )
 
         assert dry_run, "actually doing this not implemented yet :)"
 
@@ -122,7 +132,9 @@ class Picture(models.Model):
     @property
     def original(self):
         if not hasattr(self, "_original"):
-            self._original = next((media for media in self.media.all() if media.spec is None), None)
+            self._original = next(
+                (media for media in self.media.all() if media.spec is None), None
+            )
 
         return self._original
 
@@ -130,7 +142,11 @@ class Picture(models.Model):
     def thumbnail(self):
         if not hasattr(self, "_thumbnail"):
             self._thumbnail = next(
-                (media for media in self.media.all() if media.spec and media.spec.is_default_thumbnail),
+                (
+                    media
+                    for media in self.media.all()
+                    if media.spec and media.spec.is_default_thumbnail
+                ),
                 None,
             )
 
@@ -153,4 +169,6 @@ class Picture(models.Model):
         verbose_name_plural = _("Pictures")
         unique_together = [("album", "slug")]
         ordering = ("album", "order", "taken_at", "slug")
-        index_together = [("album", "order", "slug")]
+        indexes = [
+            models.Index(fields=["album", "order", "taken_at", "slug"]),
+        ]

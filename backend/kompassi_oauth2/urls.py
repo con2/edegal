@@ -1,4 +1,3 @@
-from django.conf.urls import include
 
 from .views import LoginView, CallbackView
 from django.urls import re_path

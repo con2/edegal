@@ -68,27 +68,34 @@ class AlbumAdminForm(forms.ModelForm):
         model = Album
 
 
+@admin.action(
+    description="Make not public, not visible"
+)
 def make_not_public_not_visible(modeladmin, request, queryset):
     return queryset.update(is_public=False, is_visible=False)
 
 
-make_not_public_not_visible.short_description = "Make not public, not visible"
 
 
+@admin.action(
+    description="Make public but not visible"
+)
 def make_public_but_not_visible(modeladmin, request, queryset):
     return queryset.update(is_public=True, is_visible=False)
 
 
-make_public_but_not_visible.short_description = "Make public but not visible"
 
 
+@admin.action(
+    description="Make public and visible"
+)
 def make_public_and_visible(modeladmin, request, queryset):
     return queryset.update(is_public=True, is_visible=True)
 
 
-make_public_and_visible.short_description = "Make public and visible"
 
 
+@admin.register(Album)
 class AlbumAdmin(MultiUploadAdmin):
     model = Album
     form = AlbumAdminForm
@@ -198,10 +205,12 @@ class AlbumAdmin(MultiUploadAdmin):
         qs = super().get_queryset(request)
         return qs.annotate(num_pictures=Count("pictures"))
 
+    @admin.display(
+        description="Pictures"
+    )
     def admin_get_num_pictures(self, obj):
         return obj.num_pictures
 
-    admin_get_num_pictures.short_description = "Pictures"
 
 
 class MediaInline(admin.TabularInline):
@@ -214,6 +223,7 @@ class MediaInline(admin.TabularInline):
     show_change_link = False
 
 
+@admin.register(Picture)
 class PictureAdmin(admin.ModelAdmin):
     model = Picture
     readonly_fields = ("path", "taken_at", "created_at", "updated_at", "created_by")
@@ -223,20 +233,25 @@ class PictureAdmin(admin.ModelAdmin):
     inlines = (MediaInline,)
 
 
+@admin.action(
+    description="Activate selected media specs"
+)
 def activate_media_specs(modeladmin, request, queryset):
     queryset.update(active=True)
 
 
-activate_media_specs.short_description = "Activate selected media specs"
 
 
+@admin.action(
+    description="Deactivate selected media specs"
+)
 def deactivate_media_specs(modeladmin, request, queryset):
     queryset.update(active=False)
 
 
-deactivate_media_specs.short_description = "Deactivate selected media specs"
 
 
+@admin.register(MediaSpec)
 class MediaSpecAdmin(admin.ModelAdmin):
     model = MediaSpec
     list_display = ("role", "max_width", "max_height", "quality", "format", "active")
@@ -277,6 +292,7 @@ if "larppikuvat" in settings.INSTALLED_APPS:
     photographer_inlines.append(LarppikuvatPhotographerProfileInlineAdmin)
 
 
+@admin.register(Photographer)
 class PhotographerAdmin(admin.ModelAdmin):
     model = Photographer
     form = PhotographerAdminForm
@@ -308,6 +324,7 @@ class SeriesAdminForm(forms.ModelForm):
         model = Series
 
 
+@admin.register(Series)
 class SeriesAdmin(admin.ModelAdmin):
     model = Series
     form = SeriesAdminForm
@@ -321,6 +338,7 @@ class SeriesAdmin(admin.ModelAdmin):
         return super().save_model(request, obj, form, change)
 
 
+@admin.register(TermsAndConditions)
 class TermsAndConditionsAdmin(admin.ModelAdmin):
     model = TermsAndConditions
     list_display = ("admin_get_abridged_text", "url", "user", "is_public")
@@ -346,6 +364,7 @@ class ImportItemInline(admin.TabularInline):
         return False
 
 
+@admin.register(ImportJob)
 class ImportJobAdmin(admin.ModelAdmin):
     model = ImportJob
     inlines = (ImportItemInline,)
@@ -374,13 +393,6 @@ class ImportJobAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(Album, AlbumAdmin)
-admin.site.register(MediaSpec, MediaSpecAdmin)
-admin.site.register(Photographer, PhotographerAdmin)
-admin.site.register(Picture, PictureAdmin)
-admin.site.register(Series, SeriesAdmin)
-admin.site.register(TermsAndConditions, TermsAndConditionsAdmin)
-admin.site.register(ImportJob, ImportJobAdmin)
 
 admin.site.site_header = "Edegal Admin"
 admin.site.site_title = "Edegal Admin"
