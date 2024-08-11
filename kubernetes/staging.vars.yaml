@@ -11,9 +11,9 @@ redis_hostname: redis-ha-haproxy.redis-ha.svc.cluster.local
 redis_broker_database: 1
 redis_cache_database: 1
 
-edegal_storage_pvc: true
-edegal_storage_pvc_storageclass: longhorn-nfs
-edegal_storage_nfs_host: false
+edegal_storage_pvc: false
+edegal_storage_nfs_host: 91.105.252.80
+edegal_storage_nfs_path: /opt/conikuvat/staging
 edegal_secret_managed: false
 edegal_admins:
 - Santtu Pajukanta <santtu@pajukanta.fi>
