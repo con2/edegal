@@ -1,9 +1,9 @@
 beautifulsoup4
 celery
 Django
-django-ckeditor
 django-environ
 django-mptt
+django-prose-editor[sanitize]
 django-redis
 git+https://github.com/con2/django-admin-multiupload.git@django3#egg=admin-multiupload
 gunicorn

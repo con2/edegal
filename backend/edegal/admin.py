@@ -2,16 +2,12 @@ import datetime
 from os.path import splitext
 from typing import Optional
 
+from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.db.models import Count
-from django import forms
-
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django.http.request import HttpRequest
 from multiupload.admin import MultiUploadAdmin
-
-from .utils import slugify
 
 from .models import (
     Album,
@@ -24,6 +20,7 @@ from .models import (
     Series,
     TermsAndConditions,
 )
+from .utils import slugify
 
 
 class PictureInline(admin.TabularInline):
@@ -37,12 +34,6 @@ class PictureInline(admin.TabularInline):
 
 
 class AlbumAdminForm(forms.ModelForm):
-    body = forms.CharField(
-        widget=CKEditorUploadingWidget(),
-        required=False,
-        label=Album._meta.get_field("body").verbose_name,
-        help_text=Album._meta.get_field("body").help_text,
-    )
     date = forms.DateField(
         initial=lambda: datetime.date.today(),
         help_text=Album._meta.get_field("date").help_text,
@@ -68,31 +59,19 @@ class AlbumAdminForm(forms.ModelForm):
         model = Album
 
 
-@admin.action(
-    description="Make not public, not visible"
-)
+@admin.action(description="Make not public, not visible")
 def make_not_public_not_visible(modeladmin, request, queryset):
     return queryset.update(is_public=False, is_visible=False)
 
 
-
-
-@admin.action(
-    description="Make public but not visible"
-)
+@admin.action(description="Make public but not visible")
 def make_public_but_not_visible(modeladmin, request, queryset):
     return queryset.update(is_public=True, is_visible=False)
 
 
-
-
-@admin.action(
-    description="Make public and visible"
-)
+@admin.action(description="Make public and visible")
 def make_public_and_visible(modeladmin, request, queryset):
     return queryset.update(is_public=True, is_visible=True)
-
-
 
 
 @admin.register(Album)
@@ -100,11 +79,23 @@ class AlbumAdmin(MultiUploadAdmin):
     model = Album
     form = AlbumAdminForm
     readonly_fields = ("path", "created_at", "updated_at", "created_by")
-    list_display = ("path", "title", "date", "series", "admin_get_num_pictures", "is_public", "is_visible")
+    list_display = (
+        "path",
+        "title",
+        "date",
+        "series",
+        "admin_get_num_pictures",
+        "is_public",
+        "is_visible",
+    )
     list_filter = ("series", "is_public", "is_visible", "is_downloadable")
     raw_id_fields = ("cover_picture", "terms_and_conditions", "parent")
     search_fields = ("path", "title")
-    actions = [make_not_public_not_visible, make_public_but_not_visible, make_public_and_visible]
+    actions = [
+        make_not_public_not_visible,
+        make_public_but_not_visible,
+        make_public_and_visible,
+    ]
     fieldsets = [
         (
             "Basic info",
@@ -185,7 +176,9 @@ class AlbumAdmin(MultiUploadAdmin):
 
         Media.import_open_file(picture, uploaded.file, refresh_album=True)
 
-        return dict(url="", thumbnail_url="", id=picture.id, name=picture.title)  # FIXME  # FIXME
+        return dict(
+            url="", thumbnail_url="", id=picture.id, name=picture.title
+        )  # FIXME  # FIXME
 
     def get_changeform_initial_data(self, request):
         try:
@@ -205,12 +198,9 @@ class AlbumAdmin(MultiUploadAdmin):
         qs = super().get_queryset(request)
         return qs.annotate(num_pictures=Count("pictures"))
 
-    @admin.display(
-        description="Pictures"
-    )
+    @admin.display(description="Pictures")
     def admin_get_num_pictures(self, obj):
         return obj.num_pictures
-
 
 
 class MediaInline(admin.TabularInline):
@@ -233,22 +223,14 @@ class PictureAdmin(admin.ModelAdmin):
     inlines = (MediaInline,)
 
 
-@admin.action(
-    description="Activate selected media specs"
-)
+@admin.action(description="Activate selected media specs")
 def activate_media_specs(modeladmin, request, queryset):
     queryset.update(active=True)
 
 
-
-
-@admin.action(
-    description="Deactivate selected media specs"
-)
+@admin.action(description="Deactivate selected media specs")
 def deactivate_media_specs(modeladmin, request, queryset):
     queryset.update(active=False)
-
-
 
 
 @admin.register(MediaSpec)
@@ -260,13 +242,6 @@ class MediaSpecAdmin(admin.ModelAdmin):
 
 
 class PhotographerAdminForm(forms.ModelForm):
-    body = forms.CharField(
-        widget=CKEditorUploadingWidget(),
-        required=False,
-        label=Photographer._meta.get_field("body").verbose_name,
-        help_text=Photographer._meta.get_field("body").help_text,
-    )
-
     class Meta:
         model = Photographer
         fields = (
@@ -312,13 +287,6 @@ class PhotographerAdmin(admin.ModelAdmin):
 
 
 class SeriesAdminForm(forms.ModelForm):
-    body = forms.CharField(
-        widget=CKEditorUploadingWidget(),
-        required=False,
-        label=Series._meta.get_field("body").verbose_name,
-        help_text=Series._meta.get_field("body").help_text,
-    )
-
     class Meta:
         fields = ("title", "description", "body", "slug", "is_public")
         model = Series
@@ -391,7 +359,6 @@ class ImportJobAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
-
 
 
 admin.site.site_header = "Edegal Admin"

@@ -1,6 +1,6 @@
 import logging
-import re
 import os
+import re
 from datetime import date
 from typing import Any
 from zipfile import ZipFile
@@ -9,16 +9,14 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-
+from django_prose_editor.fields import ProseEditorField
 from mptt.models import MPTTModel, TreeForeignKey
 
-from ..utils import slugify, pick_attrs, strip_photographer_name_from_title
-
+from ..utils import pick_attrs, slugify, strip_photographer_name_from_title
 from .album_mixin import AlbumMixin
-from .common import CommonFields
+from .common import CommonFields, make_body_field
 from .picture import Picture
 from .series import Series
-
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +78,7 @@ class Album(AlbumMixin, MPTTModel):
     title = models.CharField(**CommonFields.title)
     description = models.TextField(**CommonFields.description)
 
-    body = models.TextField(**CommonFields.body)
+    body = make_body_field()
 
     redirect_url = models.CharField(
         max_length=1023,
@@ -113,7 +111,11 @@ class Album(AlbumMixin, MPTTModel):
     )
 
     photographer = models.ForeignKey(
-        "edegal.Photographer", null=True, blank=True, on_delete=models.SET_NULL, related_name="albums"
+        "edegal.Photographer",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="albums",
     )
     director = models.ForeignKey(
         "edegal.Photographer",
@@ -137,10 +139,16 @@ class Album(AlbumMixin, MPTTModel):
     created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL
+    )
 
     series = models.ForeignKey(
-        "edegal.Series", blank=True, null=True, on_delete=models.SET_NULL, related_name="albums"
+        "edegal.Series",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="albums",
     )
 
     # denormalized from `series`
@@ -160,7 +168,9 @@ class Album(AlbumMixin, MPTTModel):
             subalbums = self._get_subalbums(context=context)
             pictures = self._get_pictures(context=context)
         else:
-            subalbums = self._get_subalbums(context=context, is_public=True, is_visible=True)
+            subalbums = self._get_subalbums(
+                context=context, is_public=True, is_visible=True
+            )
             pictures = self._get_pictures(context=context, is_public=True)
 
         return pick_attrs(
@@ -174,14 +184,20 @@ class Album(AlbumMixin, MPTTModel):
             path=(f"{self.path}/timeline" if context == "timeline" else self.path),
             body=("" if context == "timeline" else self.body),
             is_public=self.is_public and self.is_visible,
-            cover_picture=(self.cover_picture.as_dict() if self.cover_picture else None),
+            cover_picture=(
+                self.cover_picture.as_dict() if self.cover_picture else None
+            ),
             credits=self.make_credits(),
             date=self.date.isoformat() if self.date else "",
             breadcrumb=self._make_breadcrumbs(context=context),
             download_url=self.download_url or "",
             subalbums=[subalbum.make_subalbum() for subalbum in subalbums],
             pictures=[picture.as_dict() for picture in pictures],
-            terms_and_conditions=(self.terms_and_conditions.as_dict() if self.terms_and_conditions else None),
+            terms_and_conditions=(
+                self.terms_and_conditions.as_dict()
+                if self.terms_and_conditions
+                else None
+            ),
             previous_in_series=(
                 self.previous_in_series._make_breadcrumb()
                 if self.series and self.previous_in_series and context == "album"
@@ -221,7 +237,16 @@ class Album(AlbumMixin, MPTTModel):
     def get_albums(cls, **criteria):
         return (
             cls.objects.filter(cover_picture__media__role="thumbnail", **criteria)
-            .only("id", "path", "title", "redirect_url", "date", "cover_picture", "is_public", "is_visible")
+            .only(
+                "id",
+                "path",
+                "title",
+                "redirect_url",
+                "date",
+                "cover_picture",
+                "is_public",
+                "is_visible",
+            )
             .distinct()
             .select_related("cover_picture")
             .order_by(F("date").desc(nulls_last=True), "tree_id")
@@ -280,7 +305,9 @@ class Album(AlbumMixin, MPTTModel):
             title = breadcrumb.title
 
             if self.photographer and self.photographer.display_name:
-                title = strip_photographer_name_from_title(title, self.photographer.display_name)
+                title = strip_photographer_name_from_title(
+                    title, self.photographer.display_name
+                )
 
             if title:
                 parts.append(title)
@@ -303,7 +330,9 @@ class Album(AlbumMixin, MPTTModel):
 
     def _make_breadcrumbs(self, context="album"):
         ancestors = self.get_ancestors().only("path", "title", "series")
-        series = self.series or next((album.series for album in ancestors if album.series), None)
+        series = self.series or next(
+            (album.series for album in ancestors if album.series), None
+        )
         breadcrumbs = [ancestor._make_breadcrumb() for ancestor in ancestors]
 
         if series:
@@ -329,7 +358,9 @@ class Album(AlbumMixin, MPTTModel):
             # not saved yet so can't have subalbums either
             return
 
-        first_subalbum = self.subalbums.filter(cover_picture__media__role="thumbnail").first()
+        first_subalbum = self.subalbums.filter(
+            cover_picture__media__role="thumbnail"
+        ).first()
         if first_subalbum is not None:
             return first_subalbum.cover_picture
 
@@ -352,7 +383,11 @@ class Album(AlbumMixin, MPTTModel):
         # 1. Cover picture EXIF data
         if self.cover_picture and self.cover_picture.taken_at:
             d = self.cover_picture.taken_at
-            logger.debug("Guessed date %s from cover picture EXIF data for %s", d.isoformat(), self)
+            logger.debug(
+                "Guessed date %s from cover picture EXIF data for %s",
+                d.isoformat(),
+                self,
+            )
             return d
 
         # 2. Known date formats in description or title
@@ -360,7 +395,11 @@ class Album(AlbumMixin, MPTTModel):
             match = regex.search(self.description) or regex.search(self.title)
             if match:
                 try:
-                    d = date(int(match.group("year")), int(match.group("month")), int(match.group("day")))
+                    d = date(
+                        int(match.group("year")),
+                        int(match.group("month")),
+                        int(match.group("day")),
+                    )
                 except (ValueError, TypeError):
                     logger.warning(
                         "The format was good but the data was bad (year=%s, month=%s, day=%s)",
@@ -369,7 +408,11 @@ class Album(AlbumMixin, MPTTModel):
                         match.group("day"),
                     )
                 else:
-                    logger.debug("Guessed date %s from description/title for %s", d.isoformat(), self)
+                    logger.debug(
+                        "Guessed date %s from description/title for %s",
+                        d.isoformat(),
+                        self,
+                    )
                     return d
 
         # 3. Non-root ancestors, nearest first
@@ -456,7 +499,9 @@ class Album(AlbumMixin, MPTTModel):
         for album in family:
             # Cannot use identity or id because self might not be saved yet!
             if album.path != self.path:
-                logger.debug("Album.save(traverse=True) visiting {path}".format(path=album.path))
+                logger.debug(
+                    "Album.save(traverse=True) visiting {path}".format(path=album.path)
+                )
                 album.save(traverse=False)
 
     @classmethod
@@ -551,10 +596,15 @@ class Album(AlbumMixin, MPTTModel):
 
     def _ensure_download(self):
         if not self.is_downloadable:
-            logger.warn("Tried to Album._ensure_download an undownloadable album %s", self)
+            logger.warn(
+                "Tried to Album._ensure_download an undownloadable album %s", self
+            )
             return
         if self.is_download_ready:
-            logger.warn("Album._ensure_download %s called while download file already exists", self)
+            logger.warn(
+                "Album._ensure_download %s called while download file already exists",
+                self,
+            )
             return
 
         zip_file_path = self.get_download_file_path()
@@ -581,7 +631,11 @@ class Album(AlbumMixin, MPTTModel):
                 for picture in self.pictures.filter(is_public=True):
                     original = picture.original
                     if not original or not original.src:
-                        logger.warn("Not adding %s to zip because it has no original media", self, picture)
+                        logger.warn(
+                            "Not adding %s to zip because it has no original media",
+                            self,
+                            picture,
+                        )
                         continue
 
                     picture_file_name = f"{picture.slug}.jpg"
@@ -591,7 +645,9 @@ class Album(AlbumMixin, MPTTModel):
                             zip_picture_file.write(original_picture_file.read())
         except Exception:
             try:
-                logger.exception("Creating zip file failed. Trying to delete temporary file.")
+                logger.exception(
+                    "Creating zip file failed. Trying to delete temporary file."
+                )
                 os.unlink(temp_file_path)
             except Exception:
                 logger.exception("Removing temp file failed.")

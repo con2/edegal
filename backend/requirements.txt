@@ -34,18 +34,16 @@ click-repl==0.3.0
 django==5.1
     # via
     #   -r requirements.in
-    #   django-ckeditor
     #   django-js-asset
+    #   django-prose-editor
     #   django-redis
-django-ckeditor==6.7.1
-    # via -r requirements.in
 django-environ==0.11.2
     # via -r requirements.in
 django-js-asset==2.2.0
-    # via
-    #   django-ckeditor
-    #   django-mptt
+    # via django-mptt
 django-mptt==0.16.0
+    # via -r requirements.in
+django-prose-editor==0.7.1
     # via -r requirements.in
 django-redis==5.4.0
     # via -r requirements.in
@@ -55,6 +53,8 @@ idna==3.7
     # via requests
 kombu==5.4.0
     # via celery
+nh3==0.2.18
+    # via django-prose-editor
 oauthlib==3.2.2
     # via requests-oauthlib
 packaging==24.1

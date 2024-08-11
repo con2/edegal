@@ -5,10 +5,8 @@ from django.db import models
 from django.db.models import F
 
 from ..utils import pick_attrs, slugify
-
 from .album_mixin import AlbumMixin
-from .common import CommonFields
-
+from .common import CommonFields, make_body_field
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,7 @@ class Series(AlbumMixin, models.Model):
     title = models.CharField(**CommonFields.title)
     slug = models.CharField(**CommonFields.slug)
     description = models.TextField(**CommonFields.description)
-    body = models.TextField(**CommonFields.body)
+    body = make_body_field()
 
     is_public = models.BooleanField(**CommonFields.is_public)
     is_visible = models.BooleanField(**CommonFields.is_visible)
@@ -43,7 +41,9 @@ class Series(AlbumMixin, models.Model):
     # automatic
     created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL
+    )
 
     def save(self, *args, **kwargs):
         if self.title and not self.slug:
@@ -79,7 +79,9 @@ class Series(AlbumMixin, models.Model):
             breadcrumb=[
                 Album.objects.get(path="/")._make_breadcrumb(),
             ],
-            subalbums=[album.make_subalbum() for album in self.get_albums(**child_criteria)],
+            subalbums=[
+                album.make_subalbum() for album in self.get_albums(**child_criteria)
+            ],
             pictures=[],
             terms_and_conditions=None,
             credits={},
@@ -90,7 +92,16 @@ class Series(AlbumMixin, models.Model):
 
         return (
             Album.objects.filter(series=self, **extra_criteria)
-            .only("id", "path", "title", "redirect_url", "date", "cover_picture", "is_public", "is_visible")
+            .only(
+                "id",
+                "path",
+                "title",
+                "redirect_url",
+                "date",
+                "cover_picture",
+                "is_public",
+                "is_visible",
+            )
             .select_related("cover_picture")
             .order_by(F("date").desc(nulls_last=True), "tree_id")
         )
@@ -103,12 +114,20 @@ class Series(AlbumMixin, models.Model):
 
         # iterated oldest first
         for album in self.get_albums().reverse():
-            logger.debug("Setting predecessor (older) in series %s of %s to %s", self, album, previous_album)
+            logger.debug(
+                "Setting predecessor (older) in series %s of %s to %s",
+                self,
+                album,
+                previous_album,
+            )
             album.previous_in_series = previous_album
 
             if previous_album:
                 logger.debug(
-                    "Setting successor (newer) in series %s of %s to %s", self, previous_album, album
+                    "Setting successor (newer) in series %s of %s to %s",
+                    self,
+                    previous_album,
+                    album,
                 )
                 previous_album.next_in_series = album
                 previous_album.save(traverse=False)
@@ -116,7 +135,11 @@ class Series(AlbumMixin, models.Model):
             previous_album = album
 
         if previous_album:
-            logger.debug("Setting successor (newer) in series %s of %s to None", self, previous_album)
+            logger.debug(
+                "Setting successor (newer) in series %s of %s to None",
+                self,
+                previous_album,
+            )
             previous_album.next_in_series = None
             previous_album.save(traverse=False)
 

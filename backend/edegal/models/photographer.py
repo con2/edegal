@@ -1,11 +1,12 @@
 from typing import Any
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
+from ..utils import pick_attrs, slugify
 from .album_mixin import AlbumMixin
-from .common import CommonFields
-from ..utils import slugify, pick_attrs
+from .common import CommonFields, make_body_field
 
 
 class Photographer(AlbumMixin, models.Model):
@@ -21,7 +22,9 @@ class Photographer(AlbumMixin, models.Model):
     larppikuvat_profile: Any
 
     slug = models.CharField(**CommonFields.slug)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
     email = models.EmailField(
         blank=True,
         help_text=(
@@ -38,9 +41,7 @@ class Photographer(AlbumMixin, models.Model):
     default_terms_and_conditions = models.ForeignKey(
         "edegal.TermsAndConditions", null=True, blank=True, on_delete=models.SET_NULL
     )
-    body = models.TextField(
-        blank=True,
-        default="",
+    body = make_body_field(
         verbose_name="Introduction text",
         help_text="Will be displayed at the top of the photographer view before albums.",
     )
@@ -117,7 +118,9 @@ class Photographer(AlbumMixin, models.Model):
             "is_public",
             subalbums=[
                 album.make_subalbum(context="photographer")
-                for album in Album.get_albums(photographer=self, is_public=True, is_visible=True)
+                for album in Album.get_albums(
+                    photographer=self, is_public=True, is_visible=True
+                )
             ],
             pictures=[],
             breadcrumb=[
@@ -131,11 +134,14 @@ class Photographer(AlbumMixin, models.Model):
             layout="yearly",
             credits=dict(
                 photographer=self.make_credit(
-                    include_larppikuvat_profile="larppikuvat" in settings.INSTALLED_APPS,
+                    include_larppikuvat_profile="larppikuvat"
+                    in settings.INSTALLED_APPS,
                 ),
             ),
             cover_picture=(
-                self.cover_picture.as_dict(include_credits=self.cover_picture.album.photographer != self)
+                self.cover_picture.as_dict(
+                    include_credits=self.cover_picture.album.photographer != self
+                )
                 if self.cover_picture
                 else None
             ),

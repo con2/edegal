@@ -1,5 +1,5 @@
 from django.core.validators import RegexValidator
-
+from django_prose_editor.fields import ProseEditorField
 
 validate_slug = RegexValidator(
     regex=r"^[a-z0-9-]+$",
@@ -54,13 +54,6 @@ class CommonFields(object):
         default="",
     )
 
-    body = dict(
-        blank=True,
-        default="",
-        verbose_name="Text content",
-        help_text="Will be displayed at the top of the album view before subalbums and pictures.",
-    )
-
     order = dict(
         default=0,
         verbose_name="Ordering",
@@ -80,4 +73,16 @@ class CommonFields(object):
         default=True,
         verbose_name="Visible",
         help_text="Items that are not visible are not displayed in listings, but they can still be accessed via exact URL.",
+    )
+
+
+def make_body_field(
+    verbose_name="Text content",
+    help_text="Will be displayed at the top of the album view before subalbums and pictures.",
+):
+    return ProseEditorField(
+        blank=True,
+        default="",
+        verbose_name=verbose_name,
+        help_text=help_text,
     )
