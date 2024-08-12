@@ -539,6 +539,48 @@ class Album(AlbumMixin, MPTTModel):
         else:
             return queryset.get()
 
+    @classmethod
+    def resolve_upstream_redirects(cls, path, **extra_criteria):
+        """
+        Given a path, if there is a redirect higher up in the hierarchy, return a fake album dict
+        that redirects to the correct path. Otherwise return None.
+        """
+        # TODO cache?
+        parts = path.strip("/").split("/")
+        rewritten_parts = []
+        rewrites_done = False
+
+        for part in parts:
+            original_path = "/" + "/".join(rewritten_parts + [part])
+
+            try:
+                album = cls.get_album_by_path(original_path, **extra_criteria)
+            except cls.DoesNotExist:
+                return None
+
+            if redirect_url := album.redirect_url:
+                if redirect_url.startswith("/"):
+                    # Local album redirect – resolve further
+                    rewritten_parts = album.redirect_url.strip("/").split("/")
+                    rewrites_done = True
+                else:
+                    # External redirect – can't resolve further
+                    return cls.fake_album_as_dict(path=path, redirect_url=redirect_url)
+            elif album.path == original_path:
+                # path refers to an album
+                rewritten_parts.append(album.slug)
+            else:
+                # path refers to a picture or a technical view
+                rewritten_parts.append(part)
+
+        if rewrites_done:
+            return cls.fake_album_as_dict(
+                path=path,
+                redirect_url="/" + "/".join(rewritten_parts),
+            )
+
+        return None
+
     def get_download_file_path(self, prefix=settings.MEDIA_ROOT + "/"):
         return f"{prefix}downloads{self.path}.zip"
 

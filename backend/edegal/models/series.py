@@ -45,6 +45,8 @@ class Series(AlbumMixin, models.Model):
         settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL
     )
 
+    redirect_url = ""
+
     def save(self, *args, **kwargs):
         if self.title and not self.slug:
             self.slug = slugify(self.title)

@@ -5,7 +5,6 @@ from django.views.generic.base import View
 from .models import Album, Photographer, Picture
 from .models.media_spec import FORMAT_CHOICES
 
-
 SUPPORTED_FORMATS = {format for (format, disp) in FORMAT_CHOICES}
 
 
@@ -31,7 +30,19 @@ class ApiV3View(View):
         if not request.user.is_staff:
             extra_criteria.update(is_public=True)
 
-        album = Album.get_album_by_path(path, or_404=True, **extra_criteria)
+        try:
+            album = Album.get_album_by_path(path, **extra_criteria)
+        except Album.DoesNotExist:
+            if redirect_dict := Album.resolve_upstream_redirects(
+                path, **extra_criteria
+            ):
+                return JsonResponse(redirect_dict)
+            else:
+                return JsonResponse(
+                    {"status": 404, "message": "album not found"},
+                    status=404,
+                )
+
         response = JsonResponse(
             album.as_dict(
                 include_hidden=request.user.is_staff,
@@ -59,7 +70,9 @@ class PhotographersApiV3View(View):
                 body=pseudoalbum.body if pseudoalbum else "",
                 subalbums=[
                     photog.make_subalbum()
-                    for photog in Photographer.objects.filter(cover_picture__media__isnull=False).distinct()
+                    for photog in Photographer.objects.filter(
+                        cover_picture__media__isnull=False
+                    ).distinct()
                 ],
                 pictures=[],
                 breadcrumb=[
