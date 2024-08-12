@@ -130,8 +130,8 @@ class AlbumTestCase(TestCase):
 
         album_dict = Album.resolve_upstream_redirects("/album-3/child-album")
         assert album_dict is not None
-        self.assertEqual(album_dict["path"], "/album-4/child-album")
+        self.assertEqual(album_dict["redirect_url"], "/album-4/child-album")
 
         album_dict = Album.resolve_upstream_redirects("/album-3/child-album/picture")
         assert album_dict is not None
-        self.assertEqual(album_dict["path"], "/album-4/child-album/picture")
+        self.assertEqual(album_dict["redirect_url"], "/album-4/child-album/picture")

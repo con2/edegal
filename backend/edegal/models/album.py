@@ -566,11 +566,7 @@ class Album(AlbumMixin, MPTTModel):
                 else:
                     # External redirect – can't resolve further
                     return cls.fake_album_as_dict(path=path, redirect_url=redirect_url)
-            elif album.path == original_path:
-                # path refers to an album
-                rewritten_parts.append(album.slug)
             else:
-                # path refers to a picture or a technical view
                 rewritten_parts.append(part)
 
         if rewrites_done:
