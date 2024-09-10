@@ -21,6 +21,7 @@ interface DownloadDialogTranslations {
   preparingDownloadButtonText?: string;
   termsAndConditions: string;
   twitterCredit: string;
+  contactPhotographer: string;
 }
 
 interface DownloadDialogProps {
@@ -29,21 +30,23 @@ interface DownloadDialogProps {
   isOpen: boolean;
   onClose(): void;
   onAccept(): void;
+  onContactPhotographer(): void;
   t: TranslationFunction<DownloadDialogTranslations>; // TODO
 }
 
-export function useDownloadDialogState() {
-  const [isDownloadDialogOpen, setDownloadDialogOpen] = React.useState(false);
-  const openDownloadDialog = React.useCallback(() => setDownloadDialogOpen(true), []);
-  const closeDownloadDialog = React.useCallback(() => setDownloadDialogOpen(false), []);
+export function useDialogState() {
+  const [isDialogOpen, setDialogOpen] = React.useState(false);
+  const openDialog = React.useCallback(() => setDialogOpen(true), []);
+  const closeDialog = React.useCallback(() => setDialogOpen(false), []);
 
-  return { isDownloadDialogOpen, openDownloadDialog, closeDownloadDialog };
+  return { isDialogOpen, openDialog, closeDialog };
 }
 
 export function DownloadDialog({
   album,
   onAccept,
   onClose,
+  onContactPhotographer,
   t,
   isPreparing,
   isOpen,
@@ -59,6 +62,11 @@ export function DownloadDialog({
     setTermsAndConditionsAccepted(false);
     onClose();
   }, [onClose]);
+  const handleContactPhotographer = React.useCallback(() => {
+    setDownloadButtonClicked(false);
+    setTermsAndConditionsAccepted(false);
+    onContactPhotographer();
+  }, [onContactPhotographer]);
   const toggleTermsAndConditionsAccepted = React.useCallback(() => {
     setTermsAndConditionsAccepted(!isTermsAndConditionsAccepted);
   }, [isTermsAndConditionsAccepted]);
@@ -82,12 +90,6 @@ export function DownloadDialog({
           <strong>{t(r => r.termsAndConditions)}</strong>
         </p>
         <Linebreaks text={text || t(r => r.defaultTerms)} />
-
-        {photographer && photographer.email ? (
-          <p>
-            <strong>{t(r => r.contact)}</strong> {photographer.email}
-          </p>
-        ) : null}
 
         {haveTwitter ? (
           <>
@@ -162,34 +164,52 @@ export function DownloadDialog({
       </div>
 
       <div className="modal-footer">
-        <label className="me-auto mt-2">
-          <input
-            type="checkbox"
-            disabled={downloadButtonClicked}
-            checked={isTermsAndConditionsAccepted}
-            onChange={toggleTermsAndConditionsAccepted}
-          />
-          {' ' + t(r => r.acceptTermsAndConditions)}
-        </label>
+        <div className="d-flex w-100 justify-content-between">
+          <label className="mt-2 d-block">
+            <input
+              type="checkbox"
+              disabled={downloadButtonClicked}
+              checked={isTermsAndConditionsAccepted}
+              onChange={toggleTermsAndConditionsAccepted}
+            />
+            {' ' + t(r => r.acceptTermsAndConditions)}
+          </label>
 
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={!isTermsAndConditionsAccepted || isPreparing}
-          onClick={handleAccept}
-        >
-          {isPreparing ? (
-            <>
-              <span className="spinner-border spinner-border-sm" role="status" aria-hidden={true} />{' '}
-              {t(r => r.preparingDownloadButtonText ?? r.downloadButtonText) + '…'}
-            </>
-          ) : (
-            <>{t(r => r.downloadButtonText)}</>
-          )}
-        </button>
-        <button type="button" className="btn btn-secondary" onClick={handleClose}>
-          {t(r => r.closeButtonText)}
-        </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!isTermsAndConditionsAccepted || isPreparing}
+            onClick={handleAccept}
+          >
+            {isPreparing ? (
+              <>
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden={true} />{' '}
+                {t(r => r.preparingDownloadButtonText ?? r.downloadButtonText)}…
+              </>
+            ) : (
+              <>{t(r => r.downloadButtonText)}</>
+            )}
+          </button>
+        </div>
+
+        <div className="d-flex w-100 justify-content-between">
+          <div>
+            {album.credits.photographer ? (
+              <button
+                type="button"
+                className="btn btn-link link-subtle ps-1"
+                onClick={handleContactPhotographer}
+              >
+                {t(r => r.contactPhotographer)}…
+              </button>
+            ) : (
+              <div />
+            )}
+          </div>
+          <button type="button" className="btn btn-secondary" onClick={handleClose}>
+            {t(r => r.closeButtonText)}
+          </button>
+        </div>
       </div>
     </Modal>
   );

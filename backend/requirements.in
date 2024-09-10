@@ -1,3 +1,4 @@
+git+https://github.com/con2/django-admin-multiupload.git@django3#egg=admin-multiupload
 beautifulsoup4
 celery
 Django
@@ -5,12 +6,12 @@ django-environ
 django-mptt
 django-prose-editor[sanitize]
 django-redis
-git+https://github.com/con2/django-admin-multiupload.git@django3#egg=admin-multiupload
 gunicorn
 Pillow
 pillow-avif-plugin
 pip-tools
 psycopg2
+pydantic[email]
 python-memcached
 redis
 requests

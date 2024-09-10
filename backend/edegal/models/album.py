@@ -2,14 +2,13 @@ import logging
 import os
 import re
 from datetime import date
-from typing import Any
+from typing import Any, Self
 from zipfile import ZipFile
 
 from django.conf import settings
 from django.db import models
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-from django_prose_editor.fields import ProseEditorField
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ..utils import pick_attrs, slugify, strip_photographer_name_from_title
@@ -505,7 +504,7 @@ class Album(AlbumMixin, MPTTModel):
                 album.save(traverse=False)
 
     @classmethod
-    def get_album_by_path(cls, path, or_404=False, **extra_criteria):
+    def get_album_by_path(cls, path, or_404=False, **extra_criteria) -> Series | Self:
         # Is it a Series?
         try:
             return Series.objects.get(path=path)

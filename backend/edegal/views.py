@@ -1,11 +1,19 @@
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+import logging
+from typing import ClassVar, Literal
+
+import pydantic
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.http import HttpRequest, JsonResponse
+from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
-from .models import Album, Photographer, Picture
+from .models import Album, Photographer, Picture, Series
 from .models.media_spec import FORMAT_CHOICES
 
 SUPPORTED_FORMATS = {format for (format, disp) in FORMAT_CHOICES}
+logger = logging.getLogger(__name__)
 
 
 class StatusView(View):
@@ -126,8 +134,94 @@ class RandomPictureAPIV3View(View):
         return response
 
 
+class ContactRequest(pydantic.BaseModel):
+    context: str = pydantic.Field(min_length=1)
+    email: pydantic.EmailStr
+    subject: Literal["permission", "takedown", "other"]
+    message: str = pydantic.Field(min_length=1)
+
+    subject_map: ClassVar[dict[str, str]] = dict(
+        permission="Usage permission inquiry",
+        takedown="Takedown request",
+        other="Contact request",
+    )
+
+    def send(self, request: HttpRequest | None = None):
+        album = Album.get_album_by_path(self.context)
+
+        if isinstance(album, Series):
+            # fmh
+            raise Album.DoesNotExist()
+
+        if not album.photographer or not album.photographer.has_email:
+            raise Photographer.DoesNotExist()
+
+        site_name = Album.objects.get(path="/").title
+        subject_display = self.subject_map.get(self.subject, self.subject_map["other"])
+        context_display = f"{settings.EDEGAL_FRONTEND_URL}{self.context}"
+
+        vars = dict(
+            site_name=site_name,
+            context=context_display,
+            email=self.email,
+            subject=subject_display,
+            message=self.message,
+        )
+
+        body = render_to_string("contact_email.txt", vars, request)
+
+        if settings.DEBUG:
+            print(body)
+
+        # send email to album.photographer.email
+        EmailMessage(
+            subject=f"[{site_name}] {subject_display} ({self.context})",
+            body=body,
+            reply_to=[self.email],
+            to=[album.photographer.email],
+        ).send()
+
+
+class ContactView(View):
+    http_method_names = ["post"]
+
+    def post(self, request):
+        try:
+            contact_request = ContactRequest.model_validate_json(request.body)
+        except pydantic.ValidationError as e:
+            logger.error("Invalid contact request (failed to validate)", exc_info=e)
+            return JsonResponse(
+                {"status": 400, "message": "Invalid request"},
+                status=400,
+            )
+
+        try:
+            contact_request.send(request)
+        except Album.DoesNotExist as e:
+            logger.error(
+                "Invalid contact request (context refers to a nonexistent picture or album)",
+                exc_info=e,
+            )
+            return JsonResponse(
+                {"status": 400, "message": "Invalid request"},
+                status=400,
+            )
+        except Photographer.DoesNotExist as e:
+            logger.error(
+                "Invalid contact request (album has no photographer or photographer has no email)",
+                exc_info=e,
+            )
+            return JsonResponse(
+                {"status": 400, "message": "Invalid request"},
+                status=400,
+            )
+
+        return JsonResponse({"status": 200, "message": "OK"})
+
+
 api_v3_view = ApiV3View.as_view()
 photographers_api_v3_view = PhotographersApiV3View.as_view()
 photographer_api_v3_view = PhotographerApiV3View.as_view()
 random_picture_api_v3_view = RandomPictureAPIV3View.as_view()
 status_view = StatusView.as_view()
+contact_view = csrf_exempt(ContactView.as_view())

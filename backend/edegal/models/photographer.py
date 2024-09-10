@@ -82,6 +82,7 @@ class Photographer(AlbumMixin, models.Model):
             "instagram_handle",
             "facebook_handle",
             "flickr_handle",
+            "has_email",
             **extra_attrs,
         )
 
@@ -158,6 +159,10 @@ class Photographer(AlbumMixin, models.Model):
     @property
     def is_public(self):
         return self.cover_picture_id is not None
+
+    @property
+    def has_email(self):
+        return bool(self.email)
 
     class Meta:
         ordering = ("display_name",)

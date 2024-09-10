@@ -1,5 +1,5 @@
 import Config from '../Config';
-import AlbumCache from '../helpers/AlbumCache';
+import AlbumCache from './AlbumCache';
 import Album from '../models/Album';
 import Picture from '../models/Picture';
 

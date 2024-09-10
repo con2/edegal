@@ -1,0 +1,15 @@
+Someone has reached out to you through the contact form on {{ site_name }}.
+If you reply to this email, your response will be sent to the sender.
+
+Context (album or picture):
+{{ context }}
+
+Sender email:
+{{ email }}
+
+Subject:
+{{ subject }}
+
+Message:
+
+{{ message }}

@@ -34,6 +34,7 @@ const translations = {
     acceptTermsAndConditions: 'I accept these terms and conditions',
     defaultTerms:
       'Terms and conditions missing. These pictures are covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
+    contactPhotographer: 'Contact photographer',
   },
   DownloadDialog: {
     dialogTitle: 'Download original photo',
@@ -51,6 +52,40 @@ const translations = {
     acceptTermsAndConditions: 'I accept these terms and conditions',
     defaultTerms:
       'Terms and conditions missing. The photo is covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.',
+    contactPhotographer: 'Contact photographer',
+  },
+  ContactDialog: {
+    closeButtonText: 'Close',
+    dialogTitle: 'Contact photographer',
+    sendingContactText: 'Sending',
+    sendContactText: 'Send',
+    errorText: 'We were unable to send your message. Please try again later.',
+    successText: 'Your message has been sent.',
+    fields: {
+      subject: {
+        title: 'Subject',
+        choices: {
+          takedown: 'I am in this photo and I want it removed',
+          permission: "I'd like to ask for permission to use this photo",
+          other: 'Other',
+        },
+      },
+      recipient: {
+        title: 'Recipient',
+      },
+      email: {
+        title: 'Your email address',
+      },
+      album: {
+        title: 'Album',
+      },
+      picture: {
+        title: 'Picture',
+      },
+      message: {
+        title: 'Message',
+      },
+    },
   },
   ErrorBoundary: {
     defaultMessage:

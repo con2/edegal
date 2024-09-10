@@ -21,3 +21,10 @@ body {
 .modal-content {
   overflow: auto;
 }
+
+.link-subtle {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}

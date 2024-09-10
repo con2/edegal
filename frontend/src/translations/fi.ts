@@ -35,6 +35,7 @@ const translations: Translations = {
     acceptTermsAndConditions: 'Hyväksyn ehdot',
     defaultTerms:
       'Albumin käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvien käyttöön.',
+    contactPhotographer: 'Ota yhteyttä valokuvaajaan',
   },
   DownloadDialog: {
     dialogTitle: 'Lataa alkuperäinen kuva',
@@ -52,6 +53,40 @@ const translations: Translations = {
     acceptTermsAndConditions: 'Hyväksyn ehdot',
     defaultTerms:
       'Kuvan käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvan käyttöön.',
+    contactPhotographer: 'Ota yhteyttä valokuvaajaan',
+  },
+  ContactDialog: {
+    closeButtonText: 'Sulje',
+    dialogTitle: 'Ota yhteyttä valokuvaajaan',
+    sendingContactText: 'Lähetetään',
+    sendContactText: 'Lähetä',
+    errorText: 'Viestin lähettäminen epäonnistui. Yritä myöhemmin uudelleen.',
+    successText: 'Viestisi on lähetetty.',
+    fields: {
+      subject: {
+        title: 'Aihe',
+        choices: {
+          takedown: 'Olen tässä kuvassa ja haluan, että se poistetaan',
+          permission: 'Haluaisin käyttää tätä kuvaa',
+          other: 'Muu',
+        },
+      },
+      recipient: {
+        title: 'Vastaanottaja',
+      },
+      email: {
+        title: 'Sähköpostiosoitteesi',
+      },
+      album: {
+        title: 'Albumi',
+      },
+      picture: {
+        title: 'Kuva',
+      },
+      message: {
+        title: 'Viesti',
+      },
+    },
   },
   ErrorBoundary: {
     defaultMessage:

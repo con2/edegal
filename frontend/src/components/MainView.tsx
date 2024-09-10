@@ -5,7 +5,7 @@ import { RouteComponentProps, StaticContext } from 'react-router';
 import AlbumView from './AlbumView';
 import Loading from './Loading';
 import PictureView from './PictureView';
-import { Content, getAlbum } from '../helpers/getAlbum';
+import { Content, getAlbum } from '../services/getAlbum';
 import ErrorMessage from './ErrorMessage';
 import { T } from '../translations';
 import { getDocumentTitle } from '../helpers/breadcrumb';

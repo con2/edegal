@@ -12,14 +12,15 @@ import DownloadDialog from '../DownloadDialog';
 
 import './index.css';
 import replaceFormat from '../../helpers/replaceFormat';
+import ContactDialog from '../ContactDialog';
 
 type Direction = 'next' | 'previous' | 'album';
-const keyMap: { [keyCode: number]: Direction } = {
-  27: 'album', // escape
-  33: 'previous', // page up
-  34: 'next', // page down
-  37: 'previous', // left arrow
-  39: 'next', // right arrow
+const keyMap: { [keyCode: string]: Direction } = {
+  Escape: 'album', //
+  PageUp: 'previous',
+  PageDown: 'next',
+  ArrowLeft: 'previous',
+  ArrowRight: 'next',
 };
 
 type PictureViewProps = RouteComponentProps<{ path: string }> & {
@@ -28,104 +29,60 @@ type PictureViewProps = RouteComponentProps<{ path: string }> & {
   fromAlbumView?: boolean;
 };
 
-interface PictureViewState {
-  downloadDialogOpen: boolean;
-}
+function PictureView({ album, picture, fromAlbumView, history }: PictureViewProps): JSX.Element {
+  const t = T(r => r.PictureView);
+  const { preview, title } = picture;
+  const { src } = preview;
+  const additionalFormats = preview.additional_formats ?? [];
+  const [isDownloadDialogOpen, setDownloadDialogOpen] = React.useState(false);
+  const [isContactDialogOpen, setContactDialogOpen] = React.useState(false);
 
-class PictureView extends React.Component<PictureViewProps, PictureViewState> {
-  state: PictureViewState = { downloadDialogOpen: false };
+  const goTo = React.useCallback(
+    (direction: Direction) => () => {
+      // TODO hairy due to refactoring .album away from picture, ameliorate
+      const destination = direction === 'album' ? album : picture[direction];
+      if (destination) {
+        if (direction === 'album') {
+          if (fromAlbumView) {
+            // arrived from album view
+            // act as the browser back button
+            history.goBack();
+          } else {
+            // arrived using direct link
+            history.push(destination.path);
+          }
+        } else {
+          history.replace(destination.path);
+        }
+      }
+    },
+    [album, picture, fromAlbumView, history]
+  );
 
-  render() {
-    const t = T(r => r.PictureView);
-    const { album, picture } = this.props;
-    const { preview, title } = picture;
-    const { src } = preview;
-    const additionalFormats = preview.additional_formats ?? [];
-    const { downloadDialogOpen } = this.state;
+  const onKeyDown = React.useCallback(
+    (event: KeyboardEvent) => {
+      if (isDownloadDialogOpen || isContactDialogOpen) {
+        return;
+      }
 
-    return (
-      <div className="PictureView">
-        <picture className="PictureView-img">
-          {additionalFormats.map(format => (
-            <source key={format} srcSet={replaceFormat(src, format)} type={`image/${format}`} />
-          ))}
-          <img src={src} alt={title} />
-        </picture>
+      if (event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
 
-        {picture.previous ? (
-          <div
-            onClick={() => this.goTo('previous')}
-            className="PictureView-nav PictureView-nav-previous"
-            title={t(r => r.previousPicture)}
-          >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
-            </svg>
-          </div>
-        ) : null}
+      if (event.key === 'r' || event.key === 'R') {
+        history.push('/random');
+        return;
+      }
 
-        {picture.next ? (
-          <div
-            onClick={() => this.goTo('next')}
-            className="PictureView-nav PictureView-nav-next"
-            title={t(r => r.nextPicture)}
-          >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
-            </svg>
-          </div>
-        ) : null}
+      const direction = keyMap[event.code];
+      if (direction) {
+        goTo(direction);
+      }
+    },
+    [history, goTo, isDownloadDialogOpen, isContactDialogOpen]
+  );
 
-        <div
-          onClick={() => this.goTo('album')}
-          className="PictureView-action PictureView-action-exit"
-          title={t(r => r.backToAlbum)}
-        >
-          <svg className="PictureView-icon">
-            <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
-          </svg>
-        </div>
-
-        {album.is_downloadable && picture.original ? (
-          <div
-            onClick={this.openDownloadDialog}
-            className="PictureView-action PictureView-action-download"
-            title={t(r => r.downloadOriginal)}
-          >
-            <svg className="PictureView-icon">
-              <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
-            </svg>
-            <DownloadDialog
-              key={picture.path}
-              t={T(r => r.DownloadDialog)}
-              album={album}
-              onAccept={this.downloadPicture}
-              onClose={this.closeDownloadDialog}
-              isOpen={downloadDialogOpen}
-            />
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
-  componentDidMount() {
-    document.addEventListener('keydown', this.onKeyDown);
-
-    this.preloadPreviousAndNext(this.props.picture);
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.onKeyDown);
-  }
-
-  componentDidUpdate(prevProps: PictureViewProps) {
-    if (this.props.picture.path !== prevProps.picture.path) {
-      this.preloadPreviousAndNext(this.props.picture);
-    }
-  }
-
-  preloadPreviousAndNext(picture: Picture) {
+  const preloadPreviousAndNext = React.useCallback((picture: Picture) => {
     // use setTimeout to not block rendering of current picture – improves visible latency
     setTimeout(() => {
       if (picture.previous) {
@@ -136,54 +93,118 @@ class PictureView extends React.Component<PictureViewProps, PictureViewState> {
         preloadMedia(picture.next);
       }
     }, 0);
-  }
+  }, []);
 
-  onKeyDown = (event: KeyboardEvent) => {
-    if (event.altKey || event.ctrlKey || event.metaKey) {
-      return;
-    }
+  const closeDownloadDialog = React.useCallback(() => {
+    setTimeout(() => {
+      setDownloadDialogOpen(false);
+    }, 0);
+  }, []);
 
-    if (event.key === 'r' || event.key === 'R') {
-      this.props.history.push('/random');
-      return;
-    }
+  const openDownloadDialog = React.useCallback(() => {
+    setDownloadDialogOpen(true);
+  }, []);
 
-    const direction = keyMap[event.keyCode];
-    if (direction) {
-      this.goTo(direction);
-    }
-  };
+  const contactPhotographer = React.useCallback(() => {
+    setTimeout(() => {
+      setDownloadDialogOpen(false);
+      setContactDialogOpen(true);
+    }, 0);
+  }, []);
 
-  goTo(direction: Direction) {
-    // TODO hairy due to refactoring .album away from picture, ameliorate
-    const { album, picture, fromAlbumView, history } = this.props;
-    const destination = direction === 'album' ? album : picture[direction];
-    if (destination) {
-      if (direction === 'album') {
-        if (fromAlbumView) {
-          // arrived from album view
-          // act as the browser back button
-          history.goBack();
-        } else {
-          // arrived using direct link
-          history.push(destination.path);
-        }
-      } else {
-        history.replace(destination.path);
-      }
-    }
-  }
+  const closeContactDialog = React.useCallback(() => {
+    setContactDialogOpen(false);
+  }, []);
 
-  // XXX Whytf is setTimeout required here?
-  closeDownloadDialog = () => {
-    setTimeout(() => this.setState({ downloadDialogOpen: false }), 0);
-  };
-  openDownloadDialog = () => {
-    this.setState({ downloadDialogOpen: true });
-  };
-  downloadPicture = () => {
-    window.open(this.props.picture.original.src);
-  };
+  const downloadPicture = React.useCallback(() => {
+    window.open(picture.original.src);
+  }, [picture]);
+
+  React.useEffect(() => {
+    preloadPreviousAndNext(picture);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  });
+
+  return (
+    <div className="PictureView">
+      <picture className="PictureView-img">
+        {additionalFormats.map(format => (
+          <source key={format} srcSet={replaceFormat(src, format)} type={`image/${format}`} />
+        ))}
+        <img src={src} alt={title} />
+      </picture>
+
+      {picture.previous ? (
+        <div
+          onClick={goTo('previous')}
+          className="PictureView-nav PictureView-nav-previous"
+          title={t(r => r.previousPicture)}
+        >
+          <svg className="PictureView-icon">
+            <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
+          </svg>
+        </div>
+      ) : null}
+
+      {picture.next ? (
+        <div
+          onClick={goTo('next')}
+          className="PictureView-nav PictureView-nav-next"
+          title={t(r => r.nextPicture)}
+        >
+          <svg className="PictureView-icon">
+            <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
+          </svg>
+        </div>
+      ) : null}
+
+      <div
+        onClick={goTo('album')}
+        className="PictureView-action PictureView-action-exit"
+        title={t(r => r.backToAlbum)}
+      >
+        <svg className="PictureView-icon">
+          <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
+        </svg>
+      </div>
+
+      {album.is_downloadable && picture.original && (
+        <>
+          <div
+            onClick={openDownloadDialog}
+            className="PictureView-action PictureView-action-download"
+            title={t(r => r.downloadOriginal)}
+          >
+            <svg className="PictureView-icon">
+              <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
+            </svg>
+          </div>
+
+          <DownloadDialog
+            key={picture.path + '/download'}
+            t={T(r => r.DownloadDialog)}
+            album={album}
+            onAccept={downloadPicture}
+            onClose={closeDownloadDialog}
+            onContactPhotographer={contactPhotographer}
+            isOpen={isDownloadDialogOpen}
+          />
+        </>
+      )}
+      {album.credits.photographer && (
+        <ContactDialog
+          key={picture.path + '/contact'}
+          isOpen={isContactDialogOpen}
+          onClose={closeContactDialog}
+          album={album}
+          picture={picture}
+        />
+      )}
+    </div>
+  );
 }
 
 export default withRouter(PictureView);

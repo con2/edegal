@@ -11,12 +11,12 @@ export interface LarppikuvatProfile {
 export default interface Photographer {
   path: string;
   display_name: string;
-  email: string;
   homepage_url: string;
   twitter_handle: string;
   instagram_handle: string;
   facebook_handle: string;
   flickr_handle: string;
+  has_email: boolean;
 
   larppikuvat_profile?: LarppikuvatProfile;
 }
