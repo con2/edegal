@@ -38,7 +38,7 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
   const [isContactDialogOpen, setContactDialogOpen] = React.useState(false);
 
   const goTo = React.useCallback(
-    (direction: Direction) => () => {
+    (direction: Direction, state: unknown = undefined) => () => {
       // TODO hairy due to refactoring .album away from picture, ameliorate
       const destination = direction === 'album' ? album : picture[direction];
       if (destination) {
@@ -49,10 +49,10 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
             history.goBack();
           } else {
             // arrived using direct link
-            history.push(destination.path);
+            history.push(destination.path, state);
           }
         } else {
-          history.replace(destination.path);
+          history.replace(destination.path, state);
         }
       }
     },
@@ -71,6 +71,9 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
 
       if (event.key === 'r' || event.key === 'R') {
         history.push('/random');
+        return;
+      } else if (event.key === 's' || event.key === 'S') {
+        startSlideshow();
         return;
       }
 
@@ -120,9 +123,20 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
     window.open(picture.original.src);
   }, [picture]);
 
+  const startSlideshow = React.useCallback(() => {
+    setTimeout(() => {
+      goTo('next', { slideshow: true })();
+    }, 5000);
+  }, [goTo]);
+
   React.useEffect(() => {
     preloadPreviousAndNext(picture);
     document.addEventListener('keydown', onKeyDown);
+
+    if ((history.location.state as any).slideshow) {
+      startSlideshow();
+    }
+
     return () => {
       document.removeEventListener('keydown', onKeyDown);
     };
