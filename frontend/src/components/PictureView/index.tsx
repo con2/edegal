@@ -126,7 +126,7 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
   const startSlideshow = React.useCallback(() => {
     setTimeout(() => {
       goTo('next', { slideshow: true })();
-    }, 5000);
+    }, 3000);
   }, [goTo]);
 
   React.useEffect(() => {
