@@ -133,7 +133,7 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
     preloadPreviousAndNext(picture);
     document.addEventListener('keydown', onKeyDown);
 
-    if ((history.location.state as any).slideshow) {
+    if ((history.location.state as any)?.slideshow) {
       startSlideshow();
     }
 
