@@ -29,6 +29,8 @@ type PictureViewProps = RouteComponentProps<{ path: string }> & {
   fromAlbumView?: boolean;
 };
 
+const slideshowMilliseconds = 3000;
+
 function PictureView({ album, picture, fromAlbumView, history }: PictureViewProps): JSX.Element {
   const t = T(r => r.PictureView);
   const { preview, title } = picture;
@@ -38,7 +40,7 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
   const [isContactDialogOpen, setContactDialogOpen] = React.useState(false);
 
   const goTo = React.useCallback(
-    (direction: Direction, state: unknown = undefined) => () => {
+    (direction: Direction, state: unknown = undefined) => {
       // TODO hairy due to refactoring .album away from picture, ameliorate
       const destination = direction === 'album' ? album : picture[direction];
       if (destination) {
@@ -125,8 +127,8 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
 
   const startSlideshow = React.useCallback(() => {
     setTimeout(() => {
-      goTo('next', { slideshow: true })();
-    }, 3000);
+      goTo('next', { slideshow: true });
+    }, slideshowMilliseconds);
   }, [goTo]);
 
   React.useEffect(() => {
@@ -153,7 +155,7 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
 
       {picture.previous ? (
         <div
-          onClick={goTo('previous')}
+          onClick={() => goTo('previous')}
           className="PictureView-nav PictureView-nav-previous"
           title={t(r => r.previousPicture)}
         >
@@ -165,7 +167,7 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
 
       {picture.next ? (
         <div
-          onClick={goTo('next')}
+          onClick={() => goTo('next')}
           className="PictureView-nav PictureView-nav-next"
           title={t(r => r.nextPicture)}
         >
@@ -176,7 +178,7 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
       ) : null}
 
       <div
-        onClick={goTo('album')}
+        onClick={() => goTo('album')}
         className="PictureView-action PictureView-action-exit"
         title={t(r => r.backToAlbum)}
       >
