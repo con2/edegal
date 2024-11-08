@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.13
 WORKDIR /usr/src/app
 COPY requirements.txt /usr/src/app/
 RUN groupadd -g 1082 -r conikuvat && useradd -r -u 1082 -g conikuvat -G users conikuvat && \

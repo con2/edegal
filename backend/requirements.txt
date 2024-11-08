@@ -10,15 +10,15 @@ asgiref==3.8.1
     # via django
 beautifulsoup4==4.12.3
     # via -r requirements.in
-billiard==4.2.0
+billiard==4.2.1
     # via celery
-build==1.2.2
+build==1.2.2.post1
     # via pip-tools
 celery==5.4.0
     # via -r requirements.in
 certifi==2024.8.30
     # via requests
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via
@@ -33,7 +33,7 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
-django==5.1.1
+django==5.1.3
     # via
     #   -r requirements.in
     #   django-js-asset
@@ -47,21 +47,21 @@ django-js-asset==2.2.0
     #   django-prose-editor
 django-mptt==0.16.0
     # via -r requirements.in
-django-prose-editor==0.8.0
+django-prose-editor==0.9.0
     # via -r requirements.in
 django-redis==5.4.0
     # via -r requirements.in
-dnspython==2.6.1
+dnspython==2.7.0
     # via email-validator
 email-validator==2.2.0
     # via pydantic
 gunicorn==23.0.0
     # via -r requirements.in
-idna==3.8
+idna==3.10
     # via
     #   email-validator
     #   requests
-kombu==5.4.0
+kombu==5.4.2
     # via celery
 nh3==0.2.18
     # via django-prose-editor
@@ -71,23 +71,23 @@ packaging==24.1
     # via
     #   build
     #   gunicorn
-pillow==10.4.0
+pillow==11.0.0
     # via -r requirements.in
 pillow-avif-plugin==1.4.6
     # via -r requirements.in
-pip==24.2
+pip==24.3.1
     # via pip-tools
 pip-tools==7.4.1
     # via -r requirements.in
-prompt-toolkit==3.0.47
+prompt-toolkit==3.0.48
     # via click-repl
-psycopg2==2.9.9
+psycopg2==2.9.10
     # via -r requirements.in
-pydantic==2.9.1
+pydantic==2.9.2
     # via -r requirements.in
-pydantic-core==2.23.3
+pydantic-core==2.23.4
     # via pydantic
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
@@ -95,7 +95,7 @@ python-dateutil==2.9.0.post0
     # via celery
 python-memcached==1.62
     # via -r requirements.in
-redis==5.0.8
+redis==5.2.0
     # via
     #   -r requirements.in
     #   django-redis
@@ -105,7 +105,7 @@ requests==2.32.3
     #   requests-oauthlib
 requests-oauthlib==2.0.0
     # via -r requirements.in
-setuptools==74.1.2
+setuptools==75.3.0
     # via pip-tools
 six==1.16.0
     # via python-dateutil
@@ -117,9 +117,11 @@ typing-extensions==4.12.2
     # via
     #   pydantic
     #   pydantic-core
-tzdata==2024.1
-    # via celery
-urllib3==2.2.2
+tzdata==2024.2
+    # via
+    #   celery
+    #   kombu
+urllib3==2.2.3
     # via requests
 vine==5.1.0
     # via
