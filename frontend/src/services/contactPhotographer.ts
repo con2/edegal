@@ -1,21 +1,21 @@
-import Config from '../Config';
+import { apiUrl } from "@/config";
 
 export interface ContactRequest {
   context: string;
-  subject: 'permission' | 'takedown' | 'other';
+  subject: "permission" | "takedown" | "other";
   email: string;
   message: string;
 }
 
 export default async function contactPhotographer(contact: ContactRequest) {
-  const url = `${Config.backend.baseUrl}${Config.backend.apiPrefix}/contact`;
+  const url = `${apiUrl}/contact`;
   await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      accept: 'application/json',
+      "Content-Type": "application/json",
+      accept: "application/json",
     },
-    credentials: 'same-origin',
+    credentials: "same-origin",
     body: JSON.stringify(contact),
   });
 }

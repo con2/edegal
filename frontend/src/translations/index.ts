@@ -1,26 +1,37 @@
-import en from './en';
-import fi from './fi';
+/**
+ * Typesafe translation magic.
+ * Enforces all supported languages to have all the same translation keys as English.
+ */
 
-export type Translations = typeof en;
+import type { Translations } from "./en";
 
-const languages = { en, fi };
-const defaultLanguage = 'en';
-const detectedLanguage = (navigator.languages || [navigator.language])[0] || defaultLanguage;
+import en from "./en";
+import fi from "./fi";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const translations: Translations = (languages as any)[detectedLanguage] || languages[defaultLanguage];
+export type SupportedLanguage = "en" | "fi";
+export const supportedLanguages: readonly SupportedLanguage[] = [
+  "en",
+  "fi",
+] as const;
+export const defaultLanguage: SupportedLanguage = "en";
+export const languages = { en, fi };
 
-export type TranslationKeyFunction<LocalTranslations = Translations> = (r: LocalTranslations) => string;
-export type TranslationFunction<LocalTranslations = Translations> = (
-  fn: TranslationKeyFunction<LocalTranslations>
-) => string;
-
-export type HigherOrderTranslationKeyFunction<LocalTranslations> = (r: Translations) => LocalTranslations;
-
-export function t(fn: TranslationKeyFunction<Translations>) {
-  return fn(translations);
+export function isSupportedLanguage(
+  language?: string
+): language is SupportedLanguage {
+  return (
+    typeof language === "string" &&
+    (supportedLanguages as string[]).includes(language)
+  );
 }
 
-export function T<LocalTranslations>(fn: HigherOrderTranslationKeyFunction<LocalTranslations>) {
-  return (gn: TranslationKeyFunction<LocalTranslations>) => gn(fn(translations));
+export function getTranslations(language: string): Translations {
+  const supportedLanguage = isSupportedLanguage(language)
+    ? language
+    : defaultLanguage;
+  return languages[supportedLanguage];
+}
+
+export function toSupportedLanguage(language: string) {
+  return isSupportedLanguage(language) ? language : defaultLanguage;
 }

@@ -1,64 +1,71 @@
-import React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
+"use client";
 
-import editorIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-editor-symbol.svg';
-import navigationIcons from 'material-design-icons/sprites/svg-sprite/svg-sprite-navigation-symbol.svg';
+import React from "react";
+import { useRouter } from "next/navigation";
 
-import preloadMedia from '../../helpers/preloadMedia';
-import Album from '../../models/Album';
-import Picture from '../../models/Picture';
-import { T } from '../../translations';
-import DownloadDialog from '../DownloadDialog';
+import preloadMedia from "@/helpers/preloadMedia";
+import Album from "@/models/Album";
+import Picture from "@/models/Picture";
+import replaceFormat from "@/helpers/replaceFormat";
+import type { Translations } from "@/translations/en";
 
-import './index.css';
-import replaceFormat from '../../helpers/replaceFormat';
-import ContactDialog from '../ContactDialog';
+import DownloadDialog from "../DownloadDialog";
+import ContactDialog from "../ContactDialog";
 
-type Direction = 'next' | 'previous' | 'album';
+import "./index.css";
+
+type Direction = "next" | "previous" | "album";
 const keyMap: { [keyCode: string]: Direction } = {
-  Escape: 'album', //
-  PageUp: 'previous',
-  PageDown: 'next',
-  ArrowLeft: 'previous',
-  ArrowRight: 'next',
+  Escape: "album", //
+  PageUp: "previous",
+  PageDown: "next",
+  ArrowLeft: "previous",
+  ArrowRight: "next",
 };
 
-type PictureViewProps = RouteComponentProps<{ path: string }> & {
+interface Props {
   album: Album;
   picture: Picture;
-  fromAlbumView?: boolean;
-};
+  messages: {
+    PictureView: Translations["PictureView"];
+    DownloadDialog: Translations["DownloadDialog"];
+    ContactDialog: Translations["ContactDialog"];
+  };
+}
 
 const slideshowMilliseconds = 3000;
 
-function PictureView({ album, picture, fromAlbumView, history }: PictureViewProps): JSX.Element {
-  const t = T(r => r.PictureView);
+export default function PictureView({ album, picture, messages }: Props) {
+  const t = messages.PictureView;
   const { preview, title } = picture;
   const { src } = preview;
   const additionalFormats = preview.additional_formats ?? [];
   const [isDownloadDialogOpen, setDownloadDialogOpen] = React.useState(false);
   const [isContactDialogOpen, setContactDialogOpen] = React.useState(false);
+  const fromAlbumView = false; // TODO
+  const router = useRouter();
 
   const goTo = React.useCallback(
-    (direction: Direction, state: unknown = undefined) => {
+    (direction: Direction) => {
       // TODO hairy due to refactoring .album away from picture, ameliorate
-      const destination = direction === 'album' ? album : picture[direction];
+      const destination =
+        direction === "album" ? album.path : picture[direction];
       if (destination) {
-        if (direction === 'album') {
+        if (direction === "album") {
           if (fromAlbumView) {
             // arrived from album view
             // act as the browser back button
-            history.goBack();
+            router.back();
           } else {
             // arrived using direct link
-            history.push(destination.path, state);
+            router.push(destination);
           }
         } else {
-          history.replace(destination.path, state);
+          router.replace(destination);
         }
       }
     },
-    [album, picture, fromAlbumView, history]
+    [album, picture, fromAlbumView, router]
   );
 
   const onKeyDown = React.useCallback(
@@ -71,10 +78,10 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
         return;
       }
 
-      if (event.key === 'r' || event.key === 'R') {
-        history.push('/random');
+      if (event.key === "r" || event.key === "R") {
+        router.push("/random");
         return;
-      } else if (event.key === 's' || event.key === 'S') {
+      } else if (event.key === "s" || event.key === "S") {
         startSlideshow();
         return;
       }
@@ -84,18 +91,20 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
         goTo(direction);
       }
     },
-    [history, goTo, isDownloadDialogOpen, isContactDialogOpen]
+    [router, goTo, isDownloadDialogOpen, isContactDialogOpen]
   );
 
   const preloadPreviousAndNext = React.useCallback((picture: Picture) => {
     // use setTimeout to not block rendering of current picture – improves visible latency
     setTimeout(() => {
       if (picture.previous) {
-        preloadMedia(picture.previous);
+        router.prefetch(picture.previous);
+        preloadMedia(album, picture.previous);
       }
 
       if (picture.next) {
-        preloadMedia(picture.next);
+        router.prefetch(picture.next);
+        preloadMedia(album, picture.next);
       }
     }, 0);
   }, []);
@@ -127,64 +136,73 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
 
   const startSlideshow = React.useCallback(() => {
     setTimeout(() => {
-      goTo('next', { slideshow: true });
+      // goTo("next", { slideshow: true }); // TODO slideshow
+      goTo("next");
     }, slideshowMilliseconds);
   }, [goTo]);
 
   React.useEffect(() => {
+    const isSlideshow = false; // TODO
     preloadPreviousAndNext(picture);
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener("keydown", onKeyDown);
 
-    if ((history.location.state as any)?.slideshow) {
+    if (isSlideshow) {
       startSlideshow();
     }
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener("keydown", onKeyDown);
     };
   });
 
   return (
     <div className="PictureView">
       <picture className="PictureView-img">
-        {additionalFormats.map(format => (
-          <source key={format} srcSet={replaceFormat(src, format)} type={`image/${format}`} />
+        {additionalFormats.map((format) => (
+          <source
+            key={format}
+            srcSet={replaceFormat(src, format)}
+            type={`image/${format}`}
+          />
         ))}
         <img src={src} alt={title} />
       </picture>
 
       {picture.previous ? (
         <div
-          onClick={() => goTo('previous')}
+          onClick={() => goTo("previous")}
           className="PictureView-nav PictureView-nav-previous"
-          title={t(r => r.previousPicture)}
+          title={t.previousPicture}
         >
-          <svg className="PictureView-icon">
+          {/* <svg className="PictureView-icon">
             <use xlinkHref={`${navigationIcons}#ic_chevron_left_24px`} />
-          </svg>
+          </svg> */}
+          &laquo;
         </div>
       ) : null}
 
       {picture.next ? (
         <div
-          onClick={() => goTo('next')}
+          onClick={() => goTo("next")}
           className="PictureView-nav PictureView-nav-next"
-          title={t(r => r.nextPicture)}
+          title={t.nextPicture}
         >
-          <svg className="PictureView-icon">
+          {/* <svg className="PictureView-icon">
             <use xlinkHref={`${navigationIcons}#ic_chevron_right_24px`} />
-          </svg>
+          </svg> */}
+          &raquo;
         </div>
       ) : null}
 
       <div
-        onClick={() => goTo('album')}
+        onClick={() => goTo("album")}
         className="PictureView-action PictureView-action-exit"
-        title={t(r => r.backToAlbum)}
+        title={t.backToAlbum}
       >
-        <svg className="PictureView-icon">
+        {/* <svg className="PictureView-icon">
           <use xlinkHref={`${navigationIcons}#ic_close_24px`} />
-        </svg>
+        </svg> */}
+        &times;
       </div>
 
       {album.is_downloadable && picture.original && (
@@ -192,35 +210,35 @@ function PictureView({ album, picture, fromAlbumView, history }: PictureViewProp
           <div
             onClick={openDownloadDialog}
             className="PictureView-action PictureView-action-download"
-            title={t(r => r.downloadOriginal)}
+            title={t.downloadOriginal}
           >
-            <svg className="PictureView-icon">
+            {/* <svg className="PictureView-icon">
               <use xlinkHref={`${editorIcons}#ic_vertical_align_bottom_24px`} />
-            </svg>
+            </svg> */}
+            💾
           </div>
 
           <DownloadDialog
-            key={picture.path + '/download'}
-            t={T(r => r.DownloadDialog)}
+            key={picture.path + "/download"}
             album={album}
             onAccept={downloadPicture}
             onClose={closeDownloadDialog}
             onContactPhotographer={contactPhotographer}
             isOpen={isDownloadDialogOpen}
+            messages={messages.DownloadDialog}
           />
         </>
       )}
       {album.credits.photographer && (
         <ContactDialog
-          key={picture.path + '/contact'}
+          key={picture.path + "/contact"}
           isOpen={isContactDialogOpen}
           onClose={closeContactDialog}
           album={album}
           picture={picture}
+          messages={messages.ContactDialog}
         />
       )}
     </div>
   );
 }
-
-export default withRouter(PictureView);

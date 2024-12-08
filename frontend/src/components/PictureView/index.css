@@ -14,6 +14,7 @@
   background-color: black;
 }
 
+/* TODO */
 .PictureView-icon {
   width: 48px;
   height: 48px;
@@ -81,6 +82,11 @@
 .PictureView-action-download {
   grid-row: 3;
   grid-column: 3;
+}
+
+/* TODO(Next.js): temporary hack as we're missing icons */
+.PictureView-action, .PictureView-nav {
+  font-size: 32pt;
 }
 
 /* the download dialog may be initialized from within the app bar, so restore colors */

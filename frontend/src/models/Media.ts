@@ -1,5 +1,5 @@
-export type Format = 'jpeg' | 'webp' | 'avif';
-export type Role = 'original' | 'preview' | 'thumbnail';
+export type Format = "jpeg" | "webp" | "avif";
+export type Role = "original" | "preview" | "thumbnail";
 
 export interface Media {
   src: string;
@@ -10,7 +10,7 @@ export interface Media {
 }
 
 export const nullMedia: Media = {
-  src: '',
+  src: "",
   width: 0,
   height: 0,
   quality: 0,

@@ -30,10 +30,6 @@ To run tests:
     alias dc-test="docker-compose --file=docker-compose.test.yml up --abort-on-container-exit --exit-code-from=test"
     dc-test
 
-#### Caveats
-
-* Due to deep magic performed by the `react-scripts` proxy, picture & album downloads do not work in local dev and you are offered `index.html` instead.
-
 ### The Traditional Way
 
 For developing the backend or frontend components without Docker Compose, please see the set-up instructions in their respective README files under `backend/` and `frontend/`.
@@ -71,8 +67,10 @@ The following services are required:
 
 * [ingress-nginx](https://github.com/kubernetes/ingress-nginx) or some other ingress controller
 * [cert-manager](https://github.com/jetstack/cert-manager) if you want TLS (not required for local development)
+* postgres
+* redis
 
-The Kubernetes deployment uses [Emskaffolden](https://github.com/con2/emskaffolden) which in turn wraps [Skaffold](https://skaffold.dev) with [Emrichen](https://github.com/con2/emrichen).
+The Kubernetes deployment uses [Skaffold](https://skaffold.dev) with [Depleten](https://github.com/japsu/depleten).
 
 To deploy in [Docker Desktop](https://www.docker.com/products/docker-desktop) or similar local Kubernetes:
 
@@ -87,23 +85,18 @@ To deploy in [Docker Desktop](https://www.docker.com/products/docker-desktop) or
     helm install -n cert-manager cert-manager jetstack/cert-manager --set installCRDs=true
 
     # Once you have the above requirements installed
-    emskaffolden run
+    npm install
+    npm run k8s:dev
 
 To customize, first see `kubernetes/default.vars.yaml` and make a copy of `kubernetes/staging.vars.yaml` under your environment name (eg. `kubernetes/myenv.vars.yaml`). Then activate your environment with `-E myenv`. For a non-local Kubernetes cluster, you also need to add your private registry using `--default-repo`. Eg.
 
     emskaffolden run -E myenv -- --default-repo=harbor.con2.fi/con2
 
-### Ansible & Docker
-
-**DEPRECATED**: Will stop being maintained once we move Conikuvat.fi and Larppikuvat.fi to Kubernetes.
-
-See [here](https://github.com/tracon/ansible-tracon/tree/master/roles/edegal/).
-
 ## License
 
     The MIT License (MIT)
 
-    Copyright © 2010–2020 Santtu Pajukanta
+    Copyright © 2010–2024 Santtu Pajukanta
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

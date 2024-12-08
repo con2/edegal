@@ -1,10 +1,14 @@
-import React from 'react';
+import React from "react";
+
+interface Props {
+  text: string;
+}
 
 /**
  * Accepts one prop, `text`, and displays it so that single line breaks get
  * turned into a `<br>` and double line breaks start a new `<p>`.
  */
-const Linebreaks = ({ text }: { text: string }) => {
+export default function Linebreaks({ text }: Props) {
   const paragraphs = text.split(/(?:\r?\n){2,}/g);
   return (
     <>
@@ -20,6 +24,4 @@ const Linebreaks = ({ text }: { text: string }) => {
       ))}
     </>
   );
-};
-
-export default Linebreaks;
+}

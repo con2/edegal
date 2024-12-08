@@ -28,22 +28,15 @@ services:
     environment:
       <<: *environment
   frontend:
-    build: frontend
+    build:
+      context: frontend
+      dockerfile: dev.Dockerfile
     init: true
-    command:
-      - node_modules/.bin/vite
-      - --host=0.0.0.0
-    ports:
-      - 3000:3000
+    # network_mode: service:router
+    depends_on:
+      - backend
     volumes:
       - ./frontend/src:/usr/src/app/src
-    tmpfs:
-      - /usr/src/app/node_modules/.cache
-      - /usr/src/app/node_modules/.vite
-    environment:
-      VITE_EDEGAL_PROXY_URL: http://backend:8000
-      VITE_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
-      CI: "true"
   postgres:
     image: postgres
     volumes:

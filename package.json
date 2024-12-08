@@ -1,0 +1,20 @@
+{
+  "name": "edegal-kubernetes",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "k8s:dev": "npm run k8s:generate && skaffold dev",
+    "k8s:generate": "cd kubernetes && tsx manifest.ts"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "eslint": "^8",
+    "eslint-config-next": "^15",
+    "typescript": "^5"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}
