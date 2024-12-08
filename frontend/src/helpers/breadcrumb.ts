@@ -1,12 +1,15 @@
-import Album from '../models/Album';
-import Breadcrumb from '../models/Breadcrumb';
-import Picture from '../models/Picture';
-import { TranslationFunction } from '../translations';
+import Album from "../models/Album";
+import Breadcrumb from "../models/Breadcrumb";
+import Picture from "../models/Picture";
 
 /**
  * Transforms album.breadcrumb for visual use.
  */
-export function getFullBreadcrumb(album: Album, picture?: Picture, startAt = 0): Breadcrumb[] {
+export function getFullBreadcrumb(
+  album: Album,
+  picture?: Picture,
+  startAt = 0
+): Breadcrumb[] {
   // startAt=1: Breadcrumb bar omits name of gallery because it is in app bar.
   // startAt=0= Page title includes name of gallery.
   const breadcrumb = album.breadcrumb.slice(startAt);
@@ -25,19 +28,19 @@ export function getFullBreadcrumb(album: Album, picture?: Picture, startAt = 0):
 }
 
 /// Separates breadcrumbs in page title and breadcrumb bar
-export const breadcrumbSeparator = ' » ';
+export const breadcrumbSeparator = " » ";
 
 /**
  * Some breadcrumb elements are translated in a special fashion.
  */
 export function getBreadcrumbTitle(
   breadcrumb: Breadcrumb,
-  t: TranslationFunction<{ photographers: string; timeline: string }>
+  messages: { photographers: string; timeline: string }
 ) {
-  if (breadcrumb.path === '/photographers') {
-    return t(r => r.photographers);
-  } else if (breadcrumb.path.endsWith('/timeline')) {
-    return t(r => r.timeline);
+  if (breadcrumb.path === "/photographers") {
+    return messages.photographers;
+  } else if (breadcrumb.path.endsWith("/timeline")) {
+    return messages.timeline;
   } else {
     return breadcrumb.title;
   }
@@ -47,10 +50,12 @@ export function getBreadcrumbTitle(
  * Renders a string suitable for use in `document.title`.
  */
 export function getDocumentTitle(
-  t: TranslationFunction<{ photographers: string; timeline: string }>,
+  messages: { photographers: string; timeline: string },
   album: Album,
   picture?: Picture
 ): string {
   const fullBreadcrumb = getFullBreadcrumb(album, picture, 0);
-  return fullBreadcrumb.map(crumb => getBreadcrumbTitle(crumb, t)).join(breadcrumbSeparator);
+  return fullBreadcrumb
+    .map((crumb) => getBreadcrumbTitle(crumb, messages))
+    .join(breadcrumbSeparator);
 }

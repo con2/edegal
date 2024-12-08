@@ -1,7 +1,7 @@
-import React from 'react';
+import React from "react";
 
-import TileItem from '../../models/TileItem';
-import PictureTile from './PictureTile';
+import TileItem from "../../models/TileItem";
+import PictureTile from "./PictureTile";
 
 const maxWidthFactor = 1.1;
 const scaleThresholdFactor = 0.8;
@@ -16,15 +16,20 @@ interface Row {
   scaleFactor: number;
 }
 
-const makeRow: () => Row = () => ({ height: thumbnailHeight, totalWidth: 0, items: [], scaleFactor: 1.0 });
+const makeRow: () => Row = () => ({
+  height: thumbnailHeight,
+  totalWidth: 0,
+  items: [],
+  scaleFactor: 1.0,
+});
 
-interface AlbumGridProps {
+interface Props {
   width: number;
   tiles: TileItem[];
   showTitle: boolean;
 }
 
-const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
+export default function AlbumGrid({ tiles, showTitle, width }: Props) {
   const rows: Row[] = [];
 
   if (tiles.length) {
@@ -32,8 +37,10 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
     const maxWidth = maxWidthFactor * width;
     rows.push(currentRow);
 
-    tiles.forEach(tileItem => {
-      const itemWidth = tileItem.thumbnail ? tileItem.thumbnail.width : defaultThumbnailWidth;
+    tiles.forEach((tileItem) => {
+      const itemWidth = tileItem.thumbnail
+        ? tileItem.thumbnail.width
+        : defaultThumbnailWidth;
 
       if (currentRow.totalWidth + itemWidth > maxWidth) {
         // Initialize new row
@@ -47,7 +54,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
 
     // Finalize rows
     const scaleThreshold = width * scaleThresholdFactor;
-    rows.forEach(row => {
+    rows.forEach((row) => {
       if (row.totalWidth > scaleThreshold) {
         row.scaleFactor = width / row.totalWidth;
         row.height = thumbnailHeight * row.scaleFactor;
@@ -63,7 +70,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
           className="AlbumView-row"
           style={{ height: Math.floor(row.height) + borderAdjustmentPixels }}
         >
-          {row.items.map(item => (
+          {row.items.map((item) => (
             <PictureTile
               key={item.path}
               path={item.path}
@@ -85,6 +92,4 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({ tiles, showTitle, width }) => {
       ))}
     </div>
   );
-};
-
-export default AlbumGrid;
+}

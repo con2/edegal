@@ -1,32 +1,28 @@
-import React from 'react';
-import { createPortal } from 'react-dom';
+import Album from "../../models/Album";
+import Link from "next/link";
+import { Translations } from "@/translations/en";
 
-import Album from '../../models/Album';
-import { T } from '../../translations';
-import { Link } from 'react-router-dom';
+const getYear = (album: Album) =>
+  album.date ? new Date(album.date).getUTCFullYear() : "";
 
-const getYear = (album: Album) => (album.date ? new Date(album.date).getUTCFullYear() : '');
-
-interface FooterProps {
+interface Props {
   album: Album;
+  messages: Translations["AlbumViewFooter"];
 }
 
-const AlbumViewFooter: React.FC<FooterProps> = ({ album }) => {
-  const t = T(r => r.AlbumViewFooter);
+export default function AlbumViewFooter({ album, messages: t }: Props) {
   const { photographer } = album.credits;
 
-  return createPortal(
+  return (
     <footer className="AlbumViewFooter">
       {photographer ? (
         <>
-          {t(r => r.albumCopyright)} &copy; {getYear(album)}{' '}
-          <Link to={photographer.path}>{photographer.display_name}</Link>.{' '}
+          {t.albumCopyright} &copy; {getYear(album)}{" "}
+          <Link href={photographer.path}>{photographer.display_name}</Link>.{" "}
         </>
       ) : null}
-      Edegal &copy; 2010–2022 <a href="https://github.com/con2/edegal">Santtu Pajukanta</a>.
-    </footer>,
-    document.body
+      Edegal &copy; 2010–2022{" "}
+      <a href="https://github.com/con2/edegal">Santtu Pajukanta</a>.
+    </footer>
   );
-};
-
-export default AlbumViewFooter;
+}

@@ -1,10 +1,10 @@
-import { Media } from './Media';
-import TileItem from './TileItem';
-import Credits from './Credits';
+import { Media } from "./Media";
+import TileItem from "./TileItem";
+import Credits from "./Credits";
 
 interface Picture extends TileItem {
-  next?: Picture;
-  previous?: Picture;
+  next?: string;
+  previous?: string;
 
   original: Media;
   preview: Media;

@@ -1,68 +1,28 @@
 {
-  "name": "edegal",
+  "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
   "dependencies": {
-    "bootstrap": "^5.1.3",
-    "lodash.groupby": "^4.6.0",
-    "material-design-icons": "^3.0.1",
-    "popper.js": "^1.16.1",
-    "react": "^17.0.2",
-    "react-bootstrap": "^2.0.0",
-    "react-dom": "^17.0.2",
-    "react-router": "^5.2.1",
-    "react-router-dom": "^5.3.0",
-    "react-svg-spinner": "^1.0.4"
+    "bootstrap": "^5.3.3",
+    "next": "15.0.4",
+    "next-intl": "^3.26.0",
+    "react": "^19.0.0",
+    "react-bootstrap": "^2.10.6",
+    "react-dom": "^19.0.0",
+    "sass": "^1.82.0"
   },
   "devDependencies": {
-    "@types/history": "^4.7.9",
-    "@types/jest": "^27.0.2",
-    "@types/lodash.groupby": "^4.6.6",
-    "@types/node": "^16.11.6",
-    "@types/react": "^17.0.33",
-    "@types/react-dom": "^17.0.10",
-    "@types/react-router": "^5.1.17",
-    "@types/react-router-dom": "^5.3.2",
-    "@typescript-eslint/eslint-plugin": "^4.21.0",
-    "@typescript-eslint/parser": "4.0.1",
-    "@vitejs/plugin-react-refresh": "^1.3.6",
-    "eslint": "^7.2.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-prettier": "^3.3.1",
-    "jest": "^27.3.1",
-    "prettier": "^1.19.1",
-    "sass": "^1.43.4",
-    "typescript": "^4.4.4",
-    "vite": "^2.6.13",
-    "vite-plugin-svgr": "^0.4.0"
-  },
-  "scripts": {
-    "start": "vite",
-    "build": "tsc && vite build",
-    "serve": "vite preview"
-  },
-  "proxy": "https://conikuvat.fi",
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
-  "eslintConfig": {
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint"
-    ],
-    "extends": [
-      "plugin:prettier/recommended"
-    ]
-  },
-  "prettier": {
-    "parser": "typescript",
-    "trailingComma": "es5",
-    "tabWidth": 2,
-    "semi": true,
-    "singleQuote": true,
-    "printWidth": 110
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^8",
+    "eslint-config-next": "15.0.4",
+    "typescript": "^5"
   }
 }

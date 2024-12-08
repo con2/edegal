@@ -41,8 +41,8 @@ services:
       - /usr/src/app/node_modules/.cache
       - /usr/src/app/node_modules/.vite
     environment:
-      VITE_EDEGAL_PROXY_URL: http://backend:8000
-      VITE_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
+      NEXT_PUBLIC_EDEGAL_PROXY_URL: http://backend:8000
+      NEXT_PUBLIC_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
       CI: "true"
   postgres:
     image: postgres

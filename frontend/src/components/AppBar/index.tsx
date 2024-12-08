@@ -1,43 +1,45 @@
-import React from 'react';
+"use client";
 
-import Navbar from 'react-bootstrap/Navbar';
-import Nav from 'react-bootstrap/Nav';
-import Container from 'react-bootstrap/Container';
+import Navbar from "react-bootstrap/Navbar";
+import Nav from "react-bootstrap/Nav";
+import Container from "react-bootstrap/Container";
+import Link from "next/link";
 
-import Config from '../../Config';
-import Album from '../../models/Album';
-import { T } from '../../translations';
+import type { Translations } from "@/translations/en";
+import { loginUrl } from "@/config";
+import Album from "@/models/Album";
 
-import './index.scss';
-import { Link } from 'react-router-dom';
+import "./index.scss";
 
-function NavLink({
-  path,
-  title,
-  isActive,
-}: {
+interface NavLinkProps {
   path: string;
   title: string;
   isActive?: boolean;
-}): JSX.Element {
+}
+
+function NavLink({ path, title, isActive }: NavLinkProps) {
   return (
     <Nav.Item key={path}>
-      <Nav.Link active={!!isActive} as={Link} to={path}>
+      <Nav.Link active={!!isActive} as={Link} href={path}>
         {title}
       </Nav.Link>
     </Nav.Item>
   );
 }
 
-function AppBar({ album }: { album: Album }): JSX.Element {
-  const t = T(r => r.AppBar);
+interface Props {
+  album: Album;
+  messages: Translations["AppBar"];
+}
+
+export default function AppBar({ messages: t, album }: Props) {
   const { path, title } = album;
   const rootAlbum = album.breadcrumb[0] || { path, title };
 
   return (
     <Navbar variant="dark" className="AppBar" expand="sm">
       <Container fluid>
-        <Navbar.Brand as={Link} to={rootAlbum.path}>
+        <Navbar.Brand as={Link} href={rootAlbum.path}>
           {rootAlbum.title}
         </Navbar.Brand>
 
@@ -46,14 +48,14 @@ function AppBar({ album }: { album: Album }): JSX.Element {
           <Nav className="me-auto">
             <NavLink
               path="/photographers"
-              title={t(r => r.photographers)}
-              isActive={path.startsWith('/photographers')}
+              title={t.photographers}
+              isActive={path.startsWith("/photographers")}
             />
-            <NavLink path="/random" title={t(r => r.randomPicture)} />
+            <NavLink path="/random" title={t.randomPicture} />
           </Nav>
           <Nav>
             <Nav.Item>
-              <Nav.Link href={Config.loginUrl}>{t(r => r.adminLink)}</Nav.Link>
+              <Nav.Link href={loginUrl}>{t.adminLink}</Nav.Link>
             </Nav.Item>
           </Nav>
         </Navbar.Collapse>
@@ -61,5 +63,3 @@ function AppBar({ album }: { album: Album }): JSX.Element {
     </Navbar>
   );
 }
-
-export default AppBar;

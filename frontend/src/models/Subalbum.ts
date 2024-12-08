@@ -1,4 +1,4 @@
-import TileItem from './TileItem';
+import TileItem from "./TileItem";
 
 interface Subalbum extends TileItem {
   date: string;
