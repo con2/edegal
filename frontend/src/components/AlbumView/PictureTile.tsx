@@ -34,64 +34,52 @@ const Thumbnail = ({ src, width, height, title, additionalFormats }: ThumbnailPr
   </picture>
 );
 
-export default class PictureTile extends React.PureComponent<PictureTileProps> {
-  render() {
-    const {
-      path,
-      width,
-      height,
-      src,
-      title,
-      additionalFormats,
-      externalLink,
-      showTitle,
-      isPublic,
-    } = this.props;
+export default function PictureTile(props: PictureTileProps) {
+  const { path, width, height, src, title, additionalFormats, externalLink, showTitle, isPublic } = props;
 
-    return externalLink ? (
-      <a className="PictureTile" href={externalLink} target="_blank" rel="noopener noreferrer">
-        {src ? (
-          <Thumbnail
-            src={src}
-            width={width}
-            height={height}
-            title={title}
-            additionalFormats={additionalFormats}
-          />
-        ) : null}
+  return externalLink ? (
+    <a className="PictureTile" href={externalLink} target="_blank" rel="noopener noreferrer">
+      {src ? (
+        <Thumbnail
+          src={src}
+          width={width}
+          height={height}
+          title={title}
+          additionalFormats={additionalFormats}
+        />
+      ) : null}
+      <div className="PictureTile-title">
+        <svg className="PictureTile-icon">
+          <use xlinkHref={`${actionIcons}#ic_launch_24px`} />
+        </svg>
+        {title}
+      </div>
+    </a>
+  ) : (
+    <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true } }} title={title}>
+      {src ? (
+        <Thumbnail
+          src={src}
+          width={width}
+          height={height}
+          title={title}
+          additionalFormats={additionalFormats}
+        />
+      ) : null}
+      {showTitle && title ? (
         <div className="PictureTile-title">
-          <svg className="PictureTile-icon">
-            <use xlinkHref={`${actionIcons}#ic_launch_24px`} />
-          </svg>
-          {title}
+          {isPublic ? (
+            title
+          ) : (
+            <>
+              <svg className="PictureTile-icon">
+                <use xlinkHref={`${actionIcons}#ic_lock_open_24px`} />
+              </svg>
+              <em>{title}</em>
+            </>
+          )}
         </div>
-      </a>
-    ) : (
-      <Link className="PictureTile" to={{ pathname: path, state: { fromAlbumView: true } }} title={title}>
-        {src ? (
-          <Thumbnail
-            src={src}
-            width={width}
-            height={height}
-            title={title}
-            additionalFormats={additionalFormats}
-          />
-        ) : null}
-        {showTitle && title ? (
-          <div className="PictureTile-title">
-            {isPublic ? (
-              title
-            ) : (
-              <>
-                <svg className="PictureTile-icon">
-                  <use xlinkHref={`${actionIcons}#ic_lock_open_24px`} />
-                </svg>
-                <em>{title}</em>
-              </>
-            )}
-          </div>
-        ) : null}
-      </Link>
-    );
-  }
+      ) : null}
+    </Link>
+  );
 }
