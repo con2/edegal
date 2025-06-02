@@ -21,7 +21,7 @@ class Photographer(AlbumMixin, models.Model):
     cover_picture_id: int
     larppikuvat_profile: Any
 
-    slug = models.CharField(**CommonFields.slug)
+    slug = models.CharField(**CommonFields.slug)  # type: ignore
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -36,8 +36,14 @@ class Photographer(AlbumMixin, models.Model):
     homepage_url = models.CharField(max_length=255, blank=True)
     twitter_handle = models.CharField(max_length=15, blank=True)
     instagram_handle = models.CharField(max_length=30, blank=True)
+    threads_handle = models.CharField(max_length=30, blank=True)
     facebook_handle = models.CharField(max_length=50, blank=True)
     flickr_handle = models.CharField(max_length=50, blank=True)
+    bluesky_handle = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="Full handle (eg. tracon.bsky.social) without the @ character",
+    )
     default_terms_and_conditions = models.ForeignKey(
         "edegal.TermsAndConditions", null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -65,10 +71,14 @@ class Photographer(AlbumMixin, models.Model):
             self.twitter_handle = self.twitter_handle[1:]
         if self.instagram_handle.startswith("@"):
             self.instagram_handle = self.instagram_handle[1:]
+        if self.threads_handle.startswith("@"):
+            self.threads_handle = self.threads_handle[1:]
         if self.facebook_handle.startswith("@"):
             self.facebook_handle = self.facebook_handle[1:]
         if self.flickr_handle.startswith("@"):
             self.flickr_handle = self.flickr_handle[1:]
+        if self.bluesky_handle.startswith("@"):
+            self.bluesky_handle = self.bluesky_handle[1:]
 
         return super().save(*args, **kwargs)
 
@@ -80,8 +90,10 @@ class Photographer(AlbumMixin, models.Model):
             "homepage_url",
             "twitter_handle",
             "instagram_handle",
+            "threads_handle",
             "facebook_handle",
             "flickr_handle",
+            "bluesky_handle",
             "has_email",
             **extra_attrs,
         )

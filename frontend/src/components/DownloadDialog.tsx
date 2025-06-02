@@ -17,6 +17,8 @@ interface DownloadDialogTranslations {
   genericCredit: string;
   genericCreditAlternative: string;
   instagramCredit: string;
+  threadsCredit: string;
+  blueskyCredit: string;
   photographer: string;
   preparingDownloadButtonText?: string;
   termsAndConditions: string;
@@ -74,9 +76,13 @@ export function DownloadDialog({
   const text = album && album.terms_and_conditions ? album.terms_and_conditions.text : '';
   const { photographer, director } = album.credits;
 
+  // XXX
   const haveTwitter = (photographer && photographer.twitter_handle) || (director && director.twitter_handle);
   const haveInstagram =
     (photographer && photographer.instagram_handle) || (director && director.instagram_handle);
+  const haveThreads = (photographer && photographer.threads_handle) || (director && director.threads_handle);
+  const haveBluesky = (photographer && photographer.bluesky_handle) || (director && director.bluesky_handle);
+
   const haveCredit = (photographer && photographer.display_name) || (director && director.display_name);
 
   return (
@@ -131,6 +137,58 @@ export function DownloadDialog({
                 <>
                   {t(r => r.director)}:{' '}
                   {director.instagram_handle ? `@${director.instagram_handle}` : director.display_name}
+                  <br />
+                </>
+              ) : null}
+            </p>
+          </>
+        ) : null}
+
+        {haveThreads ? (
+          <>
+            <p>
+              <strong>{t(r => r.threadsCredit)}</strong>
+            </p>
+            <p>
+              {photographer ? (
+                <>
+                  {t(r => r.photographer)}:{' '}
+                  {photographer.threads_handle
+                    ? `@${photographer.threads_handle}`
+                    : photographer.display_name}
+                  <br />
+                </>
+              ) : null}
+              {director ? (
+                <>
+                  {t(r => r.director)}:{' '}
+                  {director.threads_handle ? `@${director.threads_handle}` : director.display_name}
+                  <br />
+                </>
+              ) : null}
+            </p>
+          </>
+        ) : null}
+
+        {haveBluesky ? (
+          <>
+            <p>
+              <strong>{t(r => r.blueskyCredit)}</strong>
+            </p>
+            <p>
+              {photographer ? (
+                <>
+                  {t(r => r.photographer)}:{' '}
+                  {photographer.bluesky_handle
+                    ? `@${photographer.bluesky_handle}`
+                    : photographer.display_name}
+                  <br />
+                </>
+              ) : null}
+              {director ? (
+                <>
+                  {t(r => r.director)}:{' '}
+                  {director.bluesky_handle ? `@${director.bluesky_handle}` : director.display_name}
                   <br />
                 </>
               ) : null}

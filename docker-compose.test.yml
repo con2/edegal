@@ -4,8 +4,8 @@ services:
     build: backend
     init: true
     command: scripts/wait-for-it.sh --strict postgres:5432 -- python manage.py test
-    ports:
-      - 8000:8000
+    # ports:
+    #   - 8000:8000
     links:
       - postgres
     volumes:

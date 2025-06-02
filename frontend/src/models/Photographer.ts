@@ -14,8 +14,10 @@ export default interface Photographer {
   homepage_url: string;
   twitter_handle: string;
   instagram_handle: string;
+  threads_handle: string;
   facebook_handle: string;
   flickr_handle: string;
+  bluesky_handle: string;
   has_email: boolean;
 
   larppikuvat_profile?: LarppikuvatProfile;
