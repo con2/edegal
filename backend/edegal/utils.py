@@ -76,9 +76,16 @@ def parse_ordering_number(filename: str) -> int | None:
     330
     >>> parse_ordering_number("Mars2175_Tomi-50.jpg")
     50
+    >>> parse_ordering_number("Horisontti (93).JPG")
+    93
     """
     basename = Path(filename).stem
     match = re.match(r".*?(\d+)$", basename, re.IGNORECASE)
     if match:
         return int(match.group(1))
+
+    match = re.match(r".*?-(\d+)", basename, re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+
     return None
