@@ -84,7 +84,7 @@ def parse_ordering_number(filename: str) -> int | None:
     if match:
         return int(match.group(1))
 
-    match = re.match(r".*?-(\d+)", basename, re.IGNORECASE)
+    match = re.match(r".*?(\d+)", basename, re.IGNORECASE)
     if match:
         return int(match.group(1))
 
