@@ -103,7 +103,7 @@ See [here](https://github.com/tracon/ansible-tracon/tree/master/roles/edegal/).
 
     The MIT License (MIT)
 
-    Copyright © 2010–2020 Santtu Pajukanta
+    Copyright © 2010-2025 Luka Pajukanta
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

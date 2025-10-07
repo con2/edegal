@@ -15,7 +15,7 @@ edegal_storage_pvc: false
 edegal_storage_nfs_host: 91.105.252.80
 edegal_secret_managed: false
 edegal_admins:
-- Santtu Pajukanta <santtu@pajukanta.fi>
+- Luka Pajukanta <santtu@pajukanta.fi>
 
 setup_should_run: true
 

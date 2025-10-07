@@ -23,7 +23,7 @@ const AlbumViewFooter: React.FC<FooterProps> = ({ album }) => {
           <Link to={photographer.path}>{photographer.display_name}</Link>.{' '}
         </>
       ) : null}
-      Edegal &copy; 2010–2022 <a href="https://github.com/con2/edegal">Santtu Pajukanta</a>.
+      Edegal &copy; 2010–2025 <a href="https://github.com/con2/edegal">Luka Pajukanta</a>.
     </footer>,
     document.body
   );
