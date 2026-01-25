@@ -61,7 +61,7 @@ class Album(AlbumMixin, MPTTModel):
     subalbums: Any
     id: Any
 
-    slug = models.CharField(**CommonFields.slug)
+    slug = models.CharField(**CommonFields.slug)  # type: ignore
     parent = TreeForeignKey(
         "self",
         null=True,
@@ -72,10 +72,10 @@ class Album(AlbumMixin, MPTTModel):
         verbose_name="Parent Album",
         help_text="The album under which this album will reside. The root album (/) has no parent album.",
     )
-    path = models.CharField(**CommonFields.path)
+    path = models.CharField(**CommonFields.path)  # type: ignore
 
-    title = models.CharField(**CommonFields.title)
-    description = models.TextField(**CommonFields.description)
+    title = models.CharField(**CommonFields.title)  # type: ignore
+    description = models.TextField(**CommonFields.description)  # type: ignore
 
     body = make_body_field()
 
@@ -100,8 +100,8 @@ class Album(AlbumMixin, MPTTModel):
         related_name="+",
     )
 
-    is_public = models.BooleanField(**CommonFields.is_public)
-    is_visible = models.BooleanField(**CommonFields.is_visible)
+    is_public = models.BooleanField(**CommonFields.is_public)  # type: ignore
+    is_visible = models.BooleanField(**CommonFields.is_visible)  # type: ignore
     is_downloadable = models.BooleanField(
         default=True,
         help_text=(
@@ -470,7 +470,7 @@ class Album(AlbumMixin, MPTTModel):
 
         # In case path changed, update child pictures' paths.
         for picture in self.pictures.all():
-            picture.save()
+            picture.save(update_fields=["path"])
 
         if traverse:
             self._update_family(path_changed)
@@ -694,7 +694,7 @@ class Album(AlbumMixin, MPTTModel):
         os.rename(temp_file_path, zip_file_path)
         logger.info("Successfully created zip file %s", zip_file_path)
 
-    class Meta:
+    class Meta:  # type: ignore
         verbose_name = "Album"
         verbose_name_plural = "Albums"
         unique_together = [("parent", "slug")]

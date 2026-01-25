@@ -61,7 +61,7 @@ jobs:
 
   # TODO DRY
   deploy_staging:
-    runs-on: self-hosted
+    runs-on: qb-arc-runners
     needs: build
     environment: staging
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -93,7 +93,7 @@ jobs:
           emskaffolden -E staging -- deploy -n conikuvat-staging -a build.json
 
   deploy_conikuvat:
-    runs-on: self-hosted
+    runs-on: qb-arc-runners
     needs: build
     environment: production
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -125,7 +125,7 @@ jobs:
           emskaffolden -E production -- deploy -n conikuvat-production -a build.json
 
   deploy_larppikuvat:
-    runs-on: self-hosted
+    runs-on: qb-arc-runners
     needs: build
     environment: production
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

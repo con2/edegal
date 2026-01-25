@@ -1,13 +1,11 @@
 import logging
 
+from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.management import call_command
 
-from celery import shared_task
-
-from .models import Album, Media, Picture, MediaSpec, ImportItem
-
+from .models import Album, ImportItem, Media, MediaSpec, Picture
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +24,17 @@ def run_admin_command(*args, **kwargs):
 
 
 @shared_task(ignore_result=True)
-def import_local_media(picture_id, input_filename, mode, media_specs_ids, refresh_album):
+def import_local_media(
+    picture_id: int,
+    input_filename: str,
+    media_specs_ids: list[int],
+    refresh_album: bool,
+):
     picture = Picture.objects.get(id=picture_id)
     media_specs = MediaSpec.objects.filter(id__in=media_specs_ids)
     assert media_specs.count() == len(media_specs_ids)
 
-    Media._import_local_media(picture, input_filename, mode, media_specs, refresh_album)
+    Media._import_local_media(picture, input_filename, media_specs, refresh_album)
 
 
 @shared_task(ignore_result=True)

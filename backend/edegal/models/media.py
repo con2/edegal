@@ -1,19 +1,22 @@
-import shutil
+from __future__ import annotations
+
 import logging
 from contextlib import contextmanager
 from datetime import datetime
 from os import makedirs
-from os.path import dirname, abspath, getsize
+from os.path import abspath, dirname, getsize
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
-
 from PIL import Image
 
-from ..utils import pick_attrs, log_get_or_create
-from .media_spec import MediaSpec, ROLE_CHOICES, FORMAT_CHOICES
+from ..utils import log_get_or_create, pick_attrs
+from .media_spec import FORMAT_CHOICES, ROLE_CHOICES, MediaSpec
 
+if TYPE_CHECKING:
+    from .picture import Picture
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +41,21 @@ EXIF_DATETIME_FORMAT = "%Y:%m:%d %H:%M:%S"
 
 
 class Media(models.Model):
-    picture = models.ForeignKey("edegal.Picture", on_delete=models.CASCADE, related_name="media")
+    picture = models.ForeignKey(
+        "edegal.Picture", on_delete=models.CASCADE, related_name="media"
+    )
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     src = models.FileField(
         unique=True,
         max_length=1023,
     )
-    spec = models.ForeignKey(MediaSpec, on_delete=models.CASCADE, null=True, blank=True)
+    spec: models.ForeignKey[MediaSpec | None] = models.ForeignKey(
+        MediaSpec,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
     role = models.CharField(
         max_length=max(len(ext) for (ext, label) in ROLE_CHOICES),
         choices=ROLE_CHOICES,
@@ -68,10 +78,6 @@ class Media(models.Model):
         )
 
     @property
-    def is_default_thumbnail(self):
-        return self.spec and self.spec.is_default_thumbnail
-
-    @property
     def path(self):
         return self.src
 
@@ -87,7 +93,9 @@ class Media(models.Model):
         with self.as_image() as image:
             try:
                 exif = image._getexif()  # type: ignore
-                dt = datetime.strptime(exif[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT)
+                dt = datetime.strptime(
+                    exif[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT
+                )
                 return make_aware(dt)
             except Exception:
                 logger.debug(
@@ -110,6 +118,7 @@ class Media(models.Model):
             base_dir = "pictures"
             postfix = ".jpeg"  # TODO hardcoded jpeg
         else:
+            assert self.spec, "non-original media must have a spec"
             base_dir = "previews"
             postfix = f".{self.spec.role}.{self.spec.format}"
 
@@ -140,10 +149,9 @@ class Media(models.Model):
     @classmethod
     def import_local_media(
         cls,
-        picture,
-        input_filename,
-        mode="inplace",
-        media_specs=None,
+        picture: Picture,
+        input_filename: str,
+        media_specs: models.QuerySet[MediaSpec] | None = None,
         refresh_album=False,
     ):
         if media_specs is None:
@@ -154,32 +162,37 @@ class Media(models.Model):
 
             media_specs_ids = list(media_specs.values_list(flat=True))
             import_local_media.delay(
-                picture.id, input_filename, mode, media_specs_ids, refresh_album
+                picture.id, input_filename, media_specs_ids, refresh_album
             )  # type: ignore
         else:
-            cls._import_local_media(picture, input_filename, mode, media_specs, refresh_album)
+            cls._import_local_media(picture, input_filename, media_specs, refresh_album)
 
     @classmethod
     def _import_local_media(
         cls,
-        picture,
-        input_filename,
-        mode="inplace",
-        media_specs=None,
-        refresh_album=False,
+        picture: Picture,
+        input_filename: str,
+        media_specs: models.QuerySet[MediaSpec],
+        refresh_album: bool,
     ):
-        original_media, unused = cls.get_or_create_original_media(picture, input_filename, mode)
+        original_media, unused = cls.get_or_create_original_media(
+            picture, input_filename
+        )
 
         for spec in media_specs:
             cls.get_or_create_scaled_media(original_media, spec)
-
-        picture.save()
 
         if refresh_album:
             picture.album.save()
 
     @classmethod
-    def import_open_file(cls, picture, input_file, media_specs=None, refresh_album=False):
+    def import_open_file(
+        cls,
+        picture: Picture,
+        input_file,
+        media_specs: models.QuerySet[MediaSpec] | None = None,
+        refresh_album: bool = False,
+    ):
         original_path = Media(picture=picture, role="original").get_canonical_path()
         makedirs(dirname(original_path), exist_ok=True)
 
@@ -189,17 +202,21 @@ class Media(models.Model):
         cls.import_local_media(
             picture,
             original_path,
-            mode="inplace",
             media_specs=media_specs,
             refresh_album=refresh_album,
         )
 
     @classmethod
-    def make_absolute_path_media_relative(cls, original_path):
-        assert original_path.startswith(settings.MEDIA_ROOT)
+    def get_relative_media_path(cls, original_path: str):
+        original_path = abspath(original_path)
+
+        if not original_path.startswith(settings.MEDIA_ROOT):
+            raise ValueError(
+                f"Original path {original_path} is not under MEDIA_ROOT {settings.MEDIA_ROOT}"
+            )
 
         # make path relative to /media/
-        original_path = original_path[len(settings.MEDIA_ROOT) :]
+        original_path = original_path.removeprefix(settings.MEDIA_ROOT)
 
         # remove leading slash
         if original_path.startswith("/"):
@@ -208,26 +225,7 @@ class Media(models.Model):
         return original_path
 
     @classmethod
-    def process_file_location(cls, original_media, input_filename, mode="inplace"):
-        if mode == "inplace":
-            original_path = abspath(input_filename)
-        elif mode in ("copy", "move"):
-            original_path = original_media.get_canonical_path()
-            makedirs(dirname(original_path), exist_ok=True)
-
-            if mode == "copy":
-                shutil.copyfile(input_filename, original_path)
-            elif mode == "move":
-                shutil.move(input_filename, original_path)
-            else:
-                raise NotImplementedError(mode)
-        else:
-            raise NotImplementedError(mode)
-
-        return cls.make_absolute_path_media_relative(original_path)
-
-    @classmethod
-    def get_or_create_original_media(cls, picture, input_filename, mode="inplace"):
+    def get_or_create_original_media(cls, picture: Picture, input_filename: str):
         try:
             original_media = Media.objects.get(
                 picture=picture,
@@ -242,11 +240,12 @@ class Media(models.Model):
                 format="jpeg",  # TODO hardcoded jpeg
             )
 
-            original_media.src = cls.process_file_location(original_media, input_filename, mode)
+            original_media.src = cls.get_relative_media_path(input_filename)
 
             with original_media.as_image() as image:
                 original_media.width, original_media.height = image.size
                 picture.taken_at = original_media.get_exif_datetime()
+                picture.save(update_fields=["taken_at"])
 
             original_media.save()
 
@@ -256,7 +255,7 @@ class Media(models.Model):
         return original_media, created
 
     @classmethod
-    def get_or_create_scaled_media(cls, original_media, spec):
+    def get_or_create_scaled_media(cls, original_media: Media, spec: MediaSpec):
         assert original_media.role == "original"
 
         try:
@@ -282,6 +281,8 @@ class Media(models.Model):
             role=spec.role,
             format=spec.format,
         )
+
+        assert scaled_media.spec
 
         makedirs(dirname(scaled_media.get_canonical_path()), exist_ok=True)
         with original_media.as_image() as image:

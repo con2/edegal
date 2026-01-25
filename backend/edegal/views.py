@@ -60,6 +60,13 @@ class ApiV3View(View):
 
         download = request.GET.get("download", "false")
         if download.lower() not in ("false", "no", "0"):
+            if isinstance(album, Series):
+                # fmh
+                return JsonResponse(
+                    {"status": 400, "message": "cannot download a series"},
+                    status=400,
+                )
+
             album.ensure_download()
 
         return response
@@ -126,7 +133,7 @@ class RandomPictureAPIV3View(View):
         else:
             response = JsonResponse(
                 {"status": 404, "message": "the server has no photos :("},
-                status_code=404,
+                status=404,
             )
 
         response["Cache-Control"] = "no-store"

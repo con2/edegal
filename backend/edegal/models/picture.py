@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import logging
+from functools import cached_property
 from random import randint
-from typing import Any
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db import models
@@ -8,27 +11,28 @@ from django.utils.translation import gettext_lazy as _
 
 from ..utils import pick_attrs, slugify
 from .common import CommonFields
-from .media_spec import DEFAULT_FORMAT, MediaSpec
+from .media_spec import DEFAULT_FORMAT
+
+if TYPE_CHECKING:
+    from .media import Media
 
 logger = logging.getLogger(__name__)
 
 
 class Picture(models.Model):
-    # TODO Reverse manager types?
-    media: Any
-
-    slug = models.CharField(**CommonFields.slug)
+    slug = models.CharField(**CommonFields.slug)  # type: ignore
     album = models.ForeignKey(
         "edegal.Album",
         related_name="pictures",
         on_delete=models.CASCADE,
         db_index=False,  # have "fat" indexes on album, slug etc.
     )
-    order = models.IntegerField(**CommonFields.order)
-    path = models.CharField(**CommonFields.path)
 
-    title = models.CharField(**CommonFields.title)
-    description = models.TextField(**CommonFields.description)
+    order = models.IntegerField(**CommonFields.order)  # type: ignore
+    path = models.CharField(**CommonFields.path)  # type: ignore
+
+    title = models.CharField(**CommonFields.title)  # type: ignore
+    description = models.TextField(**CommonFields.description)  # type: ignore
 
     is_public = models.BooleanField(default=True)
 
@@ -41,8 +45,14 @@ class Picture(models.Model):
     )
 
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
     )
+
+    id: int
+    album_id: int
+    media: models.QuerySet[Media]
 
     def as_dict(self, include_credits=False):
         result = pick_attrs(
@@ -98,18 +108,6 @@ class Picture(models.Model):
 
         return base_media_item.as_dict(additional_formats=additional_formats)
 
-    def refresh_media(self, dry_run=False):
-        current_specs = MediaSpec.objects.filter(active=True)
-
-        media_to_remove = (
-            self.media.all().exclude(role="original").exclude(spec__in=current_specs)
-        )
-
-        assert dry_run, "actually doing this not implemented yet :)"
-
-        for medium in media_to_remove:
-            print("Would remove", medium)
-
     @classmethod
     def get_random_picture(cls):
         max_id = cls.objects.only("id").latest("id").id
@@ -128,37 +126,24 @@ class Picture(models.Model):
             .first()
         )
 
-    @property
+    @cached_property
     def original(self):
-        if not hasattr(self, "_original"):
-            self._original = next(
-                (media for media in self.media.all() if media.spec is None), None
-            )
-
-        return self._original
-
-    @property
-    def thumbnail(self):
-        if not hasattr(self, "_thumbnail"):
-            self._thumbnail = next(
-                (
-                    media
-                    for media in self.media.all()
-                    if media.spec and media.spec.is_default_thumbnail
-                ),
-                None,
-            )
-
-        return self._thumbnail
+        return next((media for media in self.media.all() if media.spec is None), None)
 
     def save(self, *args, **kwargs):
-        if self.title and not self.slug:
-            self.slug = slugify(self.title)
+        update_fields = kwargs.get("update_fields", [])
 
-        if self.slug:
-            self.path = self._make_path()
+        if not update_fields or "slug" in update_fields or "path" in update_fields:
+            if self.title and not self.slug:
+                if update_fields and "path" not in update_fields:
+                    update_fields.append("path")
 
-        return super(Picture, self).save(*args, **kwargs)
+                self.slug = slugify(self.title)
+
+            if self.slug:
+                self.path = self._make_path()
+
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.path

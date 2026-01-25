@@ -40,7 +40,7 @@ class Command(BaseCommand):
                     print(f"{picture.title} -> {order}")
                     if picture.order != order:
                         picture.order = order
-                        picture.save()
+                        picture.save(update_fields=["order"])
                 else:
                     print(f"{picture.title} -> ???")
             print()
