@@ -194,3 +194,15 @@ This may not be a feasible approach for Next.js, but as a general guideline, bro
 ### No point in putting MediaSpec in the database as was done in the current versien
 
 Instead, just put it in configuration that which scaled media will be created; and put role (original/preview/thumbnail), dimensions and file type enum in Media.
+
+### Database guidelines
+
+We should prefix our tables and types with `v4_` as working in a schema other than `public` is not feasible. Do not use `edegal` in names as I'm not fond of the name and will rename the app at some point.
+
+Table and field names should be `lower_snake_case` (Prisma has good support for mapping them to `lowerCamelCase` in TypeScript).
+
+Use PostgreSQL enums where enums are used.
+
+Feel free to create constraints in the database where relevant, but don't overdo it. Every illegal field combination need not be prevented by constraint, but they can be used where it makes sense.
+
+We won't bother with row level security or fine-grained grants for now. In the future, one reasonable hardening we will do is separating DDL and app users, but that should be left for future improvement. For now, just use one database user for both DDL and the app.
