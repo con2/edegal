@@ -1,15 +1,15 @@
 import re
-from os.path import basename, splitext
 from io import BytesIO
+from os.path import basename, splitext
 
+import requests
+from bs4 import BeautifulSoup
 from django.db import transaction
 
-from bs4 import BeautifulSoup
-import requests
+from edegal.utils import slugify
 
-from ..models import Album, Media, MediaSpec, Picture, ImportItem
+from ..models import Album, ImportItem, Media, MediaSpec, Picture
 from ..models.album import GUESS_DATE_REGEXEN
-
 
 KNOWN_SUFFIXES = [
     re.compile(r"\(larp\)$", re.IGNORECASE),
@@ -38,7 +38,9 @@ def import_flickr_link(
     strip_date_from_title=False,
 ):
     # FIXME might hit wrong ImportItem if same url is imported multiple times
-    import_item = ImportItem.objects.filter(source_id=flickr_url).order_by("-created_at").first()
+    import_item = (
+        ImportItem.objects.filter(source_id=flickr_url).order_by("-created_at").first()
+    )
 
     try:
         response = requests.get(flickr_url)
@@ -47,7 +49,9 @@ def import_flickr_link(
         album_title = (
             override_title
             if override_title
-            else remove_known_suffixes(soup.find("meta", {"property": "og:title"})["content"])
+            else remove_known_suffixes(
+                soup.find("meta", {"property": "og:title"})["content"]
+            )
         )
         album_description = soup.find("meta", {"property": "og:description"})["content"]
         album_url = soup.find("meta", {"property": "og:url"})["content"]
@@ -65,7 +69,9 @@ def import_flickr_link(
                     album_description += f"\n{date_str}"
                     album_description = album_description.strip()
 
-                    album_title = album_title[: match.start()] + album_title[match.end() :]
+                    album_title = (
+                        album_title[: match.start()] + album_title[match.end() :]
+                    )
                     album_title = album_title.strip()
 
         cover_picture_url = soup.find("meta", {"property": "og:image"})["content"]
@@ -80,16 +86,21 @@ def import_flickr_link(
         with transaction.atomic():
             parent = Album.objects.get(path=path)
 
-            thumbnail_media_specs = MediaSpec.objects.filter(active=True, role="thumbnail")
+            thumbnail_media_specs = MediaSpec.objects.filter(
+                active=True, role="thumbnail"
+            )
             assert thumbnail_media_specs.exists()
 
             if leaf_album_title:
-                intermediate_album = Album.objects.create(
+                intermediate_album, _created = Album.objects.get_or_create(
                     parent=parent,
-                    title=album_title,
-                    description=album_description,
-                    body=body,
-                    **album_overrides,
+                    slug=slugify(album_title),
+                    defaults=dict(
+                        title=album_title,
+                        description=album_description,
+                        body=body,
+                        **album_overrides,
+                    ),
                 )
 
                 album = Album.objects.create(
