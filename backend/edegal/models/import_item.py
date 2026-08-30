@@ -1,6 +1,5 @@
 from django.db import models
 
-
 IMPORT_STATUS_CHOICES = [
     ("pending", "Pending"),
     ("running", "Running"),
@@ -49,7 +48,8 @@ class ImportItem(models.Model):
     def run(self):
         from ..tasks import import_item_run
 
-        import_item_run.delay(self.id)
+        # win a race
+        import_item_run.apply_async(countdown=1, args=(self.id,))
 
     def _run(self):
         if self.source_type != "flickr":
