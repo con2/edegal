@@ -1,5 +1,6 @@
 "use client";
 
+import { signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
@@ -39,14 +40,14 @@ export function AppBar({ rootAlbum, viewer, messages }: AppBarProps) {
                   {messages.Auth.signedInAs} {viewer.name}
                 </Navbar.Text>
                 <Nav.Item>
-                  <Nav.Link href="/api/auth/signout">
+                  <Nav.Link onClick={() => signOut()}>
                     {messages.Auth.signOut}
                   </Nav.Link>
                 </Nav.Item>
               </>
             ) : (
               <Nav.Item>
-                <Nav.Link href="/api/auth/signin">
+                <Nav.Link onClick={() => signIn("kompassi")}>
                   {messages.Auth.signIn}
                 </Nav.Link>
               </Nav.Item>
