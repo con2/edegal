@@ -12,12 +12,14 @@ export async function ensurePhotographer(viewer: Viewer & { kind: "user" }) {
   if (existing) return existing;
   const user = await db.orm.public.User.where({ id: viewer.userId }).first();
   if (!user) throw new Error("user not found");
+  const displayName =
+    user.displayName || user.email.split("@")[0] || "photographer";
   const taken = new Set(
     (await db.orm.public.Photographer.select("slug").all()).map((p) => p.slug),
   );
   return db.orm.public.Photographer.create({
-    slug: uniqueSlug(slugifyDash(user.username) || "photographer", taken),
-    displayName: user.displayName || user.username,
+    slug: uniqueSlug(slugifyDash(displayName) || "photographer", taken),
+    displayName,
     email: user.email,
     userId: user.id,
   });

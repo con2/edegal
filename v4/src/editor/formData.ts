@@ -38,8 +38,8 @@ export async function albumFormOptions(
       .orderBy((p) => p.displayName.asc())
       .all(),
     viewer.isAdmin
-      ? db.orm.public.User.select("id", "username", "displayName")
-          .orderBy((u) => u.username.asc())
+      ? db.orm.public.User.select("id", "email", "displayName")
+          .orderBy((u) => u.displayName.asc())
           .all()
       : Promise.resolve(null),
     inheritedTermsTitle(childPath),
@@ -59,7 +59,7 @@ export async function albumFormOptions(
     users:
       users?.map((u) => ({
         id: u.id,
-        label: u.displayName ? `${u.displayName} (${u.username})` : u.username,
+        label: u.displayName ? `${u.displayName} (${u.email})` : u.email,
       })) ?? null,
   };
 }

@@ -31,7 +31,7 @@ let albumId: string;
 
 beforeAll(async () => {
   await pool.query("truncate v4_media_job, v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade");
-  const user = await db.orm.public.User.create({ sub: "test:1", username: "tester", displayName: "Tester" });
+  const user = await db.orm.public.User.create({ sub: "test:1", displayName: "Tester" });
   process.env.TEST_USER_ID = user.id;
   const root = await db.orm.public.Album.create({ slug: "", path: "/", title: "Root" });
   const album = await db.orm.public.Album.create({ parentId: root.id, slug: "uploads", path: "/uploads", title: "Uploads", ownerId: user.id });
