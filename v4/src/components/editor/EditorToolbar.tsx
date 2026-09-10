@@ -68,7 +68,7 @@ export function EditorToolbar({
         </>
       ) : null}
       {rights.canDelete ? (
-        <Link className="btn btn-link btn-sm text-danger" href={href("delete")}>
+        <Link className="btn btn-link btn-sm ms-3" href={href("delete")}>
           {messages.deleteAlbum}…
         </Link>
       ) : null}
