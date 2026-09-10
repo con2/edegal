@@ -167,6 +167,7 @@ export default async function GalleryPage({ params, searchParams }: Props) {
       <GalleryView
         album={album}
         initialPath={photo?.path ?? album.path}
+        editing={mode !== null}
         messages={{
           AlbumView: t.AlbumView,
           PictureView: t.PictureView,
