@@ -1,8 +1,9 @@
-import { SubmitButton } from "@con2/components";
 import Link from "next/link";
 
 import { sortPhotos } from "@/app/[locale]/[[...path]]/actions";
 import type { Translations } from "@/translations";
+
+import { SortPhotosMenu } from "./SortPhotosMenu";
 
 export interface EditorRights {
   canCreate: boolean;
@@ -45,27 +46,21 @@ export function EditorToolbar({
             {messages.editAlbum}…
           </Link>
           {hasPhotos ? (
-            <span className="d-inline-flex align-items-center">
-              <span className="btn btn-link btn-sm disabled pe-1">
-                {messages.sortPhotos}:
-              </span>
-              <form
-                action={sortPhotos.bind(null, locale, albumId, "takenAt")}
-                className="d-inline"
-              >
-                <SubmitButton variant="link" size="sm" className="btn-link">
-                  {messages.sortByCaptureTime}
-                </SubmitButton>
-              </form>
-              <form
-                action={sortPhotos.bind(null, locale, albumId, "filename")}
-                className="d-inline"
-              >
-                <SubmitButton variant="link" size="sm" className="btn-link">
-                  {messages.sortByFilename}
-                </SubmitButton>
-              </form>
-            </span>
+            <SortPhotosMenu
+              sortByCaptureTime={sortPhotos.bind(
+                null,
+                locale,
+                albumId,
+                "takenAt",
+              )}
+              sortByFilename={sortPhotos.bind(
+                null,
+                locale,
+                albumId,
+                "filename",
+              )}
+              messages={messages}
+            />
           ) : null}
         </>
       ) : null}
