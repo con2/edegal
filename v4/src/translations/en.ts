@@ -182,7 +182,7 @@ const translations = {
         "Subalbums with a smaller number come first; equal numbers are ordered by date.",
       eventMetadataUrl: "Event page",
       eventMetadataUrlHelp:
-        "Kompassi or Larpit.fi address of the event, for later use.",
+        "Kompassi or Larpit.fi address of the event. Only set this for the main album of the event.",
       body: "Description",
       terms: "Conditions of use",
       termsInherit: "Same as the parent album",

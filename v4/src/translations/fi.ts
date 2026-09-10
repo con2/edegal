@@ -162,13 +162,13 @@ const translations: Translations = {
       slugHelp:
         "Osa osoitetta. Pieniä kirjaimia, numeroita ja viivoja. Tyhjänä muodostetaan otsikosta. Muuttaminen jälkikäteen rikkoo vanhat linkit.",
       eventDate: "Tapahtuman päivä",
-      eventDateHelp: "Alialbumit luetellaan uusin ensin tämän päivän mukaan.",
+      eventDateHelp: "Alialbumit järjestetään uusin ensin tämän päivän mukaan.",
       visibility: "Näkyvyys",
       visibilityPublic: "Julkinen",
-      visibilityPublicHelp: "Luetellaan ja näkyy kaikille.",
+      visibilityPublicHelp: "Näkyy yläalbuminsa alialbumilistassa.",
       visibilityHidden: "Piilotettu",
       visibilityHiddenHelp:
-        "Ei luetella, mutta kuka tahansa osoitteen tietävä näkee sen.",
+        "Ei näy yläalbumissa, mutta kuka tahansa osoitteen tietävä voi katsella albumia.",
       visibilityPrivate: "Yksityinen",
       visibilityPrivateHelp: "Vain sinä ja ylläpitäjät näkevät sen.",
       openForSubalbums: "Avoin muiden kuvaajien alialbumeille",
@@ -181,7 +181,7 @@ const translations: Translations = {
         "Pienemmän numeron alialbumit ensin; samat numerot järjestetään päivän mukaan.",
       eventMetadataUrl: "Tapahtuman sivu",
       eventMetadataUrlHelp:
-        "Tapahtuman osoite Kompassissa tai Larpit.fi:ssä myöhempää käyttöä varten.",
+        "Tapahtuman osoite Kompassissa tai Larpit.fi:ssä. Aseta vain tapahtuman pääalbumille.",
       body: "Kuvaus",
       terms: "Käyttöehdot",
       termsInherit: "Samat kuin yläalbumissa",
