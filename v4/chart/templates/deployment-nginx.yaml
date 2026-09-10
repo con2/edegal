@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx
+  labels:
+    {{- include "v4.labels" . | nindent 4 }}
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      location /media/ {
+        alias /media/;
+        expires 30d;
+        add_header Cache-Control "public";
+        try_files $uri =404;
+      }
+      location = /nginx-health {
+        return 200 'OK';
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    {{- include "v4.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      stack: v4
+      component: nginx
+  template:
+    metadata:
+      labels:
+        stack: v4
+        component: nginx
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 1082
+        runAsGroup: 1082
+        fsGroup: 1082
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1-alpine
+          ports:
+            - containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /nginx-health
+              port: 8080
+          volumeMounts:
+            - name: media
+              mountPath: /media
+              readOnly: true
+            - name: config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+      volumes:
+        - name: media
+          nfs:
+            server: {{ .Values.mediaNfs.server }}
+            path: {{ .Values.mediaNfs.path }}
+            readOnly: true
+        - name: config
+          configMap:
+            name: nginx

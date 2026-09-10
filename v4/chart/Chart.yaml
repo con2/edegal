@@ -1,0 +1,6 @@
+apiVersion: v2
+name: v4
+description: conikuvat.fi / larppikuvat.fi gallery, v4 (Next.js + Prisma) alongside the legacy stack
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

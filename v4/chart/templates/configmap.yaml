@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: v4
+  labels:
+    {{- include "v4.labels" . | nindent 4 }}
+data:
+  NEXTAUTH_URL: {{ printf "https://%s" .Values.hostname | quote }}
+  MEDIA_ROOT: /usr/src/app/media
+  MEDIA_BASE_URL: /media
+  KOMPASSI_BASE_URL: {{ .Values.kompassi.baseUrl | quote }}
+  PHOTOGRAPHER_GROUP: {{ .Values.kompassi.photographerGroup | quote }}
+  ADMIN_GROUP: {{ .Values.kompassi.adminGroup | quote }}
+  LEGACY_ENABLED: "true"
+  LEGACY_ADMIN_URL: {{ .Values.legacyAdminUrl | quote }}

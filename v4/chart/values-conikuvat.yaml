@@ -1,0 +1,11 @@
+hostname: uusi.conikuvat.fi
+mediaNfs:
+  server: 91.105.252.80
+  path: /opt/conikuvat
+kompassi:
+  baseUrl: https://kompassi.eu
+  photographerGroup: conikuvat-staff
+  adminGroup: admins
+legacyAdminUrl: https://conikuvat.fi/admin/
+# Secret `v4` in namespace conikuvat-v4 is managed out of band.
+existingSecretName: v4

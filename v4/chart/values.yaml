@@ -1,0 +1,32 @@
+# Real environment values live in values-conikuvat.yaml and values-larppikuvat.yaml.
+# This file's secret.* fields are obviously-bogus placeholders so `helm template`/`helm lint`
+# work without real secrets -- never deploy with these values as-is.
+
+image:
+  # Normally supplied by --set at `helm upgrade` time in .github/workflows/v4.yaml.
+  repository: ghcr.io/con2/edegal-v4
+  tag: latest
+
+hostname: v4.example.com
+
+# The legacy stack's media directory, shared read-write with this app (uid 1082 owns the files).
+mediaNfs:
+  server: 91.105.252.80
+  path: /opt/conikuvat
+
+kompassi:
+  baseUrl: https://kompassi.eu
+  photographerGroup: conikuvat-staff
+  adminGroup: admins
+
+legacyAdminUrl: https://conikuvat.fi/admin/
+
+# THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
+# DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET
+# and the chart skips creating its own.
+existingSecretName: ""
+secret:
+  databaseUrl: postgresql://changeme:changeme@postgres:5432/changeme
+  authSecret: changeme
+  kompassiClientId: changeme
+  kompassiClientSecret: changeme

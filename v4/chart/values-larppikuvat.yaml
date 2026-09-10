@@ -1,0 +1,11 @@
+hostname: uusi.larppikuvat.fi
+mediaNfs:
+  server: 91.105.252.80
+  path: /opt/conikuvat/larppikuvat
+kompassi:
+  baseUrl: https://kompassi.eu
+  photographerGroup: larppikuvat-staff
+  adminGroup: admins
+legacyAdminUrl: https://larppikuvat.fi/admin/
+# Secret `v4` in namespace larppikuvat-v4 is managed out of band.
+existingSecretName: v4

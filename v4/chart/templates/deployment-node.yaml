@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node
+  labels:
+    {{- include "v4.labels" . | nindent 4 }}
+spec:
+  # The album cache is per process; run one replica until it is shared.
+  replicas: 1
+  selector:
+    matchLabels:
+      stack: v4
+      component: node
+  template:
+    metadata:
+      labels:
+        stack: v4
+        component: node
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        # Matches the owner of the existing media files on the NFS export.
+        runAsUser: 1082
+        runAsGroup: 1082
+        fsGroup: 1082
+      initContainers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-migrate"
+          command: ["sh", "-c", "npx prisma migration check && npx prisma db migrate"]
+          envFrom:
+            - configMapRef:
+                name: v4
+            - secretRef:
+                name: {{ include "v4.secretName" . }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      containers:
+        - name: node
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: v4
+            - secretRef:
+                name: {{ include "v4.secretName" . }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.hostname | quote }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.hostname | quote }}
+            periodSeconds: 30
+          volumeMounts:
+            - name: media
+              mountPath: /usr/src/app/media
+            - name: next-cache
+              mountPath: /usr/src/app/.next/cache
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: media
+          nfs:
+            server: {{ .Values.mediaNfs.server }}
+            path: {{ .Values.mediaNfs.path }}
+        - name: next-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
