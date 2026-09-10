@@ -1,0 +1,86 @@
+[
+  {
+    "id": "dropConstraint.v4_user.v4_user_username_key",
+    "label": "Drop constraint \"v4_user_username_key\" on \"v4_user\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_user_username_key",
+        "table": "v4_user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_user_username_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_user_username_key",
+          "public",
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"v4_user_username_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_user\" DROP CONSTRAINT \"v4_user_username_key\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_user_username_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_user_username_key",
+          "public",
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.v4_user.username",
+    "label": "Drop column \"username\" from \"v4_user\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "username",
+        "table": "v4_user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"username\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_user",
+          "username"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"username\"",
+        "sql": "ALTER TABLE \"public\".\"v4_user\" DROP COLUMN \"username\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"username\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_user",
+          "username"
+        ]
+      }
+    ]
+  }
+]

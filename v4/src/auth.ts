@@ -36,16 +36,7 @@ interface KompassiProfile {
   sub: string;
   name?: string;
   email?: string;
-  preferred_username?: string;
   groups?: string[];
-}
-
-function usernameFromProfile(profile: KompassiProfile): string {
-  return (
-    profile.preferred_username ||
-    profile.email?.split("@")[0] ||
-    `kompassi-${profile.sub}`
-  );
 }
 
 export const authOptions: AuthOptions = {
@@ -104,12 +95,10 @@ export const authOptions: AuthOptions = {
         const user = await db.orm.public.User.upsert({
           create: {
             sub: kompassi.sub,
-            username: usernameFromProfile(kompassi),
             email: kompassi.email ?? "",
             displayName: kompassi.name ?? "",
           },
           update: {
-            username: usernameFromProfile(kompassi),
             email: kompassi.email ?? "",
             displayName: kompassi.name ?? "",
           },

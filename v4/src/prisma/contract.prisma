@@ -39,7 +39,6 @@ native_enum MediaFormat {
 model User {
   id           Uuid                       @id @default(uuid(7))
   sub          String                     @unique
-  username     String                     @unique
   email        String                     @default("")
   displayName  String                     @default("") @map("display_name")
   createdAt    TimestamptzString          @default(now()) @map("created_at")
