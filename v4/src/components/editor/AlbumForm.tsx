@@ -237,7 +237,7 @@ export function AlbumForm({
           />
         </Field>
 
-        <Field id="AlbumForm-terms" label={f.terms} help={f.manageTerms}>
+        <Field id="AlbumForm-terms" label={f.terms}>
           <select
             className="form-select"
             id="AlbumForm-terms"
