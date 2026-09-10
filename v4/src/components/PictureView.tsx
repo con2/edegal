@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { canDownload } from "@/gallery/access";
@@ -79,7 +78,6 @@ export function PictureView({
   messages,
   onNavigate,
 }: PictureViewProps) {
-  const router = useRouter();
   const photo = album.photos[index];
   const previous = album.photos[index - 1];
   const next = album.photos[index + 1];
@@ -114,7 +112,9 @@ export function PictureView({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.key === "r" || event.key === "R") {
-        router.push("/random");
+        // Full navigation on purpose: the router caches the redirect and would repeat one picture.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.assign("/random");
         return;
       }
       if (event.key === "s" || event.key === "S") {
@@ -133,15 +133,7 @@ export function PictureView({
       document.removeEventListener("keydown", onKeyDown);
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
-  }, [
-    album.path,
-    photo.path,
-    previous,
-    next,
-    onNavigate,
-    router,
-    downloadOpen,
-  ]);
+  }, [album.path, photo.path, previous, next, onNavigate, downloadOpen]);
 
   const preview = photo.preview ?? photo.thumbnail;
 

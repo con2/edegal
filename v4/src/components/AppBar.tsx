@@ -30,7 +30,8 @@ export function AppBar({ rootAlbum, viewer, locale, messages }: AppBarProps) {
         <Navbar.Collapse id="AppBar-nav">
           <Nav className="me-auto">
             <Nav.Item>
-              <Nav.Link as={Link} href="/random" prefetch={false}>
+              {/* A plain link: the router would cache the redirect and keep showing one picture. */}
+              <Nav.Link href="/random">
                 {messages.AppBar.randomPicture}
               </Nav.Link>
             </Nav.Item>
