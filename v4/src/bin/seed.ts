@@ -38,11 +38,16 @@ async function ensurePhotographer() {
   const slug = "testi-kuvaaja";
   const existing = await db.orm.public.Photographer.where({ slug }).first();
   if (existing) return existing;
+  // Linked to whoever signed in first so /profile has something to edit locally.
+  const owner = await db.orm.public.User.orderBy((u) =>
+    u.createdAt.asc(),
+  ).first();
   const photographer = await db.orm.public.Photographer.create({
     slug,
     displayName: "Testi Kuvaaja",
     email: "testi@example.com",
     introduction: "Seed photographer for local development.",
+    userId: owner?.id ?? null,
   });
   await db.orm.public.PhotographerLink.createAll([
     {

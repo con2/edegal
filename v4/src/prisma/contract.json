@@ -16,6 +16,10 @@
       "model": "Media",
       "namespace": "public"
     },
+    "v4_media_job": {
+      "model": "MediaJob",
+      "namespace": "public"
+    },
     "v4_photo": {
       "model": "Photo",
       "namespace": "public"
@@ -131,6 +135,13 @@
                 "nullable": true,
                 "type": {
                   "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "thumbnailIsAuto": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
               },
@@ -313,6 +324,9 @@
                 },
                 "termsId": {
                   "column": "terms_id"
+                },
+                "thumbnailIsAuto": {
+                  "column": "thumbnail_is_auto"
                 },
                 "thumbnailPhotoId": {
                   "column": "thumbnail_photo_id"
@@ -546,6 +560,116 @@
               "table": "v4_media"
             }
           },
+          "MediaJob": {
+            "fields": {
+              "attempts": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "error": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "finishedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "photoId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "startedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "v4_media_job_status"
+                  }
+                }
+              }
+            },
+            "relations": {
+              "photo": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "photoId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Photo",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "attempts": {
+                  "column": "attempts"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "error": {
+                  "column": "error"
+                },
+                "finishedAt": {
+                  "column": "finished_at"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "photoId": {
+                  "column": "photo_id"
+                },
+                "startedAt": {
+                  "column": "started_at"
+                },
+                "status": {
+                  "column": "status"
+                }
+              },
+              "namespaceId": "public",
+              "table": "v4_media_job"
+            }
+          },
           "Photo": {
             "fields": {
               "albumId": {
@@ -559,6 +683,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               },
@@ -621,6 +752,36 @@
                   "namespace": "public"
                 }
               },
+              "createdBy": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "createdById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "jobs": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "photoId"
+                  ]
+                },
+                "to": {
+                  "model": "MediaJob",
+                  "namespace": "public"
+                }
+              },
               "media": {
                 "cardinality": "1:N",
                 "on": {
@@ -659,6 +820,9 @@
                 },
                 "createdAt": {
                   "column": "created_at"
+                },
+                "createdById": {
+                  "column": "created_by_id"
                 },
                 "id": {
                   "column": "id"
@@ -1132,6 +1296,21 @@
                   "namespace": "public"
                 }
               },
+              "photos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "createdById"
+                  ]
+                },
+                "to": {
+                  "model": "Photo",
+                  "namespace": "public"
+                }
+              },
               "terms": {
                 "cardinality": "1:N",
                 "on": {
@@ -1203,6 +1382,16 @@
                 "heif"
               ],
               "typeName": "v4_media_format"
+            },
+            "v4_media_job_status": {
+              "kind": "postgres-enum",
+              "members": [
+                "pending",
+                "running",
+                "done",
+                "failed"
+              ],
+              "typeName": "v4_media_job_status"
             },
             "v4_media_role": {
               "kind": "postgres-enum",
@@ -1309,6 +1498,15 @@
                   "codecId": "pg/uuid@1",
                   "nativeType": "uuid",
                   "nullable": true
+                },
+                "thumbnail_is_auto": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
                 },
                 "thumbnail_photo_id": {
                   "codecId": "pg/uuid@1",
@@ -1698,6 +1896,119 @@
                 }
               ]
             },
+            "v4_media_job": {
+              "columns": {
+                "attempts": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "error": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "finished_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "photo_id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "started_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/enum@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "pending"
+                  },
+                  "nativeType": "v4_media_job_status",
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "v4_media_job_status"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "MediaJobStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "photo_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_media_job"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_photo"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "photo_id"
+                  ],
+                  "name": "v4_media_job_photo_id_idx_9cab3b42",
+                  "prefix": "v4_media_job_photo_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status",
+                    "created_at"
+                  ],
+                  "name": "v4_media_job_status_created_at_idx_1bbe8adf",
+                  "prefix": "v4_media_job_status_created_at_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "v4_photo": {
               "columns": {
                 "album_id": {
@@ -1713,6 +2024,11 @@
                   },
                   "nativeType": "timestamptz",
                   "nullable": false
+                },
+                "created_by_id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": true
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
@@ -1770,6 +2086,23 @@
                     "namespaceId": "public",
                     "tableName": "v4_album"
                   }
+                },
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "created_by_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_photo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_user"
+                  }
                 }
               ],
               "indexes": [
@@ -1790,6 +2123,14 @@
                   ],
                   "name": "v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee",
                   "prefix": "v4_photo_album_id_ordering_taken_at_slug_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "created_by_id"
+                  ],
+                  "name": "v4_photo_created_by_id_idx_2b1d9a03",
+                  "prefix": "v4_photo_created_by_id_idx",
                   "unique": false
                 }
               ],
@@ -2184,6 +2525,15 @@
                 "heif"
               ]
             },
+            "MediaJobStatus": {
+              "kind": "valueSet",
+              "values": [
+                "pending",
+                "running",
+                "done",
+                "failed"
+              ]
+            },
             "MediaRole": {
               "kind": "valueSet",
               "values": [
@@ -2198,10 +2548,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a015335828566b81776b520ee0ac05c783aaf5a7f3735de716df603a260ccccc"
+    "storageHash": "7cc9f155a05f26a2b9c2ce07b129678fd74add20ed4a125bfe0e960f904bb87b"
   },
   "execution": {
-    "executionHash": "b534c5e7e6dbe3b3dd74903f7ee1569ed787d612297d6314ee5f51188e3dad57",
+    "executionHash": "257459898a35085a251ab9d3a93bfd2ad3a89c61f7794668d0a98318be55788c",
     "mutations": {
       "defaults": [
         {
@@ -2239,6 +2589,17 @@
             "column": "id",
             "namespace": "public",
             "table": "v4_media"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_media_job"
           }
         },
         {

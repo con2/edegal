@@ -11,7 +11,14 @@ export function applyVisibility(
   viewer: Viewer,
 ): ClientAlbumPage | null {
   if (!canView(viewer, vm)) return null;
-  const { ownerId: _ownerId, subalbums, photos, ...rest } = vm;
+  const {
+    ownerId: _ownerId,
+    parentId: _parentId,
+    isOpenForSubalbums: _open,
+    subalbums,
+    photos,
+    ...rest
+  } = vm;
   return {
     ...rest,
     subalbums: subalbums

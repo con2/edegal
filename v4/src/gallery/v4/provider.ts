@@ -103,12 +103,17 @@ export async function loadV4Album(
     ownerId: child.ownerId,
   }));
 
+  let photosProcessing = 0;
   const photos = album.photos.flatMap((photo): PhotoVM[] => {
     const thumbnail = buildMediaSet(photo.media, "thumbnail");
-    if (!thumbnail) return [];
+    if (!thumbnail) {
+      if (photo.media.some((m) => m.role === "original")) photosProcessing++;
+      return [];
+    }
     const original = photo.media.find((m) => m.role === "original");
     return [
       {
+        id: photo.id,
         path: photo.path,
         title: photo.title,
         visibility: "public",
@@ -122,6 +127,8 @@ export async function loadV4Album(
 
   return {
     source: "v4",
+    id: album.id,
+    parentId: album.parentId,
     path: album.path,
     title: album.title,
     description: "",
@@ -130,7 +137,9 @@ export async function loadV4Album(
     layout: "simple",
     visibility: album.visibility,
     ownerId: album.ownerId,
+    isOpenForSubalbums: album.isOpenForSubalbums,
     isDownloadable: album.isDownloadable,
+    photosProcessing,
     breadcrumb: ancestors.map(({ path, title }) => ({ path, title })),
     subalbums,
     photos,
@@ -167,4 +176,12 @@ export async function v4RandomPublicPhotoPath(): Promise<string | null> {
     .limit(1)
     .all();
   return rows[0]?.path ?? null;
+}
+
+/** The album's updated_at, used as the cache version; null when the album does not exist. */
+export async function v4AlbumVersion(albumId: string): Promise<string | null> {
+  const row = await db.orm.public.Album.where({ id: albumId })
+    .select("updatedAt")
+    .first();
+  return row?.updatedAt ?? null;
 }

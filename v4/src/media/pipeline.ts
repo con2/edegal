@@ -14,11 +14,49 @@ export interface ProducedMedia {
   byteSize: number;
 }
 
+export interface UploadInfo {
+  format: "jpeg" | "png" | "webp";
+  width: number;
+  height: number;
+}
+
 const roleDirectories = { original: "pictures", preview: "previews", thumbnail: "thumbnails" } as const;
 
 /** `pictures/myevent/dsc-0001.jpeg`, `previews/myevent/dsc-0001.avif`, ... */
 export function storageKeyFor(photoPath: string, role: ProducedMedia["role"], format: MediaFormat): string {
   return `${roleDirectories[role]}${photoPath}.${format}`;
+}
+
+/** Formats the pipeline can decode. HEIC is not among them: prebuilt sharp has no HEVC decoder. */
+export async function inspectUpload(data: Buffer): Promise<UploadInfo | null> {
+  try {
+    const { format, width, height } = await sharp(data, { failOn: "none" }).metadata();
+    if ((format === "jpeg" || format === "png" || format === "webp") && width && height) {
+      return { format, width, height };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function decode(original: Buffer): Sharp {
+  return sharp(original, { failOn: "none" }).rotate();
+}
+
+/**
+ * Stores the uploaded file as the photo's original under `pictures/`. Orientation is normalised
+ * from EXIF and non-JPEG input is re-encoded, so every original is a JPEG.
+ */
+export async function storeOriginal(photoPath: string, original: Buffer): Promise<ProducedMedia> {
+  const image = decode(original);
+  const metadata = await image.metadata();
+  const needsReencode = metadata.format !== "jpeg" || (metadata.orientation ?? 1) !== 1;
+  const buffer = needsReencode ? await image.jpeg({ quality: 95 }).toBuffer() : original;
+  const { width = 0, height = 0 } = needsReencode ? await sharp(buffer).metadata() : metadata;
+  const storageKey = storageKeyFor(photoPath, "original", "jpeg");
+  await mediaStorage.put(storageKey, buffer, "image/jpeg");
+  return { role: "original", format: "jpeg", width, height, storageKey, byteSize: buffer.byteLength };
 }
 
 async function encode(image: Sharp, spec: ScaledMediaSpec): Promise<Buffer> {
@@ -40,31 +78,10 @@ async function encode(image: Sharp, spec: ScaledMediaSpec): Promise<Buffer> {
   }
 }
 
-/**
- * Stores the uploaded original and every scaled variant in `scaledMediaSpecs`, returning the rows
- * to insert as Media. Orientation is normalised from EXIF before scaling.
- */
-export async function importOriginal(photoPath: string, original: Buffer): Promise<ProducedMedia[]> {
-  const image = sharp(original, { failOn: "none" }).rotate();
-  const metadata = await image.metadata();
-  const isJpeg = metadata.format === "jpeg";
-  const originalFormat: MediaFormat = isJpeg ? "jpeg" : "jpeg";
-  const originalBuffer = isJpeg ? original : await image.clone().jpeg({ quality: 95 }).toBuffer();
-  const originalMeta = isJpeg ? metadata : await sharp(originalBuffer).metadata();
-  const originalKey = storageKeyFor(photoPath, "original", originalFormat);
-  await mediaStorage.put(originalKey, originalBuffer, "image/jpeg");
-
-  const produced: ProducedMedia[] = [
-    {
-      role: "original",
-      format: originalFormat,
-      width: originalMeta.width ?? 0,
-      height: originalMeta.height ?? 0,
-      storageKey: originalKey,
-      byteSize: originalBuffer.byteLength,
-    },
-  ];
-
+/** Produces every scaled variant in `scaledMediaSpecs` from a stored original. */
+export async function generateScaledMedia(photoPath: string, original: Buffer): Promise<ProducedMedia[]> {
+  const image = decode(original);
+  const produced: ProducedMedia[] = [];
   for (const spec of scaledMediaSpecs) {
     const buffer = await encode(image, spec);
     const { width = 0, height = 0 } = await sharp(buffer).metadata();
@@ -73,6 +90,12 @@ export async function importOriginal(photoPath: string, original: Buffer): Promi
     produced.push({ role: spec.role, format: spec.format, width, height, storageKey, byteSize: buffer.byteLength });
   }
   return produced;
+}
+
+/** Original plus all scaled variants in one go; used where there is no background worker (seed). */
+export async function importOriginal(photoPath: string, original: Buffer): Promise<ProducedMedia[]> {
+  const stored = await storeOriginal(photoPath, original);
+  return [stored, ...(await generateScaledMedia(photoPath, original))];
 }
 
 /** EXIF DateTimeOriginal as ISO 8601, or null. */

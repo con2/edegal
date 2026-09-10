@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs";
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Readable } from "node:stream";
 
@@ -19,6 +19,8 @@ export interface MediaStorage {
   put(key: string, data: Buffer, contentType: string): Promise<void>;
   stat(key: string): Promise<MediaStat | null>;
   getStream(key: string): Readable;
+  /** Removes the file; a missing file is not an error. */
+  delete(key: string): Promise<void>;
 }
 
 export class LocalMediaStorage implements MediaStorage {
@@ -51,6 +53,10 @@ export class LocalMediaStorage implements MediaStorage {
 
   getStream(key: string): Readable {
     return createReadStream(this.resolve(key));
+  }
+
+  async delete(key: string): Promise<void> {
+    await rm(this.resolve(key), { force: true });
   }
 }
 

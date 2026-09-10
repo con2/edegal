@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { canCreateSubalbum, canEditAlbum, canList, canView } from "./access";
+import {
+  canCreateSubalbum,
+  canDeleteAlbum,
+  canEditAlbum,
+  canList,
+  canUpload,
+  canView,
+} from "./access";
 import type { Viewer } from "./viewer";
 
 const anonymous: Viewer = { kind: "anonymous" };
@@ -100,5 +107,23 @@ describe("editing", () => {
         isOpenForSubalbums: true,
       }),
     ).toBe(false);
+  });
+
+  it("never deletes the root album and ties uploads to editing", () => {
+    expect(
+      canDeleteAlbum(admin, { source: "v4", ownerId: "owner", path: "/" }),
+    ).toBe(false);
+    expect(
+      canDeleteAlbum(owner, { source: "v4", ownerId: "owner", path: "/x" }),
+    ).toBe(true);
+    expect(
+      canDeleteAlbum(photographer, {
+        source: "v4",
+        ownerId: "owner",
+        path: "/x",
+      }),
+    ).toBe(false);
+    expect(canUpload(owner, { source: "v4", ownerId: "owner" })).toBe(true);
+    expect(canUpload(admin, { source: "legacy", ownerId: null })).toBe(false);
   });
 });

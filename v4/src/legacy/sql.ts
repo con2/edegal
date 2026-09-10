@@ -116,7 +116,7 @@ export async function legacyPictures(
   albumId: number,
 ): Promise<LegacyPictureRow[]> {
   const { rows } = await pool.query<LegacyPictureRow>(
-    `select p.path, p.title, p.is_public, to_json(p.taken_at) #>> '{}' as taken_at,
+    `select p.id, p.path, p.title, p.is_public, to_json(p.taken_at) #>> '{}' as taken_at,
        (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.id) as media
      from edegal_picture p
      where p.album_id = $1

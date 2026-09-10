@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
 
 import { canDownload } from "@/gallery/access";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
@@ -12,14 +14,24 @@ import {
   ChevronRightIcon,
   CloseIcon,
   DownloadIcon,
+  MoreIcon,
 } from "./icons";
 import { Picture } from "./Picture";
+
+export interface PhotoEditor {
+  /** Bound server actions taking the photo id. */
+  setThumbnail: (photoId: string) => Promise<void>;
+  deletePhoto: (photoId: string) => Promise<void>;
+  messages: Translations["Editor"];
+}
 
 interface PictureViewProps {
   album: ClientAlbumPage;
   index: number;
   messages: Pick<Translations, "PictureView" | "DownloadDialog" | "Download">;
   onNavigate: (path: string, mode: "push" | "replace") => void;
+  /** Present when the viewer may manage this album's photos. */
+  editor: PhotoEditor | null;
 }
 
 type Direction = "next" | "previous" | "album";
@@ -77,7 +89,10 @@ export function PictureView({
   index,
   messages,
   onNavigate,
+  editor,
 }: PictureViewProps) {
+  const router = useRouter();
+  const [busy, startTransition] = useTransition();
   const photo = album.photos[index];
   const previous = album.photos[index - 1];
   const next = album.photos[index + 1];
@@ -172,6 +187,46 @@ export function PictureView({
       >
         <CloseIcon className="PictureView-icon" />
       </a>
+
+      {editor ? (
+        <Dropdown
+          className="PictureView-action PictureView-action-menu"
+          align="end"
+        >
+          <Dropdown.Toggle
+            variant="link"
+            className="p-0 border-0 text-reset"
+            title={editor.messages.photoActions}
+            disabled={busy}
+          >
+            <MoreIcon className="PictureView-icon" />
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item
+              as="button"
+              onClick={() =>
+                startTransition(async () => {
+                  await editor.setThumbnail(photo.id);
+                  router.refresh();
+                })
+              }
+            >
+              {editor.messages.setAsThumbnail}
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item
+              as="button"
+              className="text-danger"
+              onClick={() => {
+                if (!window.confirm(editor.messages.confirmDeletePhoto)) return;
+                startTransition(() => editor.deletePhoto(photo.id));
+              }}
+            >
+              {editor.messages.deletePhoto}
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      ) : null}
 
       {downloadable ? (
         <>

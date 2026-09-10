@@ -8,7 +8,7 @@ import type { Translations } from "@/translations";
 
 import { AlbumView } from "./AlbumView";
 import { documentTitle } from "./breadcrumb";
-import { PictureView } from "./PictureView";
+import { type PhotoEditor, PictureView } from "./PictureView";
 
 interface GalleryViewProps {
   album: ClientAlbumPage;
@@ -22,6 +22,7 @@ interface GalleryViewProps {
     | "DownloadDialog"
     | "Download"
   >;
+  editor: PhotoEditor | null;
 }
 
 /**
@@ -33,6 +34,7 @@ export function GalleryView({
   album,
   initialPath,
   messages,
+  editor,
 }: GalleryViewProps) {
   const pathname = usePathname();
   const belongsToAlbum =
@@ -62,6 +64,7 @@ export function GalleryView({
           Download: messages.Download,
         }}
         onNavigate={navigate}
+        editor={editor}
       />
     );
   }

@@ -58,6 +58,7 @@ export interface LegacySubalbumRow {
 }
 
 export interface LegacyPictureRow {
+  id: number;
   path: string;
   title: string;
   is_public: boolean;

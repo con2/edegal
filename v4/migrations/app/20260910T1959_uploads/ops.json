@@ -1,0 +1,348 @@
+[
+  {
+    "id": "createNativeEnumType.v4_media_job_status",
+    "label": "Create enum type \"v4_media_job_status\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_job_status"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"v4_media_job_status\"",
+        "sql": "CREATE TYPE \"public\".\"v4_media_job_status\" AS ENUM ('pending', 'running', 'done', 'failed')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.v4_media_job",
+    "label": "Create table \"v4_media_job\"",
+    "summary": "Creates table \"v4_media_job\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_media_job"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_media_job\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_job\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_media_job\"",
+        "sql": "CREATE TABLE \"public\".\"v4_media_job\" (\n  \"attempts\" int4 DEFAULT 0 NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"error\" text DEFAULT '' NOT NULL,\n  \"finished_at\" timestamptz,\n  \"id\" uuid NOT NULL,\n  \"photo_id\" uuid NOT NULL,\n  \"started_at\" timestamptz,\n  \"status\" \"v4_media_job_status\" DEFAULT 'pending'::\"v4_media_job_status\" NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_media_job\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_job\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.v4_album.thumbnail_is_auto",
+    "label": "Add column \"thumbnail_is_auto\" to \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "thumbnail_is_auto",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"thumbnail_is_auto\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "thumbnail_is_auto"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"thumbnail_is_auto\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\" ADD COLUMN \"thumbnail_is_auto\" bool DEFAULT true NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"thumbnail_is_auto\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "thumbnail_is_auto"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.v4_photo.created_by_id",
+    "label": "Add column \"created_by_id\" to \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "created_by_id",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"created_by_id\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_photo",
+          "created_by_id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"created_by_id\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photo\" ADD COLUMN \"created_by_id\" uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"created_by_id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_photo",
+          "created_by_id"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_media_job.v4_media_job_photo_id_idx_9cab3b42",
+    "label": "Create index \"v4_media_job_photo_id_idx_9cab3b42\" on \"v4_media_job\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_media_job_photo_id_idx_9cab3b42",
+        "table": "v4_media_job"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_media_job_photo_id_idx_9cab3b42\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_job_photo_id_idx_9cab3b42\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_media_job_photo_id_idx_9cab3b42\"",
+        "sql": "CREATE INDEX \"v4_media_job_photo_id_idx_9cab3b42\" ON \"public\".\"v4_media_job\" (\"photo_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_media_job_photo_id_idx_9cab3b42\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_job_photo_id_idx_9cab3b42\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_media_job.v4_media_job_status_created_at_idx_1bbe8adf",
+    "label": "Create index \"v4_media_job_status_created_at_idx_1bbe8adf\" on \"v4_media_job\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_media_job_status_created_at_idx_1bbe8adf",
+        "table": "v4_media_job"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_media_job_status_created_at_idx_1bbe8adf\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_job_status_created_at_idx_1bbe8adf\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_media_job_status_created_at_idx_1bbe8adf\"",
+        "sql": "CREATE INDEX \"v4_media_job_status_created_at_idx_1bbe8adf\" ON \"public\".\"v4_media_job\" (\"status\", \"created_at\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_media_job_status_created_at_idx_1bbe8adf\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_job_status_created_at_idx_1bbe8adf\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_photo.v4_photo_created_by_id_idx_2b1d9a03",
+    "label": "Create index \"v4_photo_created_by_id_idx_2b1d9a03\" on \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_photo_created_by_id_idx_2b1d9a03",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_photo_created_by_id_idx_2b1d9a03\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo_created_by_id_idx_2b1d9a03\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_photo_created_by_id_idx_2b1d9a03\"",
+        "sql": "CREATE INDEX \"v4_photo_created_by_id_idx_2b1d9a03\" ON \"public\".\"v4_photo\" (\"created_by_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_photo_created_by_id_idx_2b1d9a03\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo_created_by_id_idx_2b1d9a03\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_media_job.v4_media_job_photo_id_fkey",
+    "label": "Add foreign key \"v4_media_job_photo_id_fkey\" on \"v4_media_job\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_media_job_photo_id_fkey",
+        "table": "v4_media_job"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_media_job_photo_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_job_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_media_job\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_media_job_photo_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_media_job\"\nADD CONSTRAINT \"v4_media_job_photo_id_fkey\"\nFOREIGN KEY (\"photo_id\")\nREFERENCES \"public\".\"v4_photo\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_media_job_photo_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_job_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_media_job\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_photo.v4_photo_created_by_id_fkey",
+    "label": "Add foreign key \"v4_photo_created_by_id_fkey\" on \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_photo_created_by_id_fkey",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_photo_created_by_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_created_by_id_fkey",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_photo_created_by_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photo\"\nADD CONSTRAINT \"v4_photo_created_by_id_fkey\"\nFOREIGN KEY (\"created_by_id\")\nREFERENCES \"public\".\"v4_user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_photo_created_by_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_created_by_id_fkey",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ]
+  }
+]

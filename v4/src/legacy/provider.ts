@@ -136,6 +136,7 @@ export async function loadLegacyAlbum(
     if (!thumbnail) return [];
     return [
       {
+        id: String(p.id),
         path: p.path,
         title: p.title,
         visibility: p.is_public ? "public" : "private",
@@ -153,6 +154,8 @@ export async function loadLegacyAlbum(
 
   return {
     source: "legacy",
+    id: String(album.id),
+    parentId: album.parent_id === null ? null : String(album.parent_id),
     path: album.path,
     title: album.title,
     description: album.description,
@@ -161,7 +164,9 @@ export async function loadLegacyAlbum(
     layout: album.layout === "yearly" ? "yearly" : "simple",
     visibility: legacyVisibility(album.is_public, album.is_visible),
     ownerId: null,
+    isOpenForSubalbums: false,
     isDownloadable: album.is_downloadable,
+    photosProcessing: 0,
     breadcrumb: buildBreadcrumb(ancestors, series),
     subalbums: toSubalbums(subalbums),
     photos,
@@ -192,6 +197,8 @@ export async function loadLegacySeries(
   ]);
   return {
     source: "legacy",
+    id: `series:${series.id}`,
+    parentId: null,
     path: series.path,
     title: series.title,
     description: series.description,
@@ -200,7 +207,9 @@ export async function loadLegacySeries(
     layout: "simple",
     visibility: legacyVisibility(series.is_public, series.is_visible),
     ownerId: null,
+    isOpenForSubalbums: false,
     isDownloadable: false,
+    photosProcessing: 0,
     breadcrumb: root.map(({ path, title }) => ({ path, title })),
     subalbums: toSubalbums(albums),
     photos: [],
