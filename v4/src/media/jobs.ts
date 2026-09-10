@@ -114,3 +114,16 @@ export async function albumJobCounts(albumId: string): Promise<{ processing: num
   );
   return { processing: Number(rows[0]?.processing ?? 0), failed: Number(rows[0]?.failed ?? 0) };
 }
+
+/**
+ * Removes finished jobs so the table stays small: done jobs after a week, failed ones after a
+ * month (their error text is the only record of what went wrong). Returns the number deleted.
+ */
+export async function cleanupFinishedJobs(): Promise<number> {
+  const { rowCount } = await pool.query(
+    `delete from v4_media_job
+     where (status = 'done' and finished_at < now() - interval '7 days')
+        or (status = 'failed' and finished_at < now() - interval '30 days')`,
+  );
+  return rowCount ?? 0;
+}

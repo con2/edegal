@@ -33,6 +33,8 @@ media worker, which must be running for uploads to become visible:
 npm run worker
 ```
 
+The worker also deletes finished job rows hourly (done after 7 days, failed after 30).
+
 Photographers edit their name, links and reusable conditions of use at `/profile`.
 
 ## Downloads
