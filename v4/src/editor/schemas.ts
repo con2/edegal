@@ -7,11 +7,13 @@ const checkbox = z.preprocess(
   z.boolean(),
 );
 
+/** Absent for the root album, whose form has no slug field. */
 const slug = z
   .string()
   .trim()
   .max(255)
-  .regex(/^[a-z0-9-]*$/, "slug");
+  .regex(/^[a-z0-9-]*$/, "slug")
+  .default("");
 
 const uuid = z.string().uuid();
 
@@ -47,7 +49,8 @@ const eventMetadataUrl = z
       value === "" ||
       /^https:\/\/([a-z0-9-]+\.)*(kompassi\.eu|larpit\.fi)(\/|$)/.test(value),
     "eventMetadataUrl",
-  );
+  )
+  .default("");
 
 export const AlbumFormSchema = z.object({
   title: z.string().trim().min(1).max(1023),
