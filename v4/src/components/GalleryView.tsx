@@ -23,6 +23,8 @@ interface GalleryViewProps {
     | "Download"
   >;
   editor: PhotoEditor | null;
+  /** True while an editor panel is shown above the grid. */
+  editing?: boolean;
 }
 
 /**
@@ -35,6 +37,7 @@ export function GalleryView({
   initialPath,
   messages,
   editor,
+  editing = false,
 }: GalleryViewProps) {
   const pathname = usePathname();
   const belongsToAlbum =
@@ -73,6 +76,7 @@ export function GalleryView({
       album={album}
       messages={{ AlbumView: messages.AlbumView }}
       onOpenPhoto={(path) => navigate(path, "push")}
+      hideBody={editing}
     />
   );
 }

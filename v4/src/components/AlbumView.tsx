@@ -10,6 +10,8 @@ interface AlbumViewProps {
   album: ClientAlbumPage;
   messages: { AlbumView: Translations["AlbumView"] };
   onOpenPhoto: (path: string) => void;
+  /** Editor panels replace the description block, so it is not shown twice. */
+  hideBody?: boolean;
 }
 
 interface Year {
@@ -31,9 +33,15 @@ function groupByYear(subalbums: ClientSubalbum[]): Year[] {
   return years;
 }
 
-export function AlbumView({ album, messages, onOpenPhoto }: AlbumViewProps) {
-  const hasBody = album.body.text.trim().length > 0;
-  const hasSeriesLinks = album.previousInSeries || album.nextInSeries;
+export function AlbumView({
+  album,
+  messages,
+  onOpenPhoto,
+  hideBody = false,
+}: AlbumViewProps) {
+  const hasBody = !hideBody && album.body.text.trim().length > 0;
+  const hasSeriesLinks =
+    !hideBody && (album.previousInSeries || album.nextInSeries);
 
   return (
     <main role="main">
