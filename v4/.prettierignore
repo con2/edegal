@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+build
+media
+src/prisma/contract.json
+src/prisma/contract.d.ts
+migrations
+package-lock.json
+chart/templates

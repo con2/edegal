@@ -1,0 +1,1585 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.v4_album_visibility",
+    "label": "Create enum type \"v4_album_visibility\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_album_visibility"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"v4_album_visibility\"",
+        "sql": "CREATE TYPE \"public\".\"v4_album_visibility\" AS ENUM ('public', 'hidden', 'private')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.v4_media_format",
+    "label": "Create enum type \"v4_media_format\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_format"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"v4_media_format\"",
+        "sql": "CREATE TYPE \"public\".\"v4_media_format\" AS ENUM ('jpeg', 'webp', 'avif', 'heif')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.v4_media_role",
+    "label": "Create enum type \"v4_media_role\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_role"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"v4_media_role\"",
+        "sql": "CREATE TYPE \"public\".\"v4_media_role\" AS ENUM ('original', 'preview', 'thumbnail')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.v4_album",
+    "label": "Create table \"v4_album\"",
+    "summary": "Creates table \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_album\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_album\"",
+        "sql": "CREATE TABLE \"public\".\"v4_album\" (\n  \"body\" text DEFAULT '' NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"event_date\" date DEFAULT (current_date) NOT NULL,\n  \"event_metadata_url\" text DEFAULT '' NOT NULL,\n  \"id\" uuid DEFAULT (uuidv7()) NOT NULL,\n  \"is_downloadable\" bool DEFAULT true NOT NULL,\n  \"is_open_for_subalbums\" bool DEFAULT false NOT NULL,\n  \"ordering\" int4 DEFAULT 0 NOT NULL,\n  \"owner_id\" uuid,\n  \"parent_id\" uuid,\n  \"path\" text NOT NULL,\n  \"slug\" text NOT NULL,\n  \"thumbnail_photo_id\" uuid,\n  \"title\" text NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  \"visibility\" \"v4_album_visibility\" DEFAULT 'public'::\"v4_album_visibility\" NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_album\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.v4_album_credit",
+    "label": "Create table \"v4_album_credit\"",
+    "summary": "Creates table \"v4_album_credit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_album_credit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_album_credit\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_credit\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_album_credit\"",
+        "sql": "CREATE TABLE \"public\".\"v4_album_credit\" (\n  \"album_id\" uuid NOT NULL,\n  \"description\" text DEFAULT '' NOT NULL,\n  \"is_copyright\" bool DEFAULT false NOT NULL,\n  \"ordering\" int4 DEFAULT 0 NOT NULL,\n  \"photographer_id\" uuid NOT NULL,\n  PRIMARY KEY (\"album_id\", \"photographer_id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_album_credit\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_credit\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.v4_media",
+    "label": "Create table \"v4_media\"",
+    "summary": "Creates table \"v4_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_media\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_media\"",
+        "sql": "CREATE TABLE \"public\".\"v4_media\" (\n  \"byte_size\" int4,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"format\" \"v4_media_format\" NOT NULL,\n  \"height\" int4 NOT NULL,\n  \"id\" uuid DEFAULT (uuidv7()) NOT NULL,\n  \"photo_id\" uuid NOT NULL,\n  \"role\" \"v4_media_role\" NOT NULL,\n  \"storage_key\" text NOT NULL,\n  \"width\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_media\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.v4_photo",
+    "label": "Create table \"v4_photo\"",
+    "summary": "Creates table \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_photo\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_photo\"",
+        "sql": "CREATE TABLE \"public\".\"v4_photo\" (\n  \"album_id\" uuid NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" uuid DEFAULT (uuidv7()) NOT NULL,\n  \"ordering\" int4 DEFAULT 0 NOT NULL,\n  \"path\" text NOT NULL,\n  \"slug\" text NOT NULL,\n  \"taken_at\" timestamptz,\n  \"title\" text DEFAULT '' NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_photo\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.v4_photographer",
+    "label": "Create table \"v4_photographer\"",
+    "summary": "Creates table \"v4_photographer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_photographer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_photographer\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_photographer\"",
+        "sql": "CREATE TABLE \"public\".\"v4_photographer\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"display_name\" text NOT NULL,\n  \"email\" text DEFAULT '' NOT NULL,\n  \"id\" uuid DEFAULT (uuidv7()) NOT NULL,\n  \"introduction\" text DEFAULT '' NOT NULL,\n  \"slug\" text NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  \"user_id\" uuid,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_photographer\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.v4_photographer_link",
+    "label": "Create table \"v4_photographer_link\"",
+    "summary": "Creates table \"v4_photographer_link\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_photographer_link"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_photographer_link\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_link\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_photographer_link\"",
+        "sql": "CREATE TABLE \"public\".\"v4_photographer_link\" (\n  \"href\" text NOT NULL,\n  \"id\" uuid DEFAULT (uuidv7()) NOT NULL,\n  \"ordering\" int4 DEFAULT 0 NOT NULL,\n  \"photographer_id\" uuid NOT NULL,\n  \"title\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_photographer_link\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_link\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.v4_user",
+    "label": "Create table \"v4_user\"",
+    "summary": "Creates table \"v4_user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_user\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_user\"",
+        "sql": "CREATE TABLE \"public\".\"v4_user\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"display_name\" text DEFAULT '' NOT NULL,\n  \"email\" text DEFAULT '' NOT NULL,\n  \"id\" uuid DEFAULT (uuidv7()) NOT NULL,\n  \"sub\" text NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  \"username\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_user\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_album.v4_album_path_key",
+    "label": "Add unique constraint on \"v4_album\" (path)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_album_path_key",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_album_path_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_path_key",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_album_path_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\" ADD CONSTRAINT \"v4_album_path_key\" UNIQUE (\"path\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_album_path_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_path_key",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_album.v4_album_parent_id_slug_key",
+    "label": "Add unique constraint on \"v4_album\" (parent_id, slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_album_parent_id_slug_key",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_album_parent_id_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_parent_id_slug_key",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_album_parent_id_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\" ADD CONSTRAINT \"v4_album_parent_id_slug_key\" UNIQUE (\"parent_id\", \"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_album_parent_id_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_parent_id_slug_key",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_media.v4_media_storage_key_key",
+    "label": "Add unique constraint on \"v4_media\" (storage_key)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_media_storage_key_key",
+        "table": "v4_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_media_storage_key_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_storage_key_key",
+          "public",
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_media_storage_key_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_media\" ADD CONSTRAINT \"v4_media_storage_key_key\" UNIQUE (\"storage_key\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_media_storage_key_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_storage_key_key",
+          "public",
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_media.v4_media_photo_id_role_format_key",
+    "label": "Add unique constraint on \"v4_media\" (photo_id, role, format)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_media_photo_id_role_format_key",
+        "table": "v4_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_media_photo_id_role_format_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_photo_id_role_format_key",
+          "public",
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_media_photo_id_role_format_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_media\" ADD CONSTRAINT \"v4_media_photo_id_role_format_key\" UNIQUE (\"photo_id\", \"role\", \"format\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_media_photo_id_role_format_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_photo_id_role_format_key",
+          "public",
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_photo.v4_photo_path_key",
+    "label": "Add unique constraint on \"v4_photo\" (path)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_photo_path_key",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_photo_path_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_path_key",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_photo_path_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photo\" ADD CONSTRAINT \"v4_photo_path_key\" UNIQUE (\"path\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_photo_path_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_path_key",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_photo.v4_photo_album_id_slug_key",
+    "label": "Add unique constraint on \"v4_photo\" (album_id, slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_photo_album_id_slug_key",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_photo_album_id_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_album_id_slug_key",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_photo_album_id_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photo\" ADD CONSTRAINT \"v4_photo_album_id_slug_key\" UNIQUE (\"album_id\", \"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_photo_album_id_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_album_id_slug_key",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_photographer.v4_photographer_slug_key",
+    "label": "Add unique constraint on \"v4_photographer\" (slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_photographer_slug_key",
+        "table": "v4_photographer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_photographer_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_slug_key",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_photographer_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photographer\" ADD CONSTRAINT \"v4_photographer_slug_key\" UNIQUE (\"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_photographer_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_slug_key",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_photographer.v4_photographer_user_id_key",
+    "label": "Add unique constraint on \"v4_photographer\" (user_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_photographer_user_id_key",
+        "table": "v4_photographer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_photographer_user_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_user_id_key",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_photographer_user_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photographer\" ADD CONSTRAINT \"v4_photographer_user_id_key\" UNIQUE (\"user_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_photographer_user_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_user_id_key",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_user.v4_user_sub_key",
+    "label": "Add unique constraint on \"v4_user\" (sub)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_user_sub_key",
+        "table": "v4_user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_user_sub_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_user_sub_key",
+          "public",
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_user_sub_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_user\" ADD CONSTRAINT \"v4_user_sub_key\" UNIQUE (\"sub\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_user_sub_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_user_sub_key",
+          "public",
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_user.v4_user_username_key",
+    "label": "Add unique constraint on \"v4_user\" (username)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_user_username_key",
+        "table": "v4_user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_user_username_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_user_username_key",
+          "public",
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_user_username_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_user\" ADD CONSTRAINT \"v4_user_username_key\" UNIQUE (\"username\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_user_username_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_user_username_key",
+          "public",
+          "\"public\".\"v4_user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_album.v4_album_owner_id_idx_ade9f347",
+    "label": "Create index \"v4_album_owner_id_idx_ade9f347\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_album_owner_id_idx_ade9f347",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_album_owner_id_idx_ade9f347\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_owner_id_idx_ade9f347\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_album_owner_id_idx_ade9f347\"",
+        "sql": "CREATE INDEX \"v4_album_owner_id_idx_ade9f347\" ON \"public\".\"v4_album\" (\"owner_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_album_owner_id_idx_ade9f347\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_owner_id_idx_ade9f347\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_album.v4_album_parent_id_idx_ab33b399",
+    "label": "Create index \"v4_album_parent_id_idx_ab33b399\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_album_parent_id_idx_ab33b399",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_album_parent_id_idx_ab33b399\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_parent_id_idx_ab33b399\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_album_parent_id_idx_ab33b399\"",
+        "sql": "CREATE INDEX \"v4_album_parent_id_idx_ab33b399\" ON \"public\".\"v4_album\" (\"parent_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_album_parent_id_idx_ab33b399\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_parent_id_idx_ab33b399\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_album.v4_album_parent_id_ordering_event_date_idx_eb9f7c25",
+    "label": "Create index \"v4_album_parent_id_ordering_event_date_idx_eb9f7c25\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_album_parent_id_ordering_event_date_idx_eb9f7c25",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_album_parent_id_ordering_event_date_idx_eb9f7c25\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_parent_id_ordering_event_date_idx_eb9f7c25\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_album_parent_id_ordering_event_date_idx_eb9f7c25\"",
+        "sql": "CREATE INDEX \"v4_album_parent_id_ordering_event_date_idx_eb9f7c25\" ON \"public\".\"v4_album\" (\"parent_id\", \"ordering\", \"event_date\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_album_parent_id_ordering_event_date_idx_eb9f7c25\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_parent_id_ordering_event_date_idx_eb9f7c25\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_album.v4_album_thumbnail_photo_id_idx_a792ea2c",
+    "label": "Create index \"v4_album_thumbnail_photo_id_idx_a792ea2c\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_album_thumbnail_photo_id_idx_a792ea2c",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_album_thumbnail_photo_id_idx_a792ea2c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_thumbnail_photo_id_idx_a792ea2c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_album_thumbnail_photo_id_idx_a792ea2c\"",
+        "sql": "CREATE INDEX \"v4_album_thumbnail_photo_id_idx_a792ea2c\" ON \"public\".\"v4_album\" (\"thumbnail_photo_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_album_thumbnail_photo_id_idx_a792ea2c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_thumbnail_photo_id_idx_a792ea2c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_album_credit.v4_album_credit_album_id_idx_de2911bb",
+    "label": "Create index \"v4_album_credit_album_id_idx_de2911bb\" on \"v4_album_credit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_album_credit_album_id_idx_de2911bb",
+        "table": "v4_album_credit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_album_credit_album_id_idx_de2911bb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_credit_album_id_idx_de2911bb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_album_credit_album_id_idx_de2911bb\"",
+        "sql": "CREATE INDEX \"v4_album_credit_album_id_idx_de2911bb\" ON \"public\".\"v4_album_credit\" (\"album_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_album_credit_album_id_idx_de2911bb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_credit_album_id_idx_de2911bb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_album_credit.v4_album_credit_photographer_id_idx_21cd8253",
+    "label": "Create index \"v4_album_credit_photographer_id_idx_21cd8253\" on \"v4_album_credit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_album_credit_photographer_id_idx_21cd8253",
+        "table": "v4_album_credit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_album_credit_photographer_id_idx_21cd8253\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_credit_photographer_id_idx_21cd8253\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_album_credit_photographer_id_idx_21cd8253\"",
+        "sql": "CREATE INDEX \"v4_album_credit_photographer_id_idx_21cd8253\" ON \"public\".\"v4_album_credit\" (\"photographer_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_album_credit_photographer_id_idx_21cd8253\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_credit_photographer_id_idx_21cd8253\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_media.v4_media_photo_id_idx_9cab3b42",
+    "label": "Create index \"v4_media_photo_id_idx_9cab3b42\" on \"v4_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_media_photo_id_idx_9cab3b42",
+        "table": "v4_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_media_photo_id_idx_9cab3b42\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_photo_id_idx_9cab3b42\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_media_photo_id_idx_9cab3b42\"",
+        "sql": "CREATE INDEX \"v4_media_photo_id_idx_9cab3b42\" ON \"public\".\"v4_media\" (\"photo_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_media_photo_id_idx_9cab3b42\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_media_photo_id_idx_9cab3b42\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_photo.v4_photo_album_id_idx_de2911bb",
+    "label": "Create index \"v4_photo_album_id_idx_de2911bb\" on \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_photo_album_id_idx_de2911bb",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_photo_album_id_idx_de2911bb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo_album_id_idx_de2911bb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_photo_album_id_idx_de2911bb\"",
+        "sql": "CREATE INDEX \"v4_photo_album_id_idx_de2911bb\" ON \"public\".\"v4_photo\" (\"album_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_photo_album_id_idx_de2911bb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo_album_id_idx_de2911bb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_photo.v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee",
+    "label": "Create index \"v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee\" on \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee\"",
+        "sql": "CREATE INDEX \"v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee\" ON \"public\".\"v4_photo\" (\"album_id\", \"ordering\", \"taken_at\", \"slug\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photo_album_id_ordering_taken_at_slug_idx_af6850ee\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_photographer_link.v4_photographer_link_photographer_id_idx_21cd8253",
+    "label": "Create index \"v4_photographer_link_photographer_id_idx_21cd8253\" on \"v4_photographer_link\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_photographer_link_photographer_id_idx_21cd8253",
+        "table": "v4_photographer_link"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_photographer_link_photographer_id_idx_21cd8253\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_link_photographer_id_idx_21cd8253\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_photographer_link_photographer_id_idx_21cd8253\"",
+        "sql": "CREATE INDEX \"v4_photographer_link_photographer_id_idx_21cd8253\" ON \"public\".\"v4_photographer_link\" (\"photographer_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_photographer_link_photographer_id_idx_21cd8253\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_link_photographer_id_idx_21cd8253\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_photographer_link.v4_photographer_link_photographer_id_ordering_idx_5c09c2bd",
+    "label": "Create index \"v4_photographer_link_photographer_id_ordering_idx_5c09c2bd\" on \"v4_photographer_link\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_photographer_link_photographer_id_ordering_idx_5c09c2bd",
+        "table": "v4_photographer_link"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_photographer_link_photographer_id_ordering_idx_5c09c2bd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_link_photographer_id_ordering_idx_5c09c2bd\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_photographer_link_photographer_id_ordering_idx_5c09c2bd\"",
+        "sql": "CREATE INDEX \"v4_photographer_link_photographer_id_ordering_idx_5c09c2bd\" ON \"public\".\"v4_photographer_link\" (\"photographer_id\", \"ordering\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_photographer_link_photographer_id_ordering_idx_5c09c2bd\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_link_photographer_id_ordering_idx_5c09c2bd\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_album.v4_album_parent_id_fkey",
+    "label": "Add foreign key \"v4_album_parent_id_fkey\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_album_parent_id_fkey",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_album_parent_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_parent_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_album_parent_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\"\nADD CONSTRAINT \"v4_album_parent_id_fkey\"\nFOREIGN KEY (\"parent_id\")\nREFERENCES \"public\".\"v4_album\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_album_parent_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_parent_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_album.v4_album_owner_id_fkey",
+    "label": "Add foreign key \"v4_album_owner_id_fkey\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_album_owner_id_fkey",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_album_owner_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_owner_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_album_owner_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\"\nADD CONSTRAINT \"v4_album_owner_id_fkey\"\nFOREIGN KEY (\"owner_id\")\nREFERENCES \"public\".\"v4_user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_album_owner_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_owner_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_album.v4_album_thumbnail_photo_id_fkey",
+    "label": "Add foreign key \"v4_album_thumbnail_photo_id_fkey\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_album_thumbnail_photo_id_fkey",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_album_thumbnail_photo_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_thumbnail_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_album_thumbnail_photo_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\"\nADD CONSTRAINT \"v4_album_thumbnail_photo_id_fkey\"\nFOREIGN KEY (\"thumbnail_photo_id\")\nREFERENCES \"public\".\"v4_photo\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_album_thumbnail_photo_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_thumbnail_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_album_credit.v4_album_credit_album_id_fkey",
+    "label": "Add foreign key \"v4_album_credit_album_id_fkey\" on \"v4_album_credit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_album_credit_album_id_fkey",
+        "table": "v4_album_credit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_album_credit_album_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_credit_album_id_fkey",
+          "public",
+          "\"public\".\"v4_album_credit\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_album_credit_album_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album_credit\"\nADD CONSTRAINT \"v4_album_credit_album_id_fkey\"\nFOREIGN KEY (\"album_id\")\nREFERENCES \"public\".\"v4_album\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_album_credit_album_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_credit_album_id_fkey",
+          "public",
+          "\"public\".\"v4_album_credit\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_album_credit.v4_album_credit_photographer_id_fkey",
+    "label": "Add foreign key \"v4_album_credit_photographer_id_fkey\" on \"v4_album_credit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_album_credit_photographer_id_fkey",
+        "table": "v4_album_credit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_album_credit_photographer_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_credit_photographer_id_fkey",
+          "public",
+          "\"public\".\"v4_album_credit\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_album_credit_photographer_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album_credit\"\nADD CONSTRAINT \"v4_album_credit_photographer_id_fkey\"\nFOREIGN KEY (\"photographer_id\")\nREFERENCES \"public\".\"v4_photographer\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_album_credit_photographer_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_credit_photographer_id_fkey",
+          "public",
+          "\"public\".\"v4_album_credit\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_media.v4_media_photo_id_fkey",
+    "label": "Add foreign key \"v4_media_photo_id_fkey\" on \"v4_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_media_photo_id_fkey",
+        "table": "v4_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_media_photo_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_media_photo_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_media\"\nADD CONSTRAINT \"v4_media_photo_id_fkey\"\nFOREIGN KEY (\"photo_id\")\nREFERENCES \"public\".\"v4_photo\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_media_photo_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_media_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_media\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_photo.v4_photo_album_id_fkey",
+    "label": "Add foreign key \"v4_photo_album_id_fkey\" on \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_photo_album_id_fkey",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_photo_album_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_album_id_fkey",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_photo_album_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photo\"\nADD CONSTRAINT \"v4_photo_album_id_fkey\"\nFOREIGN KEY (\"album_id\")\nREFERENCES \"public\".\"v4_album\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_photo_album_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photo_album_id_fkey",
+          "public",
+          "\"public\".\"v4_photo\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_photographer.v4_photographer_user_id_fkey",
+    "label": "Add foreign key \"v4_photographer_user_id_fkey\" on \"v4_photographer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_photographer_user_id_fkey",
+        "table": "v4_photographer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_photographer_user_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_user_id_fkey",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_photographer_user_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photographer\"\nADD CONSTRAINT \"v4_photographer_user_id_fkey\"\nFOREIGN KEY (\"user_id\")\nREFERENCES \"public\".\"v4_user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_photographer_user_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_user_id_fkey",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_photographer_link.v4_photographer_link_photographer_id_fkey",
+    "label": "Add foreign key \"v4_photographer_link_photographer_id_fkey\" on \"v4_photographer_link\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_photographer_link_photographer_id_fkey",
+        "table": "v4_photographer_link"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_photographer_link_photographer_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_link_photographer_id_fkey",
+          "public",
+          "\"public\".\"v4_photographer_link\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_photographer_link_photographer_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photographer_link\"\nADD CONSTRAINT \"v4_photographer_link_photographer_id_fkey\"\nFOREIGN KEY (\"photographer_id\")\nREFERENCES \"public\".\"v4_photographer\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_photographer_link_photographer_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_link_photographer_id_fkey",
+          "public",
+          "\"public\".\"v4_photographer_link\""
+        ]
+      }
+    ]
+  }
+]

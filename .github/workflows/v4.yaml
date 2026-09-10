@@ -1,0 +1,106 @@
+name: v4
+
+on:
+  push:
+    branches: [main]
+    paths: ["v4/**", ".github/workflows/v4.yaml"]
+  pull_request:
+    branches: [main]
+    paths: ["v4/**", ".github/workflows/v4.yaml"]
+
+env:
+  IMAGE: ghcr.io/con2/edegal-v4
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v4
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost/v4
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost/v4_test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: v4/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npx prisma contract emit && git diff --exit-code -- src/prisma
+      - run: npx prisma migration check
+      - run: npm test
+      - run: psql "postgresql://postgres:postgres@localhost/postgres" -c 'create database v4_test'
+      - run: npm run test:integration
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    if: ${{ github.event_name == 'push' }}
+    outputs:
+      tag: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PASSWORD }}
+      - uses: docker/setup-buildx-action@v4
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+          tags: type=sha,prefix=,format=short
+      - uses: docker/build-push-action@v7
+        with:
+          context: v4
+          target: runner
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: docker/build-push-action@v7
+        with:
+          context: v4
+          target: migrator
+          push: true
+          tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}-migrate
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: qb-arc-runners
+    needs: build
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    environment: production
+    strategy:
+      matrix:
+        site:
+          - namespace: conikuvat-v4
+            values: values-conikuvat.yaml
+          - namespace: larppikuvat-v4
+            values: values-larppikuvat.yaml
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+      - run: |
+          helm upgrade --install v4 v4/chart \
+            --namespace ${{ matrix.site.namespace }} \
+            -f v4/chart/${{ matrix.site.values }} \
+            --set image.repository=${{ env.IMAGE }} \
+            --set image.tag=${{ needs.build.outputs.tag }} \
+            --wait --timeout 300s
