@@ -26,7 +26,7 @@ spec:
       initContainers:
         - name: migrate
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-migrate"
-          command: ["sh", "-c", "npx prisma migration check && npx prisma db migrate"]
+          command: ["sh", "-c", "node src/bin/migrate.mjs migration check && node src/bin/migrate.mjs db migrate"]
           envFrom:
             - configMapRef:
                 name: v4

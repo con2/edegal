@@ -24,6 +24,8 @@ touching the contract, migrations or queries. Key points:
 - Queries: `db.orm.public.<Model>` and `db.sql.public.<table>` from `src/prisma/db.ts`.
 - Migrations are TypeScript packages under `migrations/app/`; `ops.json` is compiled by running the
   migration file, never edited by hand.
+- Production applies migrations with `src/bin/migrate.mjs` (ORM command family only, built on the same
+  engine as `prisma`) so the migrator image stays ~50 MB; local development uses the `prisma` CLI.
 - **Never run `prisma db update` or `prisma db init` against a database that holds legacy tables.**
   `db update` reconciles the whole database to the contract and plans `DROP TABLE` for every table it
   does not know about, i.e. all `edegal_*` and Django tables. Use `migration plan` + `db migrate` only.

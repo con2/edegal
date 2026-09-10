@@ -38,6 +38,8 @@
     "zod": "4.6.1"
   },
   "devDependencies": {
+    "@prisma/cli-engine": "0.3.0",
+    "@prisma/orm-toolchain": "8.0.0-rc.9",
     "@types/node": "24.13.4",
     "@types/pg": "8.20.4",
     "@types/react": "^19",

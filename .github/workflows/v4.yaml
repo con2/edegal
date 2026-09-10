@@ -51,7 +51,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: test
     if: ${{ github.event_name == 'push' }}
     permissions:
       contents: read
@@ -90,7 +89,7 @@ jobs:
 
   deploy:
     runs-on: qb-arc-runners
-    needs: build
+    needs: [test, build]
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     environment: production
     strategy:

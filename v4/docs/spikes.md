@@ -15,3 +15,5 @@ Findings that shaped the implementation; re-verify when bumping the RC.
 Other RC facts: `@types/pg`/`pg` must match the runtime's pinned versions (8.20.4 / 8.22.0) or the `pg:` option fails to type-check; `.all()` results are single-consumption; `db.raw.sql` exists but the legacy module uses `pg` directly.
 
 Standalone server gotchas: never set the `HOSTNAME` env var (see Dockerfile comment; with it set every page 307-loops because the locale rewrite becomes cross-host), and give `MEDIA_ROOT` an absolute path because `server.js` changes the working directory.
+
+Image size: the `prisma` CLI depends on Prisma's cloud deployment tooling (`@prisma/composer*`, `alchemy`, `workerd`, ~1 GB). `src/bin/migrate.mjs` mounts only `ormCommandFamily` from `@prisma/orm-toolchain` on `@prisma/cli-engine`'s `createCli`, which the migrator image installs alone (50 MB). `@prisma/cli-engine` and `@prisma/orm-toolchain` are pinned in package.json to the versions the installed `prisma`/`@prisma/orm-postgres` resolve to; keep them in step when bumping.
