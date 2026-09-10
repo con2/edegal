@@ -91,6 +91,12 @@ const linksJson = z
 
 export const PhotographerFormSchema = z.object({
   displayName: z.string().trim().min(1).max(255),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(255)
+    .regex(/^[a-z0-9-]+$/, "slug"),
   email: z
     .union([z.string().trim().email().max(254), z.literal("")])
     .default(""),

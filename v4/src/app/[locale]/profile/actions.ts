@@ -25,9 +25,17 @@ export async function updatePhotographer(locale: string, formData: FormData) {
   const viewer = await requirePhotographer();
   const form = PhotographerFormSchema.parse(normalizeFormData(formData));
   const photographer = await ensurePhotographer(viewer);
+  const slugOwner = await db.orm.public.Photographer.where({ slug: form.slug })
+    .select("id")
+    .first();
+  if (slugOwner && slugOwner.id !== photographer.id) {
+    revalidatePath(`/${locale}/profile`);
+    return void redirect(`/profile?error=slugTaken`);
+  }
   await db.transaction(async (tx) => {
     await tx.orm.public.Photographer.where({ id: photographer.id }).update({
       displayName: form.displayName,
+      slug: form.slug,
       email: form.email,
       introduction: form.introduction,
       defaultTermsId: form.defaultTermsId || null,
