@@ -166,7 +166,9 @@ export async function loadLegacyAlbum(
     subalbums: toSubalbums(subalbums),
     photos,
     credits,
-    terms: album.terms,
+    terms: album.terms
+      ? { kind: "text", text: album.terms.text, url: album.terms.url }
+      : null,
     previousInSeries: album.previous_path
       ? { path: album.previous_path, title: album.previous_title ?? "" }
       : null,

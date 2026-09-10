@@ -7,7 +7,7 @@ import { AppBar } from "@/components/AppBar";
 import { BreadcrumbBar } from "@/components/BreadcrumbBar";
 import { GalleryView } from "@/components/GalleryView";
 import { documentTitle } from "@/components/breadcrumb";
-import { canEditAlbum } from "@/gallery/access";
+import { canDownload, canEditAlbum } from "@/gallery/access";
 import { loadGalleryPage } from "@/gallery/load";
 import { normalizeGalleryPath } from "@/gallery/paths";
 import { getViewer } from "@/gallery/viewer";
@@ -79,7 +79,15 @@ export default async function GalleryPage({ params }: Props) {
       {album.breadcrumb.length > 0 ? (
         <BreadcrumbBar
           album={album}
-          messages={{ BreadcrumbBar: t.BreadcrumbBar, Album: t.Album }}
+          messages={{
+            BreadcrumbBar: t.BreadcrumbBar,
+            Album: t.Album,
+            DownloadAlbumDialog: t.DownloadAlbumDialog,
+            Download: t.Download,
+          }}
+          canDownload={
+            canDownload(album) && album.photos.some((p) => p.original !== null)
+          }
           canEdit={
             album.legacyAdminUrl !== null
               ? viewer.kind === "user" && viewer.isPhotographer
@@ -94,6 +102,8 @@ export default async function GalleryPage({ params }: Props) {
           AlbumView: t.AlbumView,
           PictureView: t.PictureView,
           BreadcrumbBar: t.BreadcrumbBar,
+          DownloadDialog: t.DownloadDialog,
+          Download: t.Download,
         }}
       />
       <AlbumViewFooter album={album} messages={t.AlbumViewFooter} />

@@ -21,6 +21,10 @@ npm run dev                           # http://localhost:3160
 To browse real legacy content locally, restore a production dump into the database before
 running the migrations and point `MEDIA_BASE_URL` at the production media host.
 
+## Downloads
+
+`GET /api/zip/<album path>` streams the album's originals as a zip after the same visibility checks as the album page. Single originals are served straight from `/media`. The download dialog shows the album's terms (`v4_terms`, inherited from ancestors) and credit instructions before either.
+
 ## Schema changes
 
 1. Edit `src/prisma/contract.prisma`.

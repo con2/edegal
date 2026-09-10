@@ -1,18 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
+import { canDownload } from "@/gallery/access";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "./icons";
+import { DownloadDialog } from "./DownloadDialog";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  DownloadIcon,
+} from "./icons";
 import { Picture } from "./Picture";
 
 interface PictureViewProps {
   album: ClientAlbumPage;
   index: number;
-  messages: Translations["PictureView"];
+  messages: Pick<Translations, "PictureView" | "DownloadDialog" | "Download">;
   onNavigate: (path: string, mode: "push" | "replace") => void;
 }
 
@@ -76,6 +83,8 @@ export function PictureView({
   const photo = album.photos[index];
   const previous = album.photos[index - 1];
   const next = album.photos[index + 1];
+  const [downloadOpen, setDownloadOpen] = useState(false);
+  const downloadable = canDownload(album) && photo.original !== null;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -86,6 +95,8 @@ export function PictureView({
   }, [previous, next]);
 
   useEffect(() => {
+    // Keyboard shortcuts belong to the picture, not to an open dialog.
+    if (downloadOpen) return;
     const slideshow = new URLSearchParams(window.location.search).has(
       "slideshow",
     );
@@ -122,7 +133,15 @@ export function PictureView({
       document.removeEventListener("keydown", onKeyDown);
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
-  }, [album.path, photo.path, previous, next, onNavigate, router]);
+  }, [
+    album.path,
+    photo.path,
+    previous,
+    next,
+    onNavigate,
+    router,
+    downloadOpen,
+  ]);
 
   const preview = photo.preview ?? photo.thumbnail;
 
@@ -138,14 +157,14 @@ export function PictureView({
       {navLink(
         previous,
         "PictureView-nav PictureView-nav-previous",
-        messages.previousPicture,
+        messages.PictureView.previousPicture,
         onNavigate,
         <ChevronLeftIcon className="PictureView-icon" />,
       )}
       {navLink(
         next,
         "PictureView-nav PictureView-nav-next",
-        messages.nextPicture,
+        messages.PictureView.nextPicture,
         onNavigate,
         <ChevronRightIcon className="PictureView-icon" />,
       )}
@@ -153,7 +172,7 @@ export function PictureView({
       <a
         href={album.path}
         className="PictureView-action PictureView-action-exit"
-        title={messages.backToAlbum}
+        title={messages.PictureView.backToAlbum}
         onClick={(event) => {
           event.preventDefault();
           onNavigate(album.path, "push");
@@ -161,6 +180,29 @@ export function PictureView({
       >
         <CloseIcon className="PictureView-icon" />
       </a>
+
+      {downloadable ? (
+        <>
+          <button
+            type="button"
+            className="PictureView-action PictureView-action-download btn p-0 border-0 bg-transparent"
+            title={messages.PictureView.downloadOriginal}
+            onClick={() => setDownloadOpen(true)}
+          >
+            <DownloadIcon className="PictureView-icon" />
+          </button>
+          <DownloadDialog
+            album={album}
+            photo={photo}
+            show={downloadOpen}
+            onHide={() => setDownloadOpen(false)}
+            messages={{
+              dialog: messages.DownloadDialog,
+              Download: messages.Download,
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

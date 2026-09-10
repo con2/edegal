@@ -63,3 +63,8 @@ export function canCreateSubalbum(
     viewer.isAdmin || owns(viewer, album.ownerId) || album.isOpenForSubalbums
   );
 }
+
+/** Downloads of originals and album zips; visibility is enforced separately by loadGalleryPage. */
+export function canDownload(album: { isDownloadable: boolean }): boolean {
+  return album.isDownloadable;
+}

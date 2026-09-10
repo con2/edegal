@@ -23,6 +23,7 @@ interface MediaRow {
 function toVariant(m: MediaRow): MediaVariant {
   return {
     src: mediaUrl(m.storageKey),
+    storageKey: m.storageKey,
     width: m.width,
     height: m.height,
     format: m.format,
@@ -77,9 +78,18 @@ export async function loadV4Album(
   const ancestors = await db.orm.public.Album.where((a) =>
     a.path.in(pathPrefixes(album.path)),
   )
-    .select("path", "title")
+    .select("path", "title", "termsId")
     .all();
   ancestors.sort((a, b) => a.path.length - b.path.length);
+
+  // The album's own terms, else the nearest ancestor's.
+  const termsId =
+    [album.termsId, ...ancestors.map((a) => a.termsId).reverse()].find(
+      (id) => id !== null,
+    ) ?? null;
+  const terms = termsId
+    ? await db.orm.public.Terms.where({ id: termsId }).first()
+    : null;
 
   const subalbums: SubalbumVM[] = album.children.map((child) => ({
     path: child.path,
@@ -133,7 +143,9 @@ export async function loadV4Album(
         .sort((a, b) => a.ordering - b.ordering)
         .map(({ href, title }) => ({ href, title })),
     })),
-    terms: null,
+    terms: terms
+      ? { kind: "markdown", text: terms.text, url: terms.url }
+      : null,
     previousInSeries: null,
     nextInSeries: null,
     redirectUrl: null,

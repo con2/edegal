@@ -20,13 +20,8 @@ const translations = {
     dialogTitle: "Download album",
     termsAndConditions:
       "In order to use these pictures, you must agree to the following terms and conditions:",
-    contact:
-      "If your intended use is not covered by the above conditions, please contact:",
-    creditInstructions:
-      "When using these pictures, credit the authors as follows:",
     closeButtonText: "Close",
     downloadButtonText: "Download album",
-    preparingDownloadButtonText: "Preparing download",
     twitterCredit:
       "If you use these pictures in Twitter, please credit the author as follows:",
     instagramCredit:
@@ -43,16 +38,11 @@ const translations = {
     acceptTermsAndConditions: "I accept these terms and conditions",
     defaultTerms:
       "Terms and conditions missing. These pictures are covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.",
-    contactPhotographer: "Contact photographer",
   },
   DownloadDialog: {
     dialogTitle: "Download original photo",
     termsAndConditions:
       "In order to use this picture, you must agree to the following terms and conditions:",
-    contact:
-      "If your intended use is not covered by the above conditions, please contact:",
-    creditInstructions:
-      "When using this picture, credit the authors as follows:",
     closeButtonText: "Close",
     downloadButtonText: "Open original",
     twitterCredit:
@@ -71,7 +61,6 @@ const translations = {
     acceptTermsAndConditions: "I accept these terms and conditions",
     defaultTerms:
       "Terms and conditions missing. The photo is covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.",
-    contactPhotographer: "Contact photographer",
   },
   ContactDialog: {
     closeButtonText: "Close",
@@ -139,6 +128,10 @@ const translations = {
     notFound:
       "Sorry, the page you requested could not be found. Either the album does not exist, you are not authorized to view it or there is a connectivity problem.",
     errorTitle: "Something went wrong",
+  },
+  Download: {
+    links: "Photographer links",
+    termsUrl: "Full terms",
   },
   PictureView: {
     backToAlbum: "Back to Album",

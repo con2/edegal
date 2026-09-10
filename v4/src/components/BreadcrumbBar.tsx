@@ -6,20 +6,23 @@ import type { ClientAlbumPage } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
 import { breadcrumbSeparator, crumbTitle, fullBreadcrumb } from "./breadcrumb";
+import { DownloadAlbumButton } from "./DownloadAlbumButton";
 
 interface BreadcrumbBarProps {
   album: ClientAlbumPage;
-  messages: {
-    BreadcrumbBar: Translations["BreadcrumbBar"];
-    Album: Translations["Album"];
-  };
+  messages: Pick<
+    Translations,
+    "BreadcrumbBar" | "Album" | "DownloadAlbumDialog" | "Download"
+  >;
   canEdit: boolean;
+  canDownload: boolean;
 }
 
 export function BreadcrumbBar({
   album,
   messages,
   canEdit,
+  canDownload,
 }: BreadcrumbBarProps) {
   const crumbs = fullBreadcrumb(album, null, 1);
   return (
@@ -46,6 +49,16 @@ export function BreadcrumbBar({
         })}
       </nav>
       <nav className="BreadcrumbBar-actions">
+        {canDownload ? (
+          <DownloadAlbumButton
+            album={album}
+            label={messages.BreadcrumbBar.downloadAlbumLink}
+            messages={{
+              DownloadAlbumDialog: messages.DownloadAlbumDialog,
+              Download: messages.Download,
+            }}
+          />
+        ) : null}
         {canEdit && album.legacyAdminUrl ? (
           <a className="btn btn-link btn-sm" href={album.legacyAdminUrl}>
             {messages.Album.editInLegacyAdmin}

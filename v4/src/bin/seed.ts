@@ -61,9 +61,24 @@ async function ensurePhotographer() {
   return photographer;
 }
 
+async function ensureTerms() {
+  const title = "Seed terms";
+  const existing = await db.orm.public.Terms.where({ title }).first();
+  if (existing) return existing;
+  return db.orm.public.Terms.create({
+    title,
+    text: "These photos may be shared for **non-commercial** purposes with credit to the photographer.\n\nSee the [full terms](https://example.com/terms) for anything else.",
+    url: "https://example.com/terms",
+  });
+}
+
 async function main() {
   const root = await ensureRoot();
   const photographer = await ensurePhotographer();
+  const terms = await ensureTerms();
+  await db.orm.public.Photographer.where({ id: photographer.id }).update({
+    defaultTermsId: terms.id,
+  });
   // Whoever has signed in first owns the seeded albums, so owner-only views can be tried locally.
   const owner = await db.orm.public.User.orderBy((u) =>
     u.createdAt.asc(),
@@ -91,6 +106,7 @@ async function main() {
     body: "Photos from the **seed event**. Subalbums demonstrate public, hidden and private visibility.",
     eventDate: "2026-09-05",
     isOpenForSubalbums: true,
+    termsId: terms.id,
   });
   await db.orm.public.AlbumCredit.create({
     albumId: event.id,

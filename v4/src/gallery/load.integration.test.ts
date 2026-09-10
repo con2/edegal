@@ -32,6 +32,13 @@ async function insertLegacyFixtures() {
       (6, 'old-name', '/old-name', 'Moved', '', '', true, true, true, '/legacy-event', 'simple', 11, 12, 2, 1, null, 1)
   `);
   await pool.query(`
+    insert into edegal_termsandconditions (id, digest, text, is_public, url, user_id)
+    values (1, 'd', E'Ask first.\nCredit always.', true, 'https://legacy.example/terms', null)
+  `);
+  await pool.query(
+    `update edegal_album set terms_and_conditions_id = 1 where id = 2`,
+  );
+  await pool.query(`
     insert into edegal_picture (id, slug, "order", path, title, description, is_public, album_id, taken_at)
     values
       (1, 'pic-1', 10, '/legacy-event/pic-1', 'Pic 1', '', true, 2, '2019-06-22T12:00:00+03'),
@@ -58,10 +65,16 @@ async function insertLegacyFixtures() {
 }
 
 async function insertV4Fixtures() {
+  const terms = await db.orm.public.Terms.create({
+    title: "Root terms",
+    text: "**Credit** the photographer.",
+    url: "",
+  });
   const root = await db.orm.public.Album.create({
     slug: "",
     path: "/",
     title: "V4 root",
+    termsId: terms.id,
   });
   const shared = await db.orm.public.Album.create({
     parentId: root.id,
@@ -116,10 +129,10 @@ async function insertV4Fixtures() {
 
 beforeAll(async () => {
   await pool.query(
-    `truncate v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_user cascade`,
+    `truncate v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade`,
   );
   await pool.query(
-    `truncate edegal_media, edegal_mediaspec, edegal_picture, edegal_album, edegal_series cascade`,
+    `truncate edegal_media, edegal_mediaspec, edegal_picture, edegal_album, edegal_series, edegal_termsandconditions cascade`,
   );
   await insertLegacyFixtures();
   await insertV4Fixtures();
@@ -239,5 +252,22 @@ describe("loadGalleryPage", () => {
       { src: "/media/previews/shared/img-1.avif", format: "avif" },
     ]);
     expect(result.album.breadcrumb).toEqual([{ path: "/", title: "V4 root" }]);
+  });
+
+  it("inherits v4 terms from the nearest ancestor and maps legacy terms as plain text", async () => {
+    const v4 = await loadGalleryPage("/shared", anonymous);
+    const legacy = await loadGalleryPage("/legacy-event", anonymous);
+    if (v4.kind !== "ok" || legacy.kind !== "ok")
+      throw new Error("expected ok");
+    expect(v4.album.terms).toEqual({
+      kind: "markdown",
+      text: "**Credit** the photographer.",
+      url: "",
+    });
+    expect(legacy.album.terms).toEqual({
+      kind: "text",
+      text: "Ask first.\nCredit always.",
+      url: "https://legacy.example/terms",
+    });
   });
 });

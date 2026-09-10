@@ -10,6 +10,7 @@ function toVariant(row: LegacyMediaRow): MediaVariant | null {
   if (!row.src || !knownFormats.includes(row.format)) return null;
   return {
     src: mediaUrl(row.src),
+    storageKey: row.src,
     width: row.width,
     height: row.height,
     format: row.format as MediaFormat,

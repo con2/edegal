@@ -14,7 +14,14 @@ interface GalleryViewProps {
   album: ClientAlbumPage;
   /** The URL the server rendered: the album path or one of its photo paths. */
   initialPath: string;
-  messages: Pick<Translations, "AlbumView" | "PictureView" | "BreadcrumbBar">;
+  messages: Pick<
+    Translations,
+    | "AlbumView"
+    | "PictureView"
+    | "BreadcrumbBar"
+    | "DownloadDialog"
+    | "Download"
+  >;
 }
 
 /**
@@ -49,7 +56,11 @@ export function GalleryView({
       <PictureView
         album={album}
         index={index}
-        messages={messages.PictureView}
+        messages={{
+          PictureView: messages.PictureView,
+          DownloadDialog: messages.DownloadDialog,
+          Download: messages.Download,
+        }}
         onNavigate={navigate}
       />
     );

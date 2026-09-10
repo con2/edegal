@@ -46,6 +46,7 @@ describe("buildLegacyMediaSet", () => {
     const set = buildLegacyMediaSet(rows, "thumbnail");
     expect(set?.fallback).toEqual({
       src: "/media/previews/a/b.thumbnail.jpeg",
+      storageKey: "previews/a/b.thumbnail.jpeg",
       width: 360,
       height: 240,
       format: "jpeg",

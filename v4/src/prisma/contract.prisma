@@ -2,18 +2,19 @@
 
 // Tables and types are prefixed v4_ because they share the public schema with the
 // legacy Django tables (edegal_*), which this contract deliberately does not describe.
-
 native_enum AlbumVisibility {
-  public  = "public"
-  hidden  = "hidden"
+  public = "public"
+  hidden = "hidden"
   private = "private"
+
   @@map("v4_album_visibility")
 }
 
 native_enum MediaRole {
-  original  = "original"
-  preview   = "preview"
+  original = "original"
+  preview = "preview"
   thumbnail = "thumbnail"
+
   @@map("v4_media_role")
 }
 
@@ -22,37 +23,41 @@ native_enum MediaFormat {
   webp = "webp"
   avif = "avif"
   heif = "heif"
+
   @@map("v4_media_format")
 }
 
 model User {
-  id          Uuid              @id @default(uuid(7))
-  sub         String            @unique
-  username    String            @unique
-  email       String            @default("")
-  displayName String            @default("") @map("display_name")
-  createdAt   TimestamptzString @default(now()) @map("created_at")
-  updatedAt   temporal.updatedAtString() @map("updated_at")
+  id           Uuid                       @id @default(uuid(7))
+  sub          String                     @unique
+  username     String                     @unique
+  email        String                     @default("")
+  displayName  String                     @default("") @map("display_name")
+  createdAt    TimestamptzString          @default(now()) @map("created_at")
+  updatedAt    temporal.updatedAtString() @map("updated_at")
 
   albums       Album[]
   photographer Photographer?
+  terms        Terms[]
 
   @@map("v4_user")
 }
 
 model Photographer {
-  id           Uuid              @id @default(uuid(7))
-  slug         String            @unique
-  displayName  String            @map("display_name")
-  email        String            @default("")
-  introduction String            @default("")
-  userId       Uuid?             @unique @map("user_id")
-  user         User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt    TimestamptzString @default(now()) @map("created_at")
-  updatedAt    temporal.updatedAtString() @map("updated_at")
+  id             Uuid                       @id @default(uuid(7))
+  slug           String                     @unique
+  displayName    String                     @map("display_name")
+  email          String                     @default("")
+  introduction   String                     @default("")
+  userId         Uuid?                      @unique @map("user_id")
+  user           User?                      @relation(fields:[userId], references:[id], onDelete: SetNull)
+  defaultTermsId Uuid?                      @map("default_terms_id")
+  defaultTerms   Terms?                     @relation(fields:[defaultTermsId], references:[id], onDelete: SetNull)
+  createdAt      TimestamptzString          @default(now()) @map("created_at")
+  updatedAt      temporal.updatedAtString() @map("updated_at")
 
-  links   PhotographerLink[]
-  credits AlbumCredit[]
+  links          PhotographerLink[]
+  credits        AlbumCredit[]
 
   @@map("v4_photographer")
 }
@@ -60,7 +65,7 @@ model Photographer {
 model PhotographerLink {
   id             Uuid         @id @default(uuid(7))
   photographerId Uuid         @map("photographer_id")
-  photographer   Photographer @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  photographer   Photographer @relation(fields:[photographerId], references:[id], onDelete: Cascade)
   href           String
   title          String
   ordering       Int          @default(0)
@@ -69,30 +74,50 @@ model PhotographerLink {
   @@map("v4_photographer_link")
 }
 
+// Reusable conditions of use. An album without its own uses the nearest ancestor's; the
+// root album's terms are therefore the site default.
+model Terms {
+  id            Uuid                       @id @default(uuid(7))
+  title         String
+  text          String
+  url           String                     @default("")
+  ownerId       Uuid?                      @map("owner_id")
+  owner         User?                      @relation(fields:[ownerId], references:[id], onDelete: SetNull)
+  createdAt     TimestamptzString          @default(now()) @map("created_at")
+  updatedAt     temporal.updatedAtString() @map("updated_at")
+
+  albums        Album[]
+  photographers Photographer[]
+
+  @@map("v4_terms")
+}
+
 model Album {
-  id                 Uuid                    @id @default(uuid(7))
-  parentId           Uuid?                   @map("parent_id")
-  parent             Album?                  @relation("AlbumTree", fields: [parentId], references: [id], onDelete: Restrict)
-  children           Album[]                 @relation("AlbumTree")
+  id                 Uuid                       @id @default(uuid(7))
+  parentId           Uuid?                      @map("parent_id")
+  parent             Album?                     @relation("AlbumTree", fields:[parentId], references:[id], onDelete: Restrict)
+  children           Album[]                    @relation("AlbumTree")
   slug               String
-  path               String                  @unique
+  path               String                     @unique
   title              String
-  body               String                  @default("")
-  visibility         pg.enum(AlbumVisibility) @default("public")
-  isOpenForSubalbums Boolean                 @default(false) @map("is_open_for_subalbums")
-  eventMetadataUrl   String                  @default("") @map("event_metadata_url")
-  ordering           Int                     @default(0)
-  eventDate          DateString              @default(dbgenerated("current_date")) @map("event_date")
-  isDownloadable     Boolean                 @default(true) @map("is_downloadable")
-  ownerId            Uuid?                   @map("owner_id")
-  owner              User?                   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
-  thumbnailPhotoId   Uuid?                   @map("thumbnail_photo_id")
-  thumbnailPhoto     Photo?                  @relation("AlbumThumbnail", fields: [thumbnailPhotoId], references: [id], onDelete: SetNull)
-  createdAt          TimestamptzString       @default(now()) @map("created_at")
+  body               String                     @default("")
+  visibility         pg.enum(AlbumVisibility)   @default("public")
+  isOpenForSubalbums Boolean                    @default(false) @map("is_open_for_subalbums")
+  eventMetadataUrl   String                     @default("") @map("event_metadata_url")
+  ordering           Int                        @default(0)
+  eventDate          DateString                 @default(dbgenerated("current_date")) @map("event_date")
+  isDownloadable     Boolean                    @default(true) @map("is_downloadable")
+  termsId            Uuid?                      @map("terms_id")
+  terms              Terms?                     @relation(fields:[termsId], references:[id], onDelete: SetNull)
+  ownerId            Uuid?                      @map("owner_id")
+  owner              User?                      @relation(fields:[ownerId], references:[id], onDelete: SetNull)
+  thumbnailPhotoId   Uuid?                      @map("thumbnail_photo_id")
+  thumbnailPhoto     Photo?                     @relation("AlbumThumbnail", fields:[thumbnailPhotoId], references:[id], onDelete: SetNull)
+  createdAt          TimestamptzString          @default(now()) @map("created_at")
   updatedAt          temporal.updatedAtString() @map("updated_at")
 
-  photos  Photo[]       @relation("AlbumPhotos")
-  credits AlbumCredit[]
+  photos             Photo[]                    @relation("AlbumPhotos")
+  credits            AlbumCredit[]
 
   @@unique([parentId, slug])
   @@index([parentId, ordering, eventDate])
@@ -101,9 +126,9 @@ model Album {
 
 model AlbumCredit {
   albumId        Uuid         @map("album_id")
-  album          Album        @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  album          Album        @relation(fields:[albumId], references:[id], onDelete: Cascade)
   photographerId Uuid         @map("photographer_id")
-  photographer   Photographer @relation(fields: [photographerId], references: [id], onDelete: Restrict)
+  photographer   Photographer @relation(fields:[photographerId], references:[id], onDelete: Restrict)
   isCopyright    Boolean      @default(false) @map("is_copyright")
   description    String       @default("")
   ordering       Int          @default(0)
@@ -113,18 +138,18 @@ model AlbumCredit {
 }
 
 model Photo {
-  id        Uuid               @id @default(uuid(7))
-  albumId   Uuid               @map("album_id")
-  album     Album              @relation("AlbumPhotos", fields: [albumId], references: [id], onDelete: Cascade)
-  slug      String
-  path      String             @unique
-  title     String             @default("")
-  ordering  Int                @default(0)
-  takenAt   TimestamptzString? @map("taken_at")
-  createdAt TimestamptzString  @default(now()) @map("created_at")
+  id          Uuid               @id @default(uuid(7))
+  albumId     Uuid               @map("album_id")
+  album       Album              @relation("AlbumPhotos", fields:[albumId], references:[id], onDelete: Cascade)
+  slug        String
+  path        String             @unique
+  title       String             @default("")
+  ordering    Int                @default(0)
+  takenAt     TimestamptzString? @map("taken_at")
+  createdAt   TimestamptzString  @default(now()) @map("created_at")
 
   media       Media[]
-  thumbnailOf Album[] @relation("AlbumThumbnail")
+  thumbnailOf Album[]            @relation("AlbumThumbnail")
 
   @@unique([albumId, slug])
   @@index([albumId, ordering, takenAt, slug])
@@ -134,7 +159,7 @@ model Photo {
 model Media {
   id         Uuid                 @id @default(uuid(7))
   photoId    Uuid                 @map("photo_id")
-  photo      Photo                @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  photo      Photo                @relation(fields:[photoId], references:[id], onDelete: Cascade)
   role       pg.enum(MediaRole)
   format     pg.enum(MediaFormat)
   width      Int

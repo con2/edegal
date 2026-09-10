@@ -9,6 +9,8 @@ export type ContentSource = "v4" | "legacy";
 
 export interface MediaVariant {
   src: string;
+  /** Path relative to the media root; lets server code read the file through MediaStorage. */
+  storageKey: string;
   width: number;
   height: number;
   format: MediaFormat;
@@ -57,6 +59,8 @@ export interface CreditVM {
 }
 
 export interface TermsVM {
+  /** Legacy terms are plain text with line breaks; v4 terms are Markdown. */
+  kind: "markdown" | "text";
   text: string;
   url: string;
 }
