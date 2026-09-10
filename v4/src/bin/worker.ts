@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { claimJob, processMediaJob } from "@/media/jobs";
+import { claimJob, cleanupFinishedJobs, processMediaJob } from "@/media/jobs";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
@@ -10,6 +10,7 @@ import { db } from "@/prisma/db";
  */
 const concurrency = Number(process.env.WORKER_CONCURRENCY || 2);
 const idleSleepMs = 2000;
+const cleanupIntervalMs = 60 * 60 * 1000;
 let stopping = false;
 
 function sleep(ms: number) {
@@ -43,8 +44,31 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
   });
 }
 
+async function cleanup() {
+  while (!stopping) {
+    try {
+      const deleted = await cleanupFinishedJobs();
+      if (deleted > 0)
+        console.log(`cleanup: removed ${deleted} finished job(s)`);
+    } catch (error) {
+      console.error(
+        `cleanup failed: ${error instanceof Error ? error.message : error}`,
+      );
+    }
+    for (
+      let waited = 0;
+      waited < cleanupIntervalMs && !stopping;
+      waited += idleSleepMs
+    )
+      await sleep(idleSleepMs);
+  }
+}
+
 console.log(`media worker started with concurrency ${concurrency}`);
-await Promise.all(Array.from({ length: concurrency }, (_, i) => slot(i)));
+await Promise.all([
+  ...Array.from({ length: concurrency }, (_, i) => slot(i)),
+  cleanup(),
+]);
 await db.close();
 await pool.end();
 console.log("media worker stopped");

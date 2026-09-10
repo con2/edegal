@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
-import { albumJobCounts, claimJob, processMediaJob } from "./jobs";
+import { albumJobCounts, claimJob, cleanupFinishedJobs, processMediaJob } from "./jobs";
 import { mediaStorage } from "./storage";
 
 vi.mock("@/gallery/viewer", () => ({
@@ -89,5 +89,14 @@ describe("photo upload and processing", () => {
       body: new Uint8Array(Buffer.from("x")),
     });
     expect((await POST(big, { params: Promise.resolve({ albumId }) })).status).toBe(413);
+  });
+
+  it("cleans up old finished jobs but keeps recent and failed-but-fresh ones", async () => {
+    await pool.query(`update v4_media_job set finished_at = now() - interval '8 days' where status = 'done'`);
+    const photo = await db.orm.public.Photo.where({ albumId }).first();
+    await db.orm.public.MediaJob.create({ photoId: photo!.id, status: "failed", finishedAt: new Date().toISOString(), error: "boom" });
+    expect(await cleanupFinishedJobs()).toBe(2);
+    const remaining = await db.orm.public.MediaJob.select("status").all();
+    expect(remaining.map((j) => j.status)).toEqual(["failed"]);
   });
 });
