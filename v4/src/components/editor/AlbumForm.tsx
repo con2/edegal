@@ -1,5 +1,4 @@
-import { MarkdownEditor } from "@con2/components";
-import { SubmitButton } from "@con2/components";
+import { MarkdownEditor, SubmitButton } from "@con2/components";
 import Link from "next/link";
 
 import type { CreditInput } from "@/editor/schemas";
@@ -111,7 +110,7 @@ export function AlbumForm({
         {parent ? (
           <Field id="AlbumForm-parent" label={f.parent} help={f.parentHelp}>
             <input
-              className="form-control-plaintext fw-bold"
+              className="form-control-plaintext fw-bold mb-0"
               id="AlbumForm-parent"
               type="text"
               readOnly
