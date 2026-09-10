@@ -140,6 +140,7 @@ export async function loadV4Album(
     isOpenForSubalbums: album.isOpenForSubalbums,
     isDownloadable: album.isDownloadable,
     photosProcessing,
+    hasManualOrdering: album.photos.some((p) => p.ordering !== 0),
     breadcrumb: ancestors.map(({ path, title }) => ({ path, title })),
     subalbums,
     photos,

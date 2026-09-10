@@ -9,12 +9,14 @@ interface SortPhotosMenuProps {
   /** Bound server actions; each redirects back to the album when done. */
   sortByCaptureTime: () => Promise<void>;
   sortByFilename: () => Promise<void>;
+  current: "takenAt" | "filename";
   messages: Translations["Editor"];
 }
 
 export function SortPhotosMenu({
   sortByCaptureTime,
   sortByFilename,
+  current,
   messages,
 }: SortPhotosMenuProps) {
   const [busy, startTransition] = useTransition();
@@ -31,12 +33,14 @@ export function SortPhotosMenu({
       <Dropdown.Menu>
         <Dropdown.Item
           as="button"
+          active={current === "takenAt"}
           onClick={() => startTransition(sortByCaptureTime)}
         >
           {messages.sortByCaptureTime}
         </Dropdown.Item>
         <Dropdown.Item
           as="button"
+          active={current === "filename"}
           onClick={() => startTransition(sortByFilename)}
         >
           {messages.sortByFilename}

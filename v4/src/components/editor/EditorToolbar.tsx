@@ -17,6 +17,7 @@ interface EditorToolbarProps {
   albumPath: string;
   rights: EditorRights;
   hasPhotos: boolean;
+  hasManualOrdering: boolean;
   messages: Translations["Editor"];
 }
 
@@ -27,6 +28,7 @@ export function EditorToolbar({
   albumPath,
   rights,
   hasPhotos,
+  hasManualOrdering,
   messages,
 }: EditorToolbarProps) {
   const href = (param: string) => `${albumPath}?${param}=1`;
@@ -59,6 +61,7 @@ export function EditorToolbar({
                 albumId,
                 "filename",
               )}
+              current={hasManualOrdering ? "filename" : "takenAt"}
               messages={messages}
             />
           ) : null}
