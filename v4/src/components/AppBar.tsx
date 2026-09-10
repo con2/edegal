@@ -1,7 +1,6 @@
 "use client";
 
 import { LanguageSwitcher } from "@con2/components";
-import { signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
@@ -10,6 +9,8 @@ import Navbar from "react-bootstrap/Navbar";
 import type { Crumb } from "@/gallery/types";
 import type { Viewer } from "@/gallery/viewer";
 import type { Translations } from "@/translations";
+
+import { UserMenu } from "./UserMenu";
 
 interface AppBarProps {
   rootAlbum: Crumb;
@@ -41,31 +42,10 @@ export function AppBar({ rootAlbum, viewer, locale, messages }: AppBarProps) {
               locale={locale}
               messages={messages.LanguageSwitcher}
             />
-            {viewer.kind === "user" && viewer.isPhotographer ? (
-              <Nav.Item>
-                <Nav.Link as={Link} href="/profile">
-                  {messages.AppBar.profile}
-                </Nav.Link>
-              </Nav.Item>
-            ) : null}
-            {viewer.kind === "user" ? (
-              <>
-                <Navbar.Text className="me-3">
-                  {messages.Auth.signedInAs} {viewer.name}
-                </Navbar.Text>
-                <Nav.Item>
-                  <Nav.Link onClick={() => signOut()}>
-                    {messages.Auth.signOut}
-                  </Nav.Link>
-                </Nav.Item>
-              </>
-            ) : (
-              <Nav.Item>
-                <Nav.Link onClick={() => signIn("kompassi")}>
-                  {messages.Auth.signIn}
-                </Nav.Link>
-              </Nav.Item>
-            )}
+            <UserMenu
+              viewer={viewer}
+              messages={{ Auth: messages.Auth, AppBar: messages.AppBar }}
+            />
           </Nav>
         </Navbar.Collapse>
       </Container>
