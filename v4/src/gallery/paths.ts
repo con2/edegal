@@ -44,3 +44,9 @@ function decodeURIComponentSafe(segment: string): string {
     return segment;
   }
 }
+
+/** True when `path` is `ancestorPath` itself or lies below it; the root "/" contains everything. */
+export function isAncestorOrSelf(ancestorPath: string, path: string): boolean {
+  if (ancestorPath === path || ancestorPath === "/") return true;
+  return path.startsWith(`${ancestorPath}/`);
+}

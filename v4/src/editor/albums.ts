@@ -1,6 +1,9 @@
 import { slugifyDash } from "@con2/components/helpers";
 
+import { canEditAlbum } from "@/gallery/access";
+import { pathPrefixes } from "@/gallery/paths";
 import { resolvePath } from "@/gallery/resolve";
+import type { Viewer } from "@/gallery/viewer";
 import { parseOrderingNumber } from "@/media/naming";
 import { mediaStorage } from "@/media/storage";
 import { db } from "@/prisma/db";
@@ -162,4 +165,39 @@ export async function sortPhotos(
       });
     }
   });
+}
+
+export interface ThumbnailTarget {
+  albumId: string;
+  title: string;
+  /** The photo's own album, as opposed to one of its ancestors. */
+  isOwnAlbum: boolean;
+}
+
+/**
+ * The albums whose thumbnail the viewer may set to a photo of `album`: the album itself and
+ * its ancestors, nearest first, that the viewer may edit. The root is left out because the
+ * front page has no tile of its own.
+ */
+export async function thumbnailTargets(
+  viewer: Viewer,
+  album: { id: string; path: string; ownerId: string | null; title: string },
+): Promise<ThumbnailTarget[]> {
+  const targets: ThumbnailTarget[] = [];
+  if (canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+    targets.push({ albumId: album.id, title: album.title, isOwnAlbum: true });
+  const prefixes = pathPrefixes(album.path).filter((p) => p !== "/");
+  if (prefixes.length === 0) return targets;
+  const ancestors = await db.orm.public.Album.where((a) => a.path.in(prefixes))
+    .select("id", "path", "title", "ownerId")
+    .all();
+  ancestors.sort((a, b) => b.path.length - a.path.length);
+  for (const ancestor of ancestors)
+    if (canEditAlbum(viewer, { source: "v4", ownerId: ancestor.ownerId }))
+      targets.push({
+        albumId: ancestor.id,
+        title: ancestor.title,
+        isOwnAlbum: false,
+      });
+  return targets;
 }

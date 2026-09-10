@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 
 import { canDownload } from "@/gallery/access";
+import type { ThumbnailTarget } from "@/editor/albums";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
@@ -19,9 +20,11 @@ import {
 import { Picture } from "./Picture";
 
 export interface PhotoEditor {
-  /** Bound server actions taking the photo id; present when the viewer may manage this album's photos. */
+  /** Albums whose thumbnail this photo may become; one menu item each. */
+  thumbnailTargets: ThumbnailTarget[];
+  setThumbnail: (albumId: string, photoId: string) => Promise<void>;
+  /** Present when the viewer may manage this album's photos. */
   manage: {
-    setThumbnail: (photoId: string) => Promise<void>;
     deletePhoto: (photoId: string) => Promise<void>;
   } | null;
   /** Present for signed-in photographers: any photo, by anyone, may become their profile photo. */
@@ -206,21 +209,25 @@ export function PictureView({
             <MoreIcon className="PictureView-icon" />
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            {editor.manage ? (
+            {editor.thumbnailTargets.map((target) => (
               <Dropdown.Item
+                key={target.albumId}
                 as="button"
-                onClick={() => {
-                  const manage = editor.manage;
-                  if (!manage) return;
+                onClick={() =>
                   startTransition(async () => {
-                    await manage.setThumbnail(photo.id);
+                    await editor.setThumbnail(target.albumId, photo.id);
                     router.refresh();
-                  });
-                }}
+                  })
+                }
               >
-                {editor.messages.setAsThumbnail}
+                {target.isOwnAlbum
+                  ? editor.messages.setAsThumbnail
+                  : editor.messages.setAsThumbnailOf.replace(
+                      "{album}",
+                      target.title,
+                    )}
               </Dropdown.Item>
-            ) : null}
+            ))}
             {editor.setProfilePhoto ? (
               <Dropdown.Item
                 as="button"

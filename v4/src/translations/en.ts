@@ -155,6 +155,7 @@ const translations = {
     sortByCaptureTime: "By capture time",
     sortByFilename: "By filename number",
     setAsThumbnail: "Use as album thumbnail",
+    setAsThumbnailOf: "Use as thumbnail for “{album}”",
     setAsProfilePhoto: "Use as my profile photo",
     deletePhoto: "Delete photo",
     confirmDeletePhoto: "Delete this photo permanently?",

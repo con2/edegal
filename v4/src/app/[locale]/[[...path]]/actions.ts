@@ -26,6 +26,7 @@ import {
   canView,
 } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
+import { isAncestorOrSelf } from "@/gallery/paths";
 import { touchAlbum } from "@/gallery/v4/touch";
 import { getViewer, type Viewer } from "@/gallery/viewer";
 import { albumJobCounts, pickAutoThumbnail } from "@/media/jobs";
@@ -216,20 +217,29 @@ export async function deletePhoto(locale: string, photoId: string) {
   );
 }
 
-export async function setAlbumThumbnail(locale: string, photoId: string) {
+/** Sets the thumbnail of the photo's own album or of any of its ancestors the viewer may edit. */
+export async function setAlbumThumbnail(
+  locale: string,
+  albumId: string,
+  photoId: string,
+) {
   const viewer = await requireUser();
-  const photo = await db.orm.public.Photo.where({ id: photoId })
-    .include("album")
-    .first();
+  const [photo, target] = await Promise.all([
+    db.orm.public.Photo.where({ id: photoId }).include("album").first(),
+    requireAlbum(albumId),
+  ]);
   if (!photo) throw new Error("photo not found");
-  if (!canEditAlbum(viewer, { source: "v4", ownerId: photo.album.ownerId }))
+  if (!isAncestorOrSelf(target.path, photo.album.path))
+    throw new Error("photo is not in this album or below it");
+  if (!canEditAlbum(viewer, { source: "v4", ownerId: target.ownerId }))
     throw new Error("not allowed to edit this album");
-  await db.orm.public.Album.where({ id: photo.albumId }).update({
+  await db.orm.public.Album.where({ id: target.id }).update({
     thumbnailPhotoId: photo.id,
     thumbnailIsAuto: false,
   });
-  await touchAlbum(photo.albumId, photo.album.parentId);
-  invalidateAlbum("v4", photo.albumId, photo.album.parentId);
+  await touchAlbum(target.id, target.parentId);
+  invalidateAlbum("v4", target.id, target.parentId);
+  revalidatePath(`/${locale}${target.path}`);
   revalidatePath(`/${locale}${photo.album.path}`);
 }
 

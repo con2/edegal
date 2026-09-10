@@ -7,6 +7,7 @@ import {
   canEditAlbum,
   canManagePhoto,
 } from "@/gallery/access";
+import { thumbnailTargets } from "@/editor/albums";
 import type { GalleryPageResult } from "@/gallery/types";
 import type { Viewer } from "@/gallery/viewer";
 import { getTranslations } from "@/translations";
@@ -33,7 +34,7 @@ interface GalleryPageProps {
 }
 
 /** The whole gallery page for an album-shaped view-model; shared by the catch-all and the photographer routes. */
-export function GalleryPage({
+export async function GalleryPage({
   locale,
   viewer,
   result,
@@ -64,14 +65,22 @@ export function GalleryPage({
     album.source === "v4" &&
     viewer.kind === "user" &&
     viewer.isPhotographer;
+  const targets =
+    isAlbum && album.source === "v4" && viewer.kind === "user"
+      ? await thumbnailTargets(viewer, {
+          id: album.id,
+          path: album.path,
+          ownerId: unfiltered.ownerId,
+          title: album.title,
+        })
+      : [];
   const photoEditor: PhotoEditor | null =
-    canManage || canPickProfilePhoto
+    canManage || canPickProfilePhoto || targets.length > 0
       ? {
+          thumbnailTargets: targets,
+          setThumbnail: setAlbumThumbnail.bind(null, locale),
           manage: canManage
-            ? {
-                setThumbnail: setAlbumThumbnail.bind(null, locale),
-                deletePhoto: deletePhoto.bind(null, locale),
-              }
+            ? { deletePhoto: deletePhoto.bind(null, locale) }
             : null,
           setProfilePhoto: canPickProfilePhoto
             ? setProfilePhoto.bind(null, locale)

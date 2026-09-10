@@ -153,6 +153,7 @@ const translations: Translations = {
     sortByCaptureTime: "Kuvausajan mukaan",
     sortByFilename: "Tiedostonimen numeron mukaan",
     setAsThumbnail: "Käytä albumin kansikuvana",
+    setAsThumbnailOf: "Käytä albumin ”{album}” kansikuvana",
     setAsProfilePhoto: "Käytä profiilikuvanani",
     deletePhoto: "Poista kuva",
     confirmDeletePhoto: "Poistetaanko tämä kuva pysyvästi?",
