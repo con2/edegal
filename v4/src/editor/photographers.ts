@@ -12,8 +12,8 @@ export async function ensurePhotographer(viewer: Viewer & { kind: "user" }) {
   if (existing) return existing;
   const user = await db.orm.public.User.where({ id: viewer.userId }).first();
   if (!user) throw new Error("user not found");
-  const displayName =
-    user.displayName || user.email.split("@")[0] || "photographer";
+  // Never derive anything from the email address; it is private.
+  const displayName = user.displayName || "photographer";
   const taken = new Set(
     (await db.orm.public.Photographer.select("slug").all()).map((p) => p.slug),
   );
