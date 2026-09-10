@@ -221,7 +221,7 @@ const translations: Translations = {
   },
   Upload: {
     processingSuffix: "kuvaa käsitellään; ne ilmestyvät pian…",
-    title: "Lähetä kuvia",
+    title: "Lähetä kuvia tähän albumiin",
     help: "JPEG, PNG tai WebP, enintään 100 Mt per tiedosto. Esikatselukuvat tehdään taustalla lähetyksen jälkeen. Kuvat järjestetään kuvausajan mukaan.",
     dropHere: "Pudota kuvat tähän tai",
     selectFiles: "valitse tiedostot",
