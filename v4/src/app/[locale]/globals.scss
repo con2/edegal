@@ -44,6 +44,10 @@ picture img {
     font-weight: 700;
     text-transform: lowercase;
   }
+  /* Dropdown titles carry a language code and the user's name; keep their case. */
+  .dropdown-toggle.nav-link {
+    text-transform: none;
+  }
   .btn-link {
     border: none;
   }
