@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { ClientAlbumPage } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
@@ -14,7 +16,17 @@ export function AlbumViewFooter({ album, messages }: AlbumViewFooterProps) {
       {copyrightHolders.length > 0 ? (
         <>
           {messages.albumCopyright} &copy; {year}{" "}
-          {copyrightHolders.map((c) => c.displayName).join(", ")}.{" "}
+          {copyrightHolders.map((c, index) => (
+            <span key={c.displayName}>
+              {index > 0 ? ", " : null}
+              {c.path ? (
+                <Link href={c.path}>{c.displayName}</Link>
+              ) : (
+                c.displayName
+              )}
+            </span>
+          ))}
+          .{" "}
         </>
       ) : null}
       Edegal &copy; 2010–2026{" "}

@@ -1,28 +1,14 @@
-import { Messages } from "@con2/components";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
-import { AlbumViewFooter } from "@/components/AlbumViewFooter";
-import { AppBar } from "@/components/AppBar";
-import { BreadcrumbBar } from "@/components/BreadcrumbBar";
-import { GalleryView } from "@/components/GalleryView";
 import { documentTitle } from "@/components/breadcrumb";
-import { EditorPanel, editorMode } from "@/components/editor/EditorPanel";
-import { EditorToolbar } from "@/components/editor/EditorToolbar";
-import {
-  canCreateSubalbum,
-  canDeleteAlbum,
-  canDownload,
-  canEditAlbum,
-  canManagePhoto,
-} from "@/gallery/access";
+import { GalleryPage } from "@/components/GalleryPage";
 import { loadGalleryPage } from "@/gallery/load";
 import { normalizeGalleryPath } from "@/gallery/paths";
+import type { GalleryPageResult } from "@/gallery/types";
 import { getViewer } from "@/gallery/viewer";
 import { getTranslations } from "@/translations";
-
-import { deletePhoto, setAlbumThumbnail } from "./actions";
 
 interface Props {
   params: Promise<{ locale: string; path?: string[] }>;
@@ -34,11 +20,10 @@ const getGalleryPage = cache(async (path: string) =>
   loadGalleryPage(path, await getViewer()),
 );
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { locale, path } = await params;
-  const normalized = normalizeGalleryPath(path);
-  if (!normalized || normalized.timeline) return {};
-  const result = await getGalleryPage(normalized.path);
+export function galleryMetadata(
+  locale: string,
+  result: GalleryPageResult,
+): Metadata {
   if (result.kind !== "ok") return {};
   const t = getTranslations(locale);
   const { album, photo } = result;
@@ -63,7 +48,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function GalleryPage({ params, searchParams }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, path } = await params;
+  const normalized = normalizeGalleryPath(path);
+  if (!normalized || normalized.timeline) return {};
+  return galleryMetadata(locale, await getGalleryPage(normalized.path));
+}
+
+export default async function CatchAllPage({ params, searchParams }: Props) {
   const { locale, path } = await params;
   const normalized = normalizeGalleryPath(path);
   if (!normalized) notFound();
@@ -73,119 +65,12 @@ export default async function GalleryPage({ params, searchParams }: Props) {
   if (result.kind === "redirect") redirect(result.to);
   if (result.kind === "not-found") notFound();
 
-  const { album, photo, unfiltered } = result;
-  const t = getTranslations(locale);
-  const viewer = await getViewer();
-  const rootAlbum = album.breadcrumb[0] ?? {
-    path: album.path,
-    title: album.title,
-  };
-  const guard = {
-    source: album.source,
-    ownerId: unfiltered.ownerId,
-    isOpenForSubalbums: unfiltered.isOpenForSubalbums,
-    path: album.path,
-  };
-  const rights = {
-    canCreate: canCreateSubalbum(viewer, guard),
-    canEdit: canEditAlbum(viewer, guard),
-    canDelete: canDeleteAlbum(viewer, guard),
-  };
-  const query = await searchParams;
-  const mode = photo === null ? editorMode(query) : null;
-  const messageParams = {
-    error: typeof query.error === "string" ? query.error : undefined,
-    success: typeof query.success === "string" ? query.success : undefined,
-  };
-
   return (
-    <>
-      <AppBar
-        rootAlbum={rootAlbum}
-        viewer={viewer}
-        locale={locale}
-        messages={{
-          AppBar: t.AppBar,
-          Auth: t.Auth,
-          LanguageSwitcher: t.LanguageSwitcher,
-        }}
-      />
-      {album.breadcrumb.length > 0 || rights.canCreate || rights.canEdit ? (
-        <BreadcrumbBar
-          album={album}
-          messages={{
-            BreadcrumbBar: t.BreadcrumbBar,
-            Album: t.Album,
-            DownloadAlbumDialog: t.DownloadAlbumDialog,
-            Download: t.Download,
-          }}
-          canEdit={
-            album.legacyAdminUrl !== null &&
-            viewer.kind === "user" &&
-            viewer.isPhotographer
-          }
-          canDownload={
-            canDownload(album) && album.photos.some((p) => p.original !== null)
-          }
-          editor={
-            rights.canCreate || rights.canEdit ? (
-              <EditorToolbar
-                locale={locale}
-                albumId={album.id}
-                albumPath={album.path}
-                rights={rights}
-                hasPhotos={album.photos.length > 0}
-                hasManualOrdering={album.hasManualOrdering}
-                messages={t.Editor}
-              />
-            ) : null
-          }
-        />
-      ) : null}
-      {messageParams.error || messageParams.success ? (
-        <div className="container mt-3">
-          <Messages
-            searchParams={messageParams}
-            messages={{ ...t.Editor.errors, ...t.Editor.success }}
-          />
-        </div>
-      ) : null}
-      {rights.canEdit && album.photosProcessing > 0 && mode !== "upload" ? (
-        <div className="container mt-3 text-muted">
-          {album.photosProcessing} {t.Editor.processing}
-        </div>
-      ) : null}
-      {mode ? (
-        <EditorPanel
-          mode={mode}
-          locale={locale}
-          album={unfiltered}
-          viewer={viewer}
-          messages={{ Editor: t.Editor, Upload: t.Upload }}
-        />
-      ) : null}
-      <GalleryView
-        album={album}
-        initialPath={photo?.path ?? album.path}
-        editing={mode !== null}
-        messages={{
-          AlbumView: t.AlbumView,
-          PictureView: t.PictureView,
-          BreadcrumbBar: t.BreadcrumbBar,
-          DownloadDialog: t.DownloadDialog,
-          Download: t.Download,
-        }}
-        editor={
-          canManagePhoto(viewer, guard)
-            ? {
-                setThumbnail: setAlbumThumbnail.bind(null, locale),
-                deletePhoto: deletePhoto.bind(null, locale),
-                messages: t.Editor,
-              }
-            : null
-        }
-      />
-      <AlbumViewFooter album={album} messages={t.AlbumViewFooter} />
-    </>
+    <GalleryPage
+      locale={locale}
+      viewer={await getViewer()}
+      result={result}
+      searchParams={await searchParams}
+    />
   );
 }

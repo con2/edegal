@@ -52,7 +52,8 @@ export async function EditorPanel({
   viewer,
   messages,
 }: EditorPanelProps) {
-  if (viewer.kind !== "user" || album.source !== "v4") return null;
+  if (viewer.kind !== "user" || album.source !== "v4" || album.kind !== "album")
+    return null;
   const guard = {
     source: album.source,
     ownerId: album.ownerId,

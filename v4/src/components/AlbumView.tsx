@@ -5,6 +5,7 @@ import type { ClientAlbumPage, ClientSubalbum } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
 import { AlbumGrid } from "./AlbumGrid";
+import { PhotographerProfile } from "./PhotographerProfile";
 
 interface AlbumViewProps {
   album: ClientAlbumPage;
@@ -39,7 +40,9 @@ export function AlbumView({
   onOpenPhoto,
   hideBody = false,
 }: AlbumViewProps) {
-  const hasBody = !hideBody && album.body.text.trim().length > 0;
+  const isPhotographer = album.kind === "photographer";
+  const hasBody =
+    !hideBody && (isPhotographer || album.body.text.trim().length > 0);
   const hasSeriesLinks =
     !hideBody && (album.previousInSeries || album.nextInSeries);
 
@@ -62,13 +65,17 @@ export function AlbumView({
             </div>
           ) : null}
           {hasBody ? (
-            <article className="container">
-              {album.body.kind === "markdown" ? (
-                <Markdown input={album.body.text} />
-              ) : (
-                <div dangerouslySetInnerHTML={{ __html: album.body.text }} />
-              )}
-            </article>
+            isPhotographer ? (
+              <PhotographerProfile album={album} />
+            ) : (
+              <article className="container">
+                {album.body.kind === "markdown" ? (
+                  <Markdown input={album.body.text} />
+                ) : (
+                  <div dangerouslySetInnerHTML={{ __html: album.body.text }} />
+                )}
+              </article>
+            )
           ) : null}
         </div>
       ) : null}

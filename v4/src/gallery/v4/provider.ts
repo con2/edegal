@@ -127,12 +127,14 @@ export async function loadV4Album(
 
   return {
     source: "v4",
+    kind: "album",
     id: album.id,
     parentId: album.parentId,
     path: album.path,
     title: album.title,
     description: "",
     body: { kind: "markdown", text: album.body },
+    cover: null,
     date: album.eventDate,
     layout: "simple",
     visibility: album.visibility,
@@ -146,6 +148,7 @@ export async function loadV4Album(
     photos,
     credits: album.credits.map((credit) => ({
       displayName: credit.photographer.displayName,
+      path: `/photographers/${credit.photographer.slug}`,
       isCopyright: credit.isCopyright,
       description: credit.description,
       links: credit.photographer.links

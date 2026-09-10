@@ -6,6 +6,7 @@ import { albumReadme } from "./readme";
 
 const album: ClientAlbumPage = {
   source: "v4",
+  kind: "album",
   id: "album-1",
   path: "/event/saturday",
   title: "Saturday",
@@ -14,6 +15,7 @@ const album: ClientAlbumPage = {
   date: "2026-09-05",
   layout: "simple",
   visibility: "public",
+  cover: null,
   isDownloadable: true,
   photosProcessing: 0,
   hasManualOrdering: false,
@@ -23,6 +25,7 @@ const album: ClientAlbumPage = {
   credits: [
     {
       displayName: "Shooter",
+      path: null,
       isCopyright: true,
       description: "",
       links: [
@@ -31,6 +34,7 @@ const album: ClientAlbumPage = {
     },
     {
       displayName: "Helper",
+      path: null,
       isCopyright: false,
       description: "lighting",
       links: [],

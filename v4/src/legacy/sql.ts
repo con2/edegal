@@ -9,6 +9,9 @@ import { pool } from "./pool";
 import type {
   LegacyAlbumRow,
   LegacyAncestorRow,
+  LegacyPhotographerAlbumRow,
+  LegacyPhotographerPageRow,
+  LegacyPhotographerTileRow,
   LegacyPictureRow,
   LegacyRedirectRow,
   LegacySeriesRow,
@@ -166,4 +169,58 @@ export async function legacyPublicPictureCount(): Promise<number> {
     `select count(*) as n from edegal_picture where is_public`,
   );
   return Number(rows[0]?.n ?? 0);
+}
+
+const photographerColumns =
+  "p.id, p.slug, p.display_name, p.homepage_url, p.twitter_handle, p.instagram_handle, p.threads_handle, p.facebook_handle, p.flickr_handle, p.bluesky_handle";
+
+export async function legacyPhotographerIdBySlug(
+  slug: string,
+): Promise<number | null> {
+  const { rows } = await pool.query<{ id: number }>(
+    `select id from edegal_photographer where slug = $1`,
+    [slug],
+  );
+  return rows[0]?.id ?? null;
+}
+
+/** Photographers Django lists: those whose cover picture has media. */
+export async function legacyPhotographerTiles(): Promise<
+  LegacyPhotographerTileRow[]
+> {
+  const { rows } = await pool.query<LegacyPhotographerTileRow>(
+    `select p.id, p.slug, p.display_name,
+       (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id) as cover_media
+     from edegal_photographer p
+     where p.cover_picture_id is not null
+     order by p.display_name`,
+  );
+  return rows.filter((r) => r.cover_media && r.cover_media.length > 0);
+}
+
+export async function legacyPhotographerById(
+  id: number,
+): Promise<LegacyPhotographerPageRow | null> {
+  const { rows } = await pool.query<LegacyPhotographerPageRow>(
+    `select ${photographerColumns}, p.email, p.body,
+       (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id) as cover_media
+     from edegal_photographer p where p.id = $1`,
+    [id],
+  );
+  return rows[0] ?? null;
+}
+
+/** Albums credited to a photographer, ordered like any listing. */
+export async function legacyPhotographerAlbums(
+  photographerId: number,
+): Promise<LegacyPhotographerAlbumRow[]> {
+  const { rows } = await pool.query<LegacyPhotographerAlbumRow>(
+    `select a.id, a.path, a.title, a.date::text as date, a.is_public, a.is_visible, a.redirect_url,
+       (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = a.cover_picture_id) as cover_media
+     from edegal_album a
+     where a.photographer_id = $1
+     order by a.date desc nulls last, a.tree_id`,
+    [photographerId],
+  );
+  return rows;
 }

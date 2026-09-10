@@ -153,6 +153,19 @@ picture img {
   }
 }
 
+.PhotographerProfile-socialMediaLinks {
+  margin: 0;
+  padding: 0 0 0.5rem 0;
+
+  li {
+    list-style-type: none;
+    display: inline;
+  }
+  li + li::before {
+    content: " · ";
+  }
+}
+
 .YearlyView h2 {
   margin-top: 1em;
   margin-bottom: 0.5em;

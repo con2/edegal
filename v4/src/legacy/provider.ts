@@ -10,6 +10,7 @@ import type {
   Visibility,
 } from "@/gallery/types";
 import { pathPrefixes } from "@/gallery/paths";
+import { titleInPhotographerContext } from "@/gallery/titles";
 
 import { buildLegacyMediaSet, legacyOriginal } from "./media";
 import type {
@@ -20,6 +21,9 @@ import type {
 import {
   legacyAlbumById,
   legacyAncestors,
+  legacyPhotographerAlbums,
+  legacyPhotographerById,
+  legacyPhotographerTiles,
   legacyPictures,
   legacySeriesAlbums,
   legacySeriesById,
@@ -48,13 +52,14 @@ const socialLinks: [
   ["bluesky_handle", "Bluesky", (h) => `https://bsky.app/profile/${h}`],
 ];
 
-function toCredit(
+export function toCredit(
   photographer: LegacyPhotographerRow,
   isCopyright: boolean,
   description: string,
 ): CreditVM {
   return {
     displayName: photographer.display_name,
+    path: `/photographers/${photographer.slug}`,
     isCopyright,
     description,
     links: socialLinks
@@ -154,12 +159,14 @@ export async function loadLegacyAlbum(
 
   return {
     source: "legacy",
+    kind: "album",
     id: String(album.id),
     parentId: album.parent_id === null ? null : String(album.parent_id),
     path: album.path,
     title: album.title,
     description: album.description,
     body: { kind: "html", text: album.body ? sanitizeBody(album.body) : "" },
+    cover: null,
     date: album.date,
     layout: album.layout === "yearly" ? "yearly" : "simple",
     visibility: legacyVisibility(album.is_public, album.is_visible),
@@ -198,12 +205,14 @@ export async function loadLegacySeries(
   ]);
   return {
     source: "legacy",
+    kind: "series",
     id: `series:${series.id}`,
     parentId: null,
     path: series.path,
     title: series.title,
     description: series.description,
     body: { kind: "html", text: series.body ? sanitizeBody(series.body) : "" },
+    cover: null,
     date: null,
     layout: "simple",
     visibility: legacyVisibility(series.is_public, series.is_visible),
@@ -221,5 +230,90 @@ export async function loadLegacySeries(
     nextInSeries: null,
     redirectUrl: null,
     legacyAdminUrl: `${legacyAdminUrl}edegal/series/${series.id}/change/`,
+  };
+}
+
+/** Tiles for the /photographers index: legacy photographers with a cover picture. */
+export async function legacyPhotographerSubalbums(): Promise<SubalbumVM[]> {
+  const rows = await legacyPhotographerTiles();
+  return rows.flatMap((row) => {
+    const thumbnail = buildLegacyMediaSet(row.cover_media, "thumbnail");
+    if (!thumbnail) return [];
+    return [
+      {
+        path: `/photographers/${row.slug}`,
+        title: row.display_name,
+        date: null,
+        visibility: "public" as const,
+        thumbnail,
+        externalUrl: null,
+        ownerId: null,
+      },
+    ];
+  });
+}
+
+/** A legacy photographer's page: profile plus their albums titled in photographer context. */
+export async function loadLegacyPhotographerPage(
+  id: number,
+): Promise<AlbumPageVM | null> {
+  const photographer = await legacyPhotographerById(id);
+  if (!photographer) return null;
+  const [albums, root] = await Promise.all([
+    legacyPhotographerAlbums(photographer.id),
+    legacyAncestors(["/"]),
+  ]);
+  const prefixes = new Set<string>();
+  for (const album of albums)
+    for (const prefix of pathPrefixes(album.path))
+      if (prefix !== "/") prefixes.add(prefix);
+  const ancestors = new Map(
+    (await legacyAncestors([...prefixes])).map((a) => [a.path, a.title]),
+  );
+
+  const subalbums = toSubalbums(albums).map((tile) => ({
+    ...tile,
+    title: titleInPhotographerContext(
+      pathPrefixes(tile.path)
+        .filter((p) => p !== "/")
+        .map((p) => ancestors.get(p) ?? ""),
+      tile.title,
+      photographer.display_name,
+    ),
+  }));
+
+  return {
+    source: "legacy",
+    kind: "photographer",
+    id: `photographer:${photographer.id}`,
+    parentId: null,
+    path: `/photographers/${photographer.slug}`,
+    title: photographer.display_name,
+    description: "",
+    body: {
+      kind: "html",
+      text: photographer.body ? sanitizeBody(photographer.body) : "",
+    },
+    cover: buildLegacyMediaSet(photographer.cover_media, "thumbnail"),
+    date: null,
+    layout: "yearly",
+    visibility: "public",
+    ownerId: null,
+    isOpenForSubalbums: false,
+    isDownloadable: false,
+    photosProcessing: 0,
+    hasManualOrdering: false,
+    breadcrumb: [
+      ...root.map(({ path, title }) => ({ path, title })),
+      { path: "/photographers", title: "Photographers" },
+    ],
+    subalbums,
+    photos: [],
+    credits: [toCredit(photographer, true, "")],
+    terms: null,
+    previousInSeries: null,
+    nextInSeries: null,
+    redirectUrl: null,
+    legacyAdminUrl: `${legacyAdminUrl}edegal/photographer/${photographer.id}/change/`,
   };
 }

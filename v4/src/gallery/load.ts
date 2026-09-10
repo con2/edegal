@@ -86,26 +86,27 @@ export async function loadGalleryPage(
     return { kind: "redirect", to: loaded.redirectUrl };
 
   const merged = await withLegacyRootSubalbums(loaded);
-  const album = applyVisibility(merged, viewer);
-  if (!album) return { kind: "not-found" };
+  return presentAlbumPage(
+    merged,
+    viewer,
+    path,
+    resolution.kind === "photo" ? resolution.photoPath : null,
+  );
+}
 
-  if (resolution.kind === "photo") {
-    const photo =
-      album.photos.find((p) => p.path === resolution.photoPath) ?? null;
+/** Applies the viewer's visibility to a loaded page and picks the requested photo, if any. */
+export function presentAlbumPage(
+  vm: AlbumPageVM,
+  viewer: Viewer,
+  requestedPath: string,
+  photoPath: string | null,
+): GalleryPageResult {
+  const album = applyVisibility(vm, viewer);
+  if (!album) return { kind: "not-found" };
+  if (photoPath !== null) {
+    const photo = album.photos.find((p) => p.path === photoPath) ?? null;
     if (!photo) return { kind: "not-found" };
-    return {
-      kind: "ok",
-      album,
-      unfiltered: merged,
-      requestedPath: path,
-      photo,
-    };
+    return { kind: "ok", album, unfiltered: vm, requestedPath, photo };
   }
-  return {
-    kind: "ok",
-    album,
-    unfiltered: merged,
-    requestedPath: path,
-    photo: null,
-  };
+  return { kind: "ok", album, unfiltered: vm, requestedPath, photo: null };
 }

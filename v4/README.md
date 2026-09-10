@@ -37,6 +37,13 @@ The worker also deletes finished job rows hourly (done after 7 days, failed afte
 
 Photographers edit their name, links and reusable conditions of use at `/profile`.
 
+Public photographer pages live on dedicated routes rather than the gallery catch-all:
+`/photographers` tiles every photographer who has a cover picture (v4) or a credited album with a
+thumbnail (legacy), and `/photographers/<slug>` shows their introduction, links and albums grouped
+by year. A slug present in both the v4 and legacy tables renders as one merged page. Slugs that
+match neither fall back to the ordinary gallery resolution, so legacy albums under `/photographers`
+still open.
+
 ## Downloads
 
 `GET /api/zip/<album path>` streams the album's originals as a zip after the same visibility checks as the album page. Single originals are served straight from `/media`. The download dialog shows the album's terms (`v4_terms`, inherited from ancestors) and credit instructions before either.

@@ -54,6 +54,8 @@ export interface SubalbumVM {
 
 export interface CreditVM {
   displayName: string;
+  /** The photographer's page, when they have one. */
+  path: string | null;
   isCopyright: boolean;
   description: string;
   links: { href: string; title: string }[];
@@ -66,8 +68,12 @@ export interface TermsVM {
   url: string;
 }
 
+export type PageKind = "album" | "series" | "photographers" | "photographer";
+
 export interface AlbumPageVM {
   source: ContentSource;
+  /** Albums and series come from the tables; the photographer pages are assembled from credits. */
+  kind: PageKind;
   id: string;
   /** Server-only. */
   parentId: string | null;
@@ -75,6 +81,8 @@ export interface AlbumPageVM {
   title: string;
   description: string;
   body: { kind: "markdown" | "html"; text: string };
+  /** A photographer page's cover picture (legacy photographers only). */
+  cover: MediaSet | null;
   date: string | null;
   layout: "simple" | "yearly";
   visibility: Visibility;

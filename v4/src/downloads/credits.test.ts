@@ -32,11 +32,18 @@ describe("creditLines", () => {
   const credits = [
     {
       displayName: "Assistant",
+      path: null,
       isCopyright: false,
       description: "director",
       links: [],
     },
-    { displayName: "Shooter", isCopyright: true, description: "", links },
+    {
+      displayName: "Shooter",
+      path: null,
+      isCopyright: true,
+      description: "",
+      links,
+    },
   ];
 
   it("puts copyright holders first and fills in handles per platform", () => {

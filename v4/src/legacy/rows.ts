@@ -88,3 +88,20 @@ export interface LegacyRedirectRow {
   redirect_url: string;
   is_public: boolean;
 }
+
+export interface LegacyPhotographerPageRow extends LegacyPhotographerRow {
+  email: string;
+  body: string;
+  cover_media: LegacyMediaRow[] | null;
+}
+
+export interface LegacyPhotographerTileRow {
+  id: number;
+  slug: string;
+  display_name: string;
+  cover_media: LegacyMediaRow[] | null;
+}
+
+export interface LegacyPhotographerAlbumRow extends LegacySubalbumRow {
+  id: number;
+}
