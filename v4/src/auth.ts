@@ -27,7 +27,8 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     userId?: string;
-    groups?: string[];
+    isPhotographer?: boolean;
+    isAdmin?: boolean;
   }
 }
 
@@ -94,7 +95,12 @@ export const authOptions: AuthOptions = {
         if (typeof account.expires_at === "number") {
           token.exp = account.expires_at;
         }
-        token.groups = kompassi.groups ?? [];
+        // Only the derived flags go into the cookie: a Kompassi user can belong to hundreds of
+        // groups, and the full list pushed the session cookie past Node's 16 KB header limit.
+        const groups = kompassi.groups ?? [];
+        token.isAdmin = groups.includes(adminGroup);
+        token.isPhotographer =
+          token.isAdmin || groups.includes(photographerGroup);
         const user = await db.orm.public.User.upsert({
           create: {
             sub: kompassi.sub,
@@ -114,13 +120,11 @@ export const authOptions: AuthOptions = {
       return token;
     },
     session({ session, token }) {
-      const groups = token.groups ?? [];
       session.user = {
         ...session.user,
         id: token.userId ?? "",
-        isPhotographer:
-          groups.includes(photographerGroup) || groups.includes(adminGroup),
-        isAdmin: groups.includes(adminGroup),
+        isPhotographer: token.isPhotographer ?? false,
+        isAdmin: token.isAdmin ?? false,
       };
       return session;
     },
