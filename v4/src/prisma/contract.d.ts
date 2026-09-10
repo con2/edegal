@@ -33,9 +33,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'7f0a5ddd20892b99e86e24170014e586d084661e2a905b46d9fc5fdf3603aa84'>;
+  StorageHashBase<'d0a2354e1c2720e463061ce98f58d65086782cbe723c3079adc8555a3dc68b04'>;
 export type ExecutionHash =
-  ExecutionHashBase<'6f15a07d55e90ff50c5a168cb1ab21f65025c8aaa25771472d9dd446a3bb7d86'>;
+  ExecutionHashBase<'c10b4e07bbcaede0a03ac498caed463ad5f7f8c47b9cd947b31f479c08a1b03f'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -567,7 +567,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'uuidv7()' };
                 };
                 readonly parent_id: {
                   readonly nativeType: 'uuid';
@@ -834,7 +833,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'uuidv7()' };
                 };
                 readonly photo_id: {
                   readonly nativeType: 'uuid';
@@ -914,7 +912,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'uuidv7()' };
                 };
                 readonly album_id: {
                   readonly nativeType: 'uuid';
@@ -1001,7 +998,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'uuidv7()' };
                 };
                 readonly slug: {
                   readonly nativeType: 'text';
@@ -1075,7 +1071,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'uuidv7()' };
                 };
                 readonly photographer_id: {
                   readonly nativeType: 'uuid';
@@ -1139,7 +1134,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'uuidv7()' };
                 };
                 readonly sub: {
                   readonly nativeType: 'text';
@@ -1871,10 +1865,42 @@ type ContractBase = Omit<
           readonly ref: {
             readonly namespace: 'public';
             readonly table: 'v4_album';
+            readonly column: 'id';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv7' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'v4_album';
             readonly column: 'updated_at';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'timestampNow' };
           readonly onUpdate: { readonly kind: 'generator'; readonly id: 'timestampNow' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'v4_media';
+            readonly column: 'id';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv7' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'v4_photo';
+            readonly column: 'id';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv7' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'v4_photographer';
+            readonly column: 'id';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv7' };
         },
         {
           readonly ref: {
@@ -1884,6 +1910,22 @@ type ContractBase = Omit<
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'timestampNow' };
           readonly onUpdate: { readonly kind: 'generator'; readonly id: 'timestampNow' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'v4_photographer_link';
+            readonly column: 'id';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv7' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'v4_user';
+            readonly column: 'id';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv7' };
         },
         {
           readonly ref: {

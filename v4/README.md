@@ -5,7 +5,7 @@ See `../spec/rewrite.md` for the specification.
 
 ## Development
 
-Requirements: Node 24, PostgreSQL 18.
+Requirements: Node 24, PostgreSQL 17 or newer (production runs 17).
 
 ```sh
 createuser edegal --pwprompt          # password "photos" in the defaults

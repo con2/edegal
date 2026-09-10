@@ -26,7 +26,7 @@ native_enum MediaFormat {
 }
 
 model User {
-  id          Uuid              @id @default(dbgenerated("uuidv7()"))
+  id          Uuid              @id @default(uuid(7))
   sub         String            @unique
   username    String            @unique
   email       String            @default("")
@@ -41,7 +41,7 @@ model User {
 }
 
 model Photographer {
-  id           Uuid              @id @default(dbgenerated("uuidv7()"))
+  id           Uuid              @id @default(uuid(7))
   slug         String            @unique
   displayName  String            @map("display_name")
   email        String            @default("")
@@ -58,7 +58,7 @@ model Photographer {
 }
 
 model PhotographerLink {
-  id             Uuid         @id @default(dbgenerated("uuidv7()"))
+  id             Uuid         @id @default(uuid(7))
   photographerId Uuid         @map("photographer_id")
   photographer   Photographer @relation(fields: [photographerId], references: [id], onDelete: Cascade)
   href           String
@@ -70,7 +70,7 @@ model PhotographerLink {
 }
 
 model Album {
-  id                 Uuid                    @id @default(dbgenerated("uuidv7()"))
+  id                 Uuid                    @id @default(uuid(7))
   parentId           Uuid?                   @map("parent_id")
   parent             Album?                  @relation("AlbumTree", fields: [parentId], references: [id], onDelete: Restrict)
   children           Album[]                 @relation("AlbumTree")
@@ -113,7 +113,7 @@ model AlbumCredit {
 }
 
 model Photo {
-  id        Uuid               @id @default(dbgenerated("uuidv7()"))
+  id        Uuid               @id @default(uuid(7))
   albumId   Uuid               @map("album_id")
   album     Album              @relation("AlbumPhotos", fields: [albumId], references: [id], onDelete: Cascade)
   slug      String
@@ -132,7 +132,7 @@ model Photo {
 }
 
 model Media {
-  id         Uuid                 @id @default(dbgenerated("uuidv7()"))
+  id         Uuid                 @id @default(uuid(7))
   photoId    Uuid                 @map("photo_id")
   photo      Photo                @relation(fields: [photoId], references: [id], onDelete: Cascade)
   role       pg.enum(MediaRole)

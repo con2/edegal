@@ -1,6 +1,6 @@
 #!/usr/bin/env -S node
-import type { Contract as End } from '../../snapshots/7f0a5ddd20892b99e86e24170014e586d084661e2a905b46d9fc5fdf3603aa84/contract';
-import endContract from '../../snapshots/7f0a5ddd20892b99e86e24170014e586d084661e2a905b46d9fc5fdf3603aa84/contract.json' with { type: 'json' };
+import type { Contract as End } from '../../snapshots/d0a2354e1c2720e463061ce98f58d65086782cbe723c3079adc8555a3dc68b04/contract';
+import endContract from '../../snapshots/d0a2354e1c2720e463061ce98f58d65086782cbe723c3079adc8555a3dc68b04/contract.json' with { type: 'json' };
 import { Migration, MigrationCLI, col, fn, lit, primaryKey } from '@prisma/orm-postgres/migration';
 
 export default class M extends Migration<never, End> {
@@ -48,11 +48,7 @@ export default class M extends Migration<never, End> {
             default: lit(''),
             codecRef: { codecId: 'pg/text@1' },
           }),
-          col('id', 'uuid', {
-            notNull: true,
-            default: fn('uuidv7()'),
-            codecRef: { codecId: 'pg/uuid@1' },
-          }),
+          col('id', 'uuid', { notNull: true, codecRef: { codecId: 'pg/uuid@1' } }),
           col('is_downloadable', 'bool', {
             notNull: true,
             default: lit(true),
@@ -125,11 +121,7 @@ export default class M extends Migration<never, End> {
             codecRef: { codecId: 'pg/enum@1', typeParams: { typeName: 'v4_media_format' } },
           }),
           col('height', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
-          col('id', 'uuid', {
-            notNull: true,
-            default: fn('uuidv7()'),
-            codecRef: { codecId: 'pg/uuid@1' },
-          }),
+          col('id', 'uuid', { notNull: true, codecRef: { codecId: 'pg/uuid@1' } }),
           col('photo_id', 'uuid', { notNull: true, codecRef: { codecId: 'pg/uuid@1' } }),
           col('role', '"v4_media_role"', {
             notNull: true,
@@ -150,11 +142,7 @@ export default class M extends Migration<never, End> {
             default: fn('now()'),
             codecRef: { codecId: 'pg/timestamptz-string@1' },
           }),
-          col('id', 'uuid', {
-            notNull: true,
-            default: fn('uuidv7()'),
-            codecRef: { codecId: 'pg/uuid@1' },
-          }),
+          col('id', 'uuid', { notNull: true, codecRef: { codecId: 'pg/uuid@1' } }),
           col('ordering', 'int4', {
             notNull: true,
             default: lit(0),
@@ -186,11 +174,7 @@ export default class M extends Migration<never, End> {
             default: lit(''),
             codecRef: { codecId: 'pg/text@1' },
           }),
-          col('id', 'uuid', {
-            notNull: true,
-            default: fn('uuidv7()'),
-            codecRef: { codecId: 'pg/uuid@1' },
-          }),
+          col('id', 'uuid', { notNull: true, codecRef: { codecId: 'pg/uuid@1' } }),
           col('introduction', 'text', {
             notNull: true,
             default: lit(''),
@@ -210,11 +194,7 @@ export default class M extends Migration<never, End> {
         table: 'v4_photographer_link',
         columns: [
           col('href', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
-          col('id', 'uuid', {
-            notNull: true,
-            default: fn('uuidv7()'),
-            codecRef: { codecId: 'pg/uuid@1' },
-          }),
+          col('id', 'uuid', { notNull: true, codecRef: { codecId: 'pg/uuid@1' } }),
           col('ordering', 'int4', {
             notNull: true,
             default: lit(0),
@@ -244,11 +224,7 @@ export default class M extends Migration<never, End> {
             default: lit(''),
             codecRef: { codecId: 'pg/text@1' },
           }),
-          col('id', 'uuid', {
-            notNull: true,
-            default: fn('uuidv7()'),
-            codecRef: { codecId: 'pg/uuid@1' },
-          }),
+          col('id', 'uuid', { notNull: true, codecRef: { codecId: 'pg/uuid@1' } }),
           col('sub', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
           col('updated_at', 'timestamptz', {
             notNull: true,

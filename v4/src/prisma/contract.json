@@ -1059,10 +1059,6 @@
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "default": {
-                    "expression": "uuidv7()",
-                    "kind": "function"
-                  },
                   "nativeType": "uuid",
                   "nullable": false
                 },
@@ -1394,10 +1390,6 @@
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "default": {
-                    "expression": "uuidv7()",
-                    "kind": "function"
-                  },
                   "nativeType": "uuid",
                   "nullable": false
                 },
@@ -1498,10 +1490,6 @@
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "default": {
-                    "expression": "uuidv7()",
-                    "kind": "function"
-                  },
                   "nativeType": "uuid",
                   "nullable": false
                 },
@@ -1625,10 +1613,6 @@
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "default": {
-                    "expression": "uuidv7()",
-                    "kind": "function"
-                  },
                   "nativeType": "uuid",
                   "nullable": false
                 },
@@ -1704,10 +1688,6 @@
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "default": {
-                    "expression": "uuidv7()",
-                    "kind": "function"
-                  },
                   "nativeType": "uuid",
                   "nullable": false
                 },
@@ -1807,10 +1787,6 @@
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "default": {
-                    "expression": "uuidv7()",
-                    "kind": "function"
-                  },
                   "nativeType": "uuid",
                   "nullable": false
                 },
@@ -1883,12 +1859,23 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7f0a5ddd20892b99e86e24170014e586d084661e2a905b46d9fc5fdf3603aa84"
+    "storageHash": "d0a2354e1c2720e463061ce98f58d65086782cbe723c3079adc8555a3dc68b04"
   },
   "execution": {
-    "executionHash": "6f15a07d55e90ff50c5a168cb1ab21f65025c8aaa25771472d9dd446a3bb7d86",
+    "executionHash": "c10b4e07bbcaede0a03ac498caed463ad5f7f8c47b9cd947b31f479c08a1b03f",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_album"
+          }
+        },
         {
           "onCreate": {
             "id": "timestampNow",
@@ -1906,6 +1893,39 @@
         },
         {
           "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_media"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_photo"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_photographer"
+          }
+        },
+        {
+          "onCreate": {
             "id": "timestampNow",
             "kind": "generator"
           },
@@ -1917,6 +1937,28 @@
             "column": "updated_at",
             "namespace": "public",
             "table": "v4_photographer"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_photographer_link"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_user"
           }
         },
         {
