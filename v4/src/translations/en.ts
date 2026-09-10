@@ -114,6 +114,13 @@ const translations = {
     expected_compensation:
       "What kind of compensation do I expect for LARP photography?",
   },
+  LanguageSwitcher: {
+    // NOTE: value always in the target language
+    switchTo: {
+      fi: "suomeksi",
+      en: "In English",
+    },
+  },
   Auth: {
     signIn: "Sign in",
     signOut: "Sign out",

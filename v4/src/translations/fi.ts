@@ -112,6 +112,13 @@ const translations: Translations = {
       "Mitä kuvillani saa tehdä ja millaisia kopiosuojauksia käytän?",
     expected_compensation: "Millaista korvausta odotan larppikuvauksesta?",
   },
+  LanguageSwitcher: {
+    // NOTE: value always in the target language
+    switchTo: {
+      fi: "suomeksi",
+      en: "In English",
+    },
+  },
   Auth: {
     signIn: "Kirjaudu sisään",
     signOut: "Kirjaudu ulos",

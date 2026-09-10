@@ -74,7 +74,12 @@ export default async function GalleryPage({ params }: Props) {
       <AppBar
         rootAlbum={rootAlbum}
         viewer={viewer}
-        messages={{ AppBar: t.AppBar, Auth: t.Auth }}
+        locale={locale}
+        messages={{
+          AppBar: t.AppBar,
+          Auth: t.Auth,
+          LanguageSwitcher: t.LanguageSwitcher,
+        }}
       />
       {album.breadcrumb.length > 0 ? (
         <BreadcrumbBar

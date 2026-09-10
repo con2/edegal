@@ -1,5 +1,6 @@
 "use client";
 
+import { LanguageSwitcher } from "@con2/components";
 import { signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import Container from "react-bootstrap/Container";
@@ -13,10 +14,11 @@ import type { Translations } from "@/translations";
 interface AppBarProps {
   rootAlbum: Crumb;
   viewer: Viewer;
-  messages: { AppBar: Translations["AppBar"]; Auth: Translations["Auth"] };
+  locale: string;
+  messages: Pick<Translations, "AppBar" | "Auth" | "LanguageSwitcher">;
 }
 
-export function AppBar({ rootAlbum, viewer, messages }: AppBarProps) {
+export function AppBar({ rootAlbum, viewer, locale, messages }: AppBarProps) {
   return (
     <Navbar variant="dark" className="AppBar" expand="sm">
       <Container fluid>
@@ -34,6 +36,10 @@ export function AppBar({ rootAlbum, viewer, messages }: AppBarProps) {
             </Nav.Item>
           </Nav>
           <Nav>
+            <LanguageSwitcher
+              locale={locale}
+              messages={messages.LanguageSwitcher}
+            />
             {viewer.kind === "user" ? (
               <>
                 <Navbar.Text className="me-3">
