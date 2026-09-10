@@ -16,6 +16,7 @@ const album: ClientAlbumPage = {
   visibility: "public",
   isDownloadable: true,
   photosProcessing: 0,
+  hasManualOrdering: false,
   breadcrumb: [],
   subalbums: [],
   photos: [],

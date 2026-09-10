@@ -135,6 +135,7 @@ export default async function GalleryPage({ params, searchParams }: Props) {
                 albumPath={album.path}
                 rights={rights}
                 hasPhotos={album.photos.length > 0}
+                hasManualOrdering={album.hasManualOrdering}
                 messages={t.Editor}
               />
             ) : null

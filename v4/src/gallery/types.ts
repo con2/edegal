@@ -85,6 +85,8 @@ export interface AlbumPageVM {
   isDownloadable: boolean;
   /** Photos uploaded but without a thumbnail yet; they are absent from `photos` until processed. */
   photosProcessing: number;
+  /** True when any photo carries a manual ordering number, i.e. the album is not in capture-time order. */
+  hasManualOrdering: boolean;
   /** Ancestors excluding this album, root first. */
   breadcrumb: Crumb[];
   subalbums: SubalbumVM[];
