@@ -214,11 +214,11 @@ export default async function ProfilePage({ params, searchParams }: Props) {
           <p className="text-muted">{p.photo.help}</p>
           {coverPhoto ? (
             <div className="mb-5">
-              <Link href={coverPhoto.path}>
+              <Link href={coverPhoto.path} className="d-inline-block mb-2">
                 <Picture
                   media={coverPhoto.media}
                   alt={photographer?.displayName ?? ""}
-                  className="d-block mb-2"
+                  className="Profile-coverPhoto d-block"
                 />
               </Link>
               <form action={clearProfilePhoto.bind(null, locale)}>

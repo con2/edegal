@@ -150,7 +150,15 @@ picture img {
   }
   img {
     width: 100%;
+    height: auto;
   }
+}
+
+/* The profile photo keeps its own size inside .TextContent, whose prose images span the column. */
+.Profile-coverPhoto img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
 }
 
 .PhotographerProfile-socialMediaLinks {

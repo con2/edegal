@@ -50,7 +50,13 @@ export function PhotographerProfile({
         </div>
         {cover ? (
           <figure className={portrait ? "col-md-3" : "col-md-4"}>
-            {cover.path ? <Link href={cover.path}>{picture}</Link> : picture}
+            {cover.path ? (
+              <Link href={cover.path} className="d-block">
+                {picture}
+              </Link>
+            ) : (
+              picture
+            )}
             {cover.credits.length > 0 ? (
               <figcaption className="PhotographerProfile-coverCredit text-muted small mt-1">
                 {messages.photo}{" "}
