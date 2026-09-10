@@ -4,9 +4,23 @@ on:
   push:
     branches:
       - main
+    paths:
+      - backend/**
+      - frontend/**
+      - kubernetes/**
+      - skaffold.in.yaml
+      - docker-compose*.yml
+      - .github/workflows/cicd.yaml
   pull_request:
     branches:
       - main
+    paths:
+      - backend/**
+      - frontend/**
+      - kubernetes/**
+      - skaffold.in.yaml
+      - docker-compose*.yml
+      - .github/workflows/cicd.yaml
 
 jobs:
   test:
