@@ -3,6 +3,7 @@ const pathPattern = /^\/[a-z0-9/-]*$/;
 /** Ancestor paths of `path`, root first, excluding `path` itself. `/a/b` → `["/", "/a"]`. */
 export function pathPrefixes(path: string): string[] {
   const segments = path.split("/").filter(Boolean);
+  if (segments.length === 0) return [];
   return [
     "/",
     ...segments

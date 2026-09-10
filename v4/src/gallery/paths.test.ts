@@ -38,7 +38,7 @@ describe("normalizeGalleryPath", () => {
 
 describe("pathPrefixes", () => {
   it("returns ancestors root first, excluding the path itself", () => {
-    expect(pathPrefixes("/")).toEqual(["/"]);
+    expect(pathPrefixes("/")).toEqual([]);
     expect(pathPrefixes("/a")).toEqual(["/"]);
     expect(pathPrefixes("/a/b/c")).toEqual(["/", "/a", "/a/b"]);
   });
