@@ -78,6 +78,7 @@ export async function EditorPanel({
           null,
         )}
         isRoot={false}
+        parent={{ path: album.path, title: album.title }}
         messages={messages.Editor}
       />
     );
@@ -103,6 +104,7 @@ export async function EditorPanel({
           existing.values.termsId || null,
         )}
         isRoot={album.path === "/"}
+        parent={null}
         messages={messages.Editor}
       />
     );

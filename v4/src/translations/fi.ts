@@ -140,8 +140,8 @@ const translations: Translations = {
     termsUrl: "Ehdot kokonaisuudessaan",
   },
   Editor: {
-    newSubalbum: "Uusi alialbumi",
-    newAlbumTitle: "Uusi alialbumi",
+    newSubalbum: "Uusi albumi",
+    newAlbumTitle: "Uusi albumi",
     editAlbumTitle: "Muokkaa albumia",
     uploadPhotos: "Lähetä kuvia",
     editAlbum: "Muokkaa albumia",
@@ -157,6 +157,8 @@ const translations: Translations = {
     create: "Luo albumi",
     cancel: "Peruuta",
     fields: {
+      parent: "Yläalbumi",
+      parentHelp: "Uusi albumi luodaan tämän albumin alle.",
       title: "Otsikko",
       slug: "Osoitetunnus",
       slugHelp:

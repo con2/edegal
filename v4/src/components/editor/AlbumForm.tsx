@@ -40,6 +40,8 @@ interface AlbumFormProps {
   credits: CreditInput[];
   options: AlbumFormOptions;
   isRoot: boolean;
+  /** Shown read-only on the new-album form so it is obvious where the album lands. */
+  parent: { path: string; title: string } | null;
   messages: Translations["Editor"];
 }
 
@@ -75,6 +77,7 @@ export function AlbumForm({
   credits,
   options,
   isRoot,
+  parent,
   messages,
 }: AlbumFormProps) {
   const f = messages.fields;
@@ -104,6 +107,18 @@ export function AlbumForm({
     <div className="TextContent">
       <form action={action} className="container">
         <h2 className="mb-4">{heading}</h2>
+
+        {parent ? (
+          <Field id="AlbumForm-parent" label={f.parent} help={f.parentHelp}>
+            <input
+              className="form-control-plaintext fw-bold"
+              id="AlbumForm-parent"
+              type="text"
+              readOnly
+              value={`${parent.title} (${parent.path})`}
+            />
+          </Field>
+        ) : null}
 
         <Field id="AlbumForm-title" label={`${f.title} *`}>
           <input
