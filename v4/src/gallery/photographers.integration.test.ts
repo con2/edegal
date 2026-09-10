@@ -106,6 +106,9 @@ async function insertV4Fixtures() {
     photographerId: photographer.id,
     isCopyright: true,
   });
+  await db.orm.public.Photographer.where({ id: photographer.id }).update({
+    coverPhotoId: photo.id,
+  });
 }
 
 beforeAll(async () => {
@@ -141,7 +144,11 @@ describe("loadPhotographerPageBySlug", () => {
     expect(page).not.toBeNull();
     expect(page?.kind).toBe("photographer");
     expect(page?.body).toEqual({ kind: "html", text: "<p>Hi </p>" });
-    expect(page?.cover?.fallback.src).toContain("pic-1.thumbnail.jpeg");
+    expect(page?.cover?.media.fallback.src).toContain("pic-1.thumbnail.jpeg");
+    expect(page?.cover?.path).toBe("/con-2019/legacy-only/pic-1");
+    expect(page?.cover?.credits).toEqual([
+      { displayName: "Legacy Only", path: "/photographers/legacy-only" },
+    ]);
     expect(page?.credits[0]?.links.map((l) => l.href)).toEqual([
       "https://legacy.example",
       "https://twitter.com/legacyonly",
@@ -151,11 +158,15 @@ describe("loadPhotographerPageBySlug", () => {
     ]);
   });
 
-  it("merges v4 and legacy albums of one slug, v4 first", async () => {
+  it("merges v4 and legacy albums of one slug, v4 first, with the v4 profile photo credited", async () => {
     const page = await loadPhotographerPageBySlug("shared");
     expect(page?.source).toBe("v4");
     expect(page?.body).toEqual({ kind: "markdown", text: "New intro" });
-    expect(page?.cover?.fallback.src).toContain("pic-2.thumbnail.jpeg");
+    expect(page?.cover?.media.fallback.src).toContain("img-1.jpeg");
+    expect(page?.cover?.path).toBe("/con-2026/shared/img-1");
+    expect(page?.cover?.credits).toEqual([
+      { displayName: "Shared Shooter", path: "/photographers/shared" },
+    ]);
     expect(page?.subalbums.map((s) => [s.path, s.title])).toEqual([
       ["/con-2026/shared", "Con 2026 » Friday"],
       ["/con-2019/shared", "Con 2019 » Sunday"],

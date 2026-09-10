@@ -8,6 +8,7 @@ import type {
   PhotoVM,
   SubalbumVM,
   Visibility,
+  CoverVM,
 } from "@/gallery/types";
 import { pathPrefixes } from "@/gallery/paths";
 import { titleInPhotographerContext } from "@/gallery/titles";
@@ -15,6 +16,7 @@ import { titleInPhotographerContext } from "@/gallery/titles";
 import { buildLegacyMediaSet, legacyOriginal } from "./media";
 import type {
   LegacyAncestorRow,
+  LegacyPhotographerPageRow,
   LegacyPhotographerRow,
   LegacySubalbumRow,
 } from "./rows";
@@ -253,6 +255,24 @@ export async function legacyPhotographerSubalbums(): Promise<SubalbumVM[]> {
   });
 }
 
+function legacyCover(photographer: LegacyPhotographerPageRow): CoverVM | null {
+  const media = buildLegacyMediaSet(photographer.cover_media, "thumbnail");
+  if (!media) return null;
+  return {
+    media,
+    path: photographer.cover_path,
+    credits:
+      photographer.cover_credit_name && photographer.cover_credit_slug
+        ? [
+            {
+              displayName: photographer.cover_credit_name,
+              path: `/photographers/${photographer.cover_credit_slug}`,
+            },
+          ]
+        : [],
+  };
+}
+
 /** A legacy photographer's page: profile plus their albums titled in photographer context. */
 export async function loadLegacyPhotographerPage(
   id: number,
@@ -294,7 +314,7 @@ export async function loadLegacyPhotographerPage(
       kind: "html",
       text: photographer.body ? sanitizeBody(photographer.body) : "",
     },
-    cover: buildLegacyMediaSet(photographer.cover_media, "thumbnail"),
+    cover: legacyCover(photographer),
     date: null,
     layout: "yearly",
     visibility: "public",

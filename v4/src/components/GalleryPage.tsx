@@ -14,6 +14,7 @@ import { getTranslations } from "@/translations";
 import {
   deletePhoto,
   setAlbumThumbnail,
+  setProfilePhoto,
 } from "@/app/[locale]/[[...path]]/actions";
 
 import { AlbumViewFooter } from "./AlbumViewFooter";
@@ -22,6 +23,7 @@ import { BreadcrumbBar } from "./BreadcrumbBar";
 import { EditorPanel, editorMode } from "./editor/EditorPanel";
 import { EditorToolbar } from "./editor/EditorToolbar";
 import { GalleryView } from "./GalleryView";
+import type { PhotoEditor } from "./PictureView";
 
 interface GalleryPageProps {
   locale: string;
@@ -56,6 +58,27 @@ export function GalleryPage({
     canDelete: isAlbum && canDeleteAlbum(viewer, guard),
   };
   const mode = photo === null ? editorMode(searchParams) : null;
+  const canManage = isAlbum && canManagePhoto(viewer, guard);
+  const canPickProfilePhoto =
+    isAlbum &&
+    album.source === "v4" &&
+    viewer.kind === "user" &&
+    viewer.isPhotographer;
+  const photoEditor: PhotoEditor | null =
+    canManage || canPickProfilePhoto
+      ? {
+          manage: canManage
+            ? {
+                setThumbnail: setAlbumThumbnail.bind(null, locale),
+                deletePhoto: deletePhoto.bind(null, locale),
+              }
+            : null,
+          setProfilePhoto: canPickProfilePhoto
+            ? setProfilePhoto.bind(null, locale)
+            : null,
+          messages: t.Editor,
+        }
+      : null;
   const messageParams = {
     error:
       typeof searchParams.error === "string" ? searchParams.error : undefined,
@@ -137,20 +160,13 @@ export function GalleryPage({
         editing={mode !== null}
         messages={{
           AlbumView: t.AlbumView,
+          PhotographerProfile: t.PhotographerProfile,
           PictureView: t.PictureView,
           BreadcrumbBar: t.BreadcrumbBar,
           DownloadDialog: t.DownloadDialog,
           Download: t.Download,
         }}
-        editor={
-          isAlbum && canManagePhoto(viewer, guard)
-            ? {
-                setThumbnail: setAlbumThumbnail.bind(null, locale),
-                deletePhoto: deletePhoto.bind(null, locale),
-                messages: t.Editor,
-              }
-            : null
-        }
+        editor={photoEditor}
       />
       <AlbumViewFooter album={album} messages={t.AlbumViewFooter} />
     </>

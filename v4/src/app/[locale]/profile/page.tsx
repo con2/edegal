@@ -7,14 +7,18 @@ import {
 } from "@con2/components";
 import { slugifyDash } from "@con2/components/helpers";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AppBar } from "@/components/AppBar";
+import { Picture } from "@/components/Picture";
 import { LinksEditor } from "@/components/profile/LinksEditor";
+import { buildMediaSet } from "@/gallery/v4/provider";
 import { getViewer } from "@/gallery/viewer";
 import { db } from "@/prisma/db";
 import { getTranslations } from "@/translations";
 
 import {
+  clearProfilePhoto,
   createTerms,
   deleteTerms,
   updatePhotographer,
@@ -81,12 +85,20 @@ export default async function ProfilePage({ params, searchParams }: Props) {
   const [photographer, ownTerms] = await Promise.all([
     db.orm.public.Photographer.where({ userId: viewer.userId })
       .include("links", (l) => l.orderBy((x) => x.ordering.asc()))
+      .include("coverPhoto", (p) => p.include("media"))
       .first(),
     db.orm.public.Terms.where({ ownerId: viewer.userId })
       .orderBy((x) => x.title.asc())
       .all(),
   ]);
   const p = t.Profile;
+  const coverMedia = photographer?.coverPhoto
+    ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
+    : null;
+  const coverPhoto =
+    photographer?.coverPhoto && coverMedia
+      ? { path: photographer.coverPhoto.path, media: coverMedia }
+      : null;
 
   return (
     <>
@@ -101,6 +113,8 @@ export default async function ProfilePage({ params, searchParams }: Props) {
               termsDeleted: p.terms.deleted,
               termsInUse: p.terms.inUse,
               slugTaken: p.slugTaken,
+              photoSet: p.photo.set,
+              photoCleared: p.photo.cleared,
             }}
           />
 
@@ -195,6 +209,29 @@ export default async function ProfilePage({ params, searchParams }: Props) {
             </div>
             <SubmitButton variant="primary">{p.save}</SubmitButton>
           </form>
+
+          <h2 className="mt-5 mb-2">{p.photo.title}</h2>
+          <p className="text-muted">{p.photo.help}</p>
+          {coverPhoto ? (
+            <div className="mb-5">
+              <Link href={coverPhoto.path}>
+                <Picture
+                  media={coverPhoto.media}
+                  alt={photographer?.displayName ?? ""}
+                  className="d-block mb-2"
+                />
+              </Link>
+              <form action={clearProfilePhoto.bind(null, locale)}>
+                <SubmitButton variant="outline-danger" size="sm">
+                  {p.photo.clear}
+                </SubmitButton>
+              </form>
+            </div>
+          ) : (
+            <p className="mb-5">
+              <em>{p.photo.none}</em>
+            </p>
+          )}
 
           <h2 className="mt-5 mb-2">{p.terms.title}</h2>
           <p className="text-muted">{p.terms.help}</p>

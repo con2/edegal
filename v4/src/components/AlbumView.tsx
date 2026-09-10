@@ -9,7 +9,10 @@ import { PhotographerProfile } from "./PhotographerProfile";
 
 interface AlbumViewProps {
   album: ClientAlbumPage;
-  messages: { AlbumView: Translations["AlbumView"] };
+  messages: {
+    AlbumView: Translations["AlbumView"];
+    PhotographerProfile: Translations["PhotographerProfile"];
+  };
   onOpenPhoto: (path: string) => void;
   /** Editor panels replace the description block, so it is not shown twice. */
   hideBody?: boolean;
@@ -66,7 +69,10 @@ export function AlbumView({
           ) : null}
           {hasBody ? (
             isPhotographer ? (
-              <PhotographerProfile album={album} />
+              <PhotographerProfile
+                album={album}
+                messages={messages.PhotographerProfile}
+              />
             ) : (
               <article className="container">
                 {album.body.kind === "markdown" ? (

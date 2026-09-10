@@ -1,0 +1,5 @@
+# Prisma-generated files: never hand-edited, so hide them from diffs and collapse them on GitHub.
+migrations/app/*/ops.json -diff linguist-generated
+migrations/snapshots/** -diff linguist-generated
+src/prisma/contract.json -diff linguist-generated
+src/prisma/contract.d.ts -diff linguist-generated

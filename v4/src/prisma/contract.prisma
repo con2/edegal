@@ -62,6 +62,8 @@ model Photographer {
   user           User?                      @relation(fields:[userId], references:[id], onDelete: SetNull)
   defaultTermsId Uuid?                      @map("default_terms_id")
   defaultTerms   Terms?                     @relation(fields:[defaultTermsId], references:[id], onDelete: SetNull)
+  coverPhotoId   Uuid?                      @map("cover_photo_id")
+  coverPhoto     Photo?                     @relation("PhotographerCover", fields:[coverPhotoId], references:[id], onDelete: SetNull)
   createdAt      TimestamptzString          @default(now()) @map("created_at")
   updatedAt      temporal.updatedAtString() @map("updated_at")
 
@@ -163,6 +165,7 @@ model Photo {
   media       Media[]
   jobs        MediaJob[]
   thumbnailOf Album[]            @relation("AlbumThumbnail")
+  coverOf     Photographer[]     @relation("PhotographerCover")
 
   @@unique([albumId, slug])
   @@index([albumId, ordering, takenAt, slug])

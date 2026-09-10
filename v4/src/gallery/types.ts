@@ -52,6 +52,14 @@ export interface SubalbumVM {
   ownerId: string | null;
 }
 
+/** A photographer's profile picture: any photo, credited to whoever holds its copyright. */
+export interface CoverVM {
+  media: MediaSet;
+  /** The photo's own page, when it is still browsable. */
+  path: string | null;
+  credits: { displayName: string; path: string | null }[];
+}
+
 export interface CreditVM {
   displayName: string;
   /** The photographer's page, when they have one. */
@@ -82,7 +90,7 @@ export interface AlbumPageVM {
   description: string;
   body: { kind: "markdown" | "html"; text: string };
   /** A photographer page's cover picture (legacy photographers only). */
-  cover: MediaSet | null;
+  cover: CoverVM | null;
   date: string | null;
   layout: "simple" | "yearly";
   visibility: Visibility;

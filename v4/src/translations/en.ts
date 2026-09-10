@@ -127,6 +127,9 @@ const translations = {
     signOut: "Sign out",
     signedInAs: "Signed in as",
   },
+  PhotographerProfile: {
+    photo: "Photo:",
+  },
   Album: {
     editInLegacyAdmin: "Edit in old admin",
     hidden: "Hidden",
@@ -152,6 +155,7 @@ const translations = {
     sortByCaptureTime: "By capture time",
     sortByFilename: "By filename number",
     setAsThumbnail: "Use as album thumbnail",
+    setAsProfilePhoto: "Use as my profile photo",
     deletePhoto: "Delete photo",
     confirmDeletePhoto: "Delete this photo permanently?",
     photoActions: "Photo actions",
@@ -260,6 +264,14 @@ const translations = {
     defaultTerms: "Default conditions of use for new albums",
     save: "Save",
     saved: "Profile saved.",
+    photo: {
+      title: "Profile photo",
+      help: "Open any photo in the gallery and choose “Use as my profile photo” from its menu. A photo taken by someone else is fine: they are credited under it on your page.",
+      none: "No profile photo yet.",
+      clear: "Remove profile photo",
+      set: "Profile photo changed.",
+      cleared: "Profile photo removed.",
+    },
     terms: {
       title: "My conditions of use",
       help: "Reusable texts shown to visitors before they download your photos. Markdown is supported.",

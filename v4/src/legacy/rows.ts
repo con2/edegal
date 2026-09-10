@@ -93,6 +93,9 @@ export interface LegacyPhotographerPageRow extends LegacyPhotographerRow {
   email: string;
   body: string;
   cover_media: LegacyMediaRow[] | null;
+  cover_path: string | null;
+  cover_credit_name: string | null;
+  cover_credit_slug: string | null;
 }
 
 export interface LegacyPhotographerTileRow {

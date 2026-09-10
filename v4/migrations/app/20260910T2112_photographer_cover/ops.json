@@ -1,0 +1,125 @@
+[
+  {
+    "id": "column.public.v4_photographer.cover_photo_id",
+    "label": "Add column \"cover_photo_id\" to \"v4_photographer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "cover_photo_id",
+        "table": "v4_photographer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"cover_photo_id\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_photographer",
+          "cover_photo_id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"cover_photo_id\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photographer\" ADD COLUMN \"cover_photo_id\" uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"cover_photo_id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_photographer",
+          "cover_photo_id"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_photographer.v4_photographer_cover_photo_id_idx_caa9ddb0",
+    "label": "Create index \"v4_photographer_cover_photo_id_idx_caa9ddb0\" on \"v4_photographer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_photographer_cover_photo_id_idx_caa9ddb0",
+        "table": "v4_photographer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_photographer_cover_photo_id_idx_caa9ddb0\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_cover_photo_id_idx_caa9ddb0\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_photographer_cover_photo_id_idx_caa9ddb0\"",
+        "sql": "CREATE INDEX \"v4_photographer_cover_photo_id_idx_caa9ddb0\" ON \"public\".\"v4_photographer\" (\"cover_photo_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_photographer_cover_photo_id_idx_caa9ddb0\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_photographer_cover_photo_id_idx_caa9ddb0\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_photographer.v4_photographer_cover_photo_id_fkey",
+    "label": "Add foreign key \"v4_photographer_cover_photo_id_fkey\" on \"v4_photographer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_photographer_cover_photo_id_fkey",
+        "table": "v4_photographer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_photographer_cover_photo_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_cover_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_photographer_cover_photo_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photographer\"\nADD CONSTRAINT \"v4_photographer_cover_photo_id_fkey\"\nFOREIGN KEY (\"cover_photo_id\")\nREFERENCES \"public\".\"v4_photo\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_photographer_cover_photo_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_photographer_cover_photo_id_fkey",
+          "public",
+          "\"public\".\"v4_photographer\""
+        ]
+      }
+    ]
+  }
+]

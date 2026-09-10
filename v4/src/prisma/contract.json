@@ -752,6 +752,21 @@
                   "namespace": "public"
                 }
               },
+              "coverOf": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "coverPhotoId"
+                  ]
+                },
+                "to": {
+                  "model": "Photographer",
+                  "namespace": "public"
+                }
+              },
               "createdBy": {
                 "cardinality": "N:1",
                 "on": {
@@ -849,6 +864,13 @@
           },
           "Photographer": {
             "fields": {
+              "coverPhotoId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -914,6 +936,21 @@
               }
             },
             "relations": {
+              "coverPhoto": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "coverPhotoId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Photo",
+                  "namespace": "public"
+                }
+              },
               "credits": {
                 "cardinality": "1:N",
                 "on": {
@@ -977,6 +1014,9 @@
             },
             "storage": {
               "fields": {
+                "coverPhotoId": {
+                  "column": "cover_photo_id"
+                },
                 "createdAt": {
                   "column": "created_at"
                 },
@@ -2145,6 +2185,11 @@
             },
             "v4_photographer": {
               "columns": {
+                "cover_photo_id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": true
+                },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
@@ -2237,9 +2282,34 @@
                     "namespaceId": "public",
                     "tableName": "v4_terms"
                   }
+                },
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "cover_photo_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_photographer"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_photo"
+                  }
                 }
               ],
               "indexes": [
+                {
+                  "columns": [
+                    "cover_photo_id"
+                  ],
+                  "name": "v4_photographer_cover_photo_id_idx_caa9ddb0",
+                  "prefix": "v4_photographer_cover_photo_id_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "default_terms_id"
@@ -2528,7 +2598,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "c21a22693dde14a01e1bd49e117e929e08b8003d36943c2b02a578478512b9a9"
+    "storageHash": "d39467c6b8b2db2922473ea4cc7236c2b9601b57504daecedd255ef6be8d303a"
   },
   "execution": {
     "executionHash": "257459898a35085a251ab9d3a93bfd2ad3a89c61f7794668d0a98318be55788c",

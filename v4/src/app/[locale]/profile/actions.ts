@@ -57,6 +57,15 @@ export async function updatePhotographer(locale: string, formData: FormData) {
   return done(locale, "saved");
 }
 
+export async function clearProfilePhoto(locale: string) {
+  const viewer = await requirePhotographer();
+  await db.orm.public.Photographer.where({ userId: viewer.userId }).update({
+    coverPhotoId: null,
+  });
+  revalidatePath(`/${locale}/photographers`);
+  return done(locale, "photoCleared");
+}
+
 export async function createTerms(locale: string, formData: FormData) {
   const viewer = await requirePhotographer();
   const form = TermsFormSchema.parse(normalizeFormData(formData));

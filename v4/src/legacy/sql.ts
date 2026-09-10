@@ -203,8 +203,13 @@ export async function legacyPhotographerById(
 ): Promise<LegacyPhotographerPageRow | null> {
   const { rows } = await pool.query<LegacyPhotographerPageRow>(
     `select ${photographerColumns}, p.email, p.body,
-       (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id) as cover_media
-     from edegal_photographer p where p.id = $1`,
+       (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id) as cover_media,
+       cp.path as cover_path, cph.display_name as cover_credit_name, cph.slug as cover_credit_slug
+     from edegal_photographer p
+     left join edegal_picture cp on cp.id = p.cover_picture_id
+     left join edegal_album ca on ca.id = cp.album_id
+     left join edegal_photographer cph on cph.id = ca.photographer_id
+     where p.id = $1`,
     [id],
   );
   return rows[0] ?? null;

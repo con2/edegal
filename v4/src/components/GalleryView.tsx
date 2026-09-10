@@ -17,6 +17,7 @@ interface GalleryViewProps {
   messages: Pick<
     Translations,
     | "AlbumView"
+    | "PhotographerProfile"
     | "PictureView"
     | "BreadcrumbBar"
     | "DownloadDialog"
@@ -74,7 +75,10 @@ export function GalleryView({
   return (
     <AlbumView
       album={album}
-      messages={{ AlbumView: messages.AlbumView }}
+      messages={{
+        AlbumView: messages.AlbumView,
+        PhotographerProfile: messages.PhotographerProfile,
+      }}
       onOpenPhoto={(path) => navigate(path, "push")}
       hideBody={editing}
     />

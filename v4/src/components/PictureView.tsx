@@ -19,9 +19,13 @@ import {
 import { Picture } from "./Picture";
 
 export interface PhotoEditor {
-  /** Bound server actions taking the photo id. */
-  setThumbnail: (photoId: string) => Promise<void>;
-  deletePhoto: (photoId: string) => Promise<void>;
+  /** Bound server actions taking the photo id; present when the viewer may manage this album's photos. */
+  manage: {
+    setThumbnail: (photoId: string) => Promise<void>;
+    deletePhoto: (photoId: string) => Promise<void>;
+  } | null;
+  /** Present for signed-in photographers: any photo, by anyone, may become their profile photo. */
+  setProfilePhoto: ((photoId: string) => Promise<void>) | null;
   messages: Translations["Editor"];
 }
 
@@ -30,7 +34,7 @@ interface PictureViewProps {
   index: number;
   messages: Pick<Translations, "PictureView" | "DownloadDialog" | "Download">;
   onNavigate: (path: string, mode: "push" | "replace") => void;
-  /** Present when the viewer may manage this album's photos. */
+  /** Present when the viewer has at least one action available on photos. */
   editor: PhotoEditor | null;
 }
 
@@ -202,28 +206,51 @@ export function PictureView({
             <MoreIcon className="PictureView-icon" />
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item
-              as="button"
-              onClick={() =>
-                startTransition(async () => {
-                  await editor.setThumbnail(photo.id);
-                  router.refresh();
-                })
-              }
-            >
-              {editor.messages.setAsThumbnail}
-            </Dropdown.Item>
-            <Dropdown.Divider />
-            <Dropdown.Item
-              as="button"
-              className="text-danger"
-              onClick={() => {
-                if (!window.confirm(editor.messages.confirmDeletePhoto)) return;
-                startTransition(() => editor.deletePhoto(photo.id));
-              }}
-            >
-              {editor.messages.deletePhoto}
-            </Dropdown.Item>
+            {editor.manage ? (
+              <Dropdown.Item
+                as="button"
+                onClick={() => {
+                  const manage = editor.manage;
+                  if (!manage) return;
+                  startTransition(async () => {
+                    await manage.setThumbnail(photo.id);
+                    router.refresh();
+                  });
+                }}
+              >
+                {editor.messages.setAsThumbnail}
+              </Dropdown.Item>
+            ) : null}
+            {editor.setProfilePhoto ? (
+              <Dropdown.Item
+                as="button"
+                onClick={() => {
+                  const setProfilePhoto = editor.setProfilePhoto;
+                  if (!setProfilePhoto) return;
+                  startTransition(() => setProfilePhoto(photo.id));
+                }}
+              >
+                {editor.messages.setAsProfilePhoto}
+              </Dropdown.Item>
+            ) : null}
+            {editor.manage ? (
+              <>
+                <Dropdown.Divider />
+                <Dropdown.Item
+                  as="button"
+                  className="text-danger"
+                  onClick={() => {
+                    const manage = editor.manage;
+                    if (!manage) return;
+                    if (!window.confirm(editor.messages.confirmDeletePhoto))
+                      return;
+                    startTransition(() => manage.deletePhoto(photo.id));
+                  }}
+                >
+                  {editor.messages.deletePhoto}
+                </Dropdown.Item>
+              </>
+            ) : null}
           </Dropdown.Menu>
         </Dropdown>
       ) : null}

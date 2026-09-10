@@ -8,7 +8,7 @@ import { db } from "@/prisma/db";
 
 import { pathPrefixes } from "./paths";
 import { titleInPhotographerContext } from "./titles";
-import type { AlbumPageVM, SubalbumVM } from "./types";
+import type { AlbumPageVM, CoverVM, SubalbumVM } from "./types";
 import { buildMediaSet } from "./v4/provider";
 
 const photographersPath = "/photographers";
@@ -20,7 +20,7 @@ async function rootCrumb() {
   return root ? [{ path: root.path, title: root.title }] : [];
 }
 
-/** v4 photographers with at least one credited album that has a thumbnail; newest album's thumbnail is the tile. */
+/** v4 photographers with a profile photo or a credited album with a thumbnail; the tile prefers the profile photo. */
 async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
   const photographers = await db.orm.public.Photographer.include(
     "credits",
@@ -29,6 +29,7 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
         a.include("thumbnailPhoto", (t) => t.include("media")),
       ),
   )
+    .include("coverPhoto", (p) => p.include("media"))
     .orderBy((p) => p.displayName.asc())
     .all();
   return photographers.flatMap((photographer) => {
@@ -37,9 +38,13 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
       .filter((a) => a.visibility === "public" && a.thumbnailPhoto)
       .sort((a, b) => (a.eventDate < b.eventDate ? 1 : -1));
     const newest = albums[0];
-    const thumbnail = newest?.thumbnailPhoto
-      ? buildMediaSet(newest.thumbnailPhoto.media, "thumbnail")
-      : null;
+    const thumbnail =
+      (photographer.coverPhoto
+        ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
+        : null) ??
+      (newest?.thumbnailPhoto
+        ? buildMediaSet(newest.thumbnailPhoto.media, "thumbnail")
+        : null);
     if (!thumbnail) return [];
     return [
       {
@@ -112,8 +117,32 @@ export async function loadV4PhotographerPage(
         a.include("thumbnailPhoto", (t) => t.include("media")),
       ),
     )
+    .include("coverPhoto", (p) =>
+      p
+        .include("media")
+        .include("album", (a) =>
+          a.include("credits", (c) => c.include("photographer")),
+        ),
+    )
     .first();
   if (!photographer) return null;
+  const coverMedia = photographer.coverPhoto
+    ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
+    : null;
+  const cover: CoverVM | null =
+    photographer.coverPhoto && coverMedia
+      ? {
+          media: coverMedia,
+          path: photographer.coverPhoto.path,
+          credits: photographer.coverPhoto.album.credits
+            .filter((c) => c.isCopyright)
+            .sort((a, b) => a.ordering - b.ordering)
+            .map((c) => ({
+              displayName: c.photographer.displayName,
+              path: `${photographersPath}/${c.photographer.slug}`,
+            })),
+        }
+      : null;
 
   const albums = photographer.credits
     .map((c) => c.album)
@@ -169,7 +198,7 @@ export async function loadV4PhotographerPage(
     title: photographer.displayName,
     description: "",
     body: { kind: "markdown", text: photographer.introduction },
-    cover: null,
+    cover,
     date: null,
     layout: "yearly",
     visibility: "public",

@@ -125,6 +125,9 @@ const translations: Translations = {
     signOut: "Kirjaudu ulos",
     signedInAs: "Kirjautuneena",
   },
+  PhotographerProfile: {
+    photo: "Kuva:",
+  },
   Album: {
     editInLegacyAdmin: "Muokkaa vanhassa hallinnassa",
     hidden: "Piilotettu",
@@ -150,6 +153,7 @@ const translations: Translations = {
     sortByCaptureTime: "Kuvausajan mukaan",
     sortByFilename: "Tiedostonimen numeron mukaan",
     setAsThumbnail: "Käytä albumin kansikuvana",
+    setAsProfilePhoto: "Käytä profiilikuvanani",
     deletePhoto: "Poista kuva",
     confirmDeletePhoto: "Poistetaanko tämä kuva pysyvästi?",
     photoActions: "Kuvan toiminnot",
@@ -259,6 +263,14 @@ const translations: Translations = {
     defaultTerms: "Uusien albumien oletuskäyttöehdot",
     save: "Tallenna",
     saved: "Profiili tallennettu.",
+    photo: {
+      title: "Profiilikuva",
+      help: "Avaa mikä tahansa kuva galleriassa ja valitse sen valikosta ”Käytä profiilikuvanani”. Kuva saa olla toisen kuvaajan ottama: hänet mainitaan kuvan alla sivullasi.",
+      none: "Ei profiilikuvaa.",
+      clear: "Poista profiilikuva",
+      set: "Profiilikuva vaihdettu.",
+      cleared: "Profiilikuva poistettu.",
+    },
     terms: {
       title: "Käyttöehtoni",
       help: "Uudelleenkäytettävät tekstit, jotka näytetään vierailijoille ennen kuvien lataamista. Markdown toimii.",

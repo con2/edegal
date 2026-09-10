@@ -23,6 +23,7 @@ import {
   canDeleteAlbum,
   canEditAlbum,
   canManagePhoto,
+  canView,
 } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
 import { touchAlbum } from "@/gallery/v4/touch";
@@ -255,4 +256,34 @@ export async function albumProcessingStatus(albumId: string) {
   if (!canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
     throw new Error("not allowed");
   return albumJobCounts(album.id);
+}
+
+/**
+ * Makes any v4 photo the signed-in photographer's profile photo. The photo need not be theirs,
+ * but it must be one they may see, so a forged id cannot publish a private album's photo.
+ */
+export async function setProfilePhoto(locale: string, photoId: string) {
+  const viewer = await getViewer();
+  if (viewer.kind !== "user" || !viewer.isPhotographer)
+    throw new Error("photographer privileges required");
+  const photo = await db.orm.public.Photo.where({ id: photoId })
+    .include("album")
+    .first();
+  if (
+    !photo ||
+    !canView(viewer, {
+      source: "v4",
+      visibility: photo.album.visibility,
+      ownerId: photo.album.ownerId,
+    })
+  )
+    throw new Error("photo not found");
+  const photographer = await ensurePhotographer(viewer);
+  await db.orm.public.Photographer.where({ id: photographer.id }).update({
+    coverPhotoId: photo.id,
+  });
+  revalidatePath(`/${locale}/photographers`);
+  revalidatePath(`/${locale}/photographers/${photographer.slug}`);
+  revalidatePath(`/${locale}/profile`);
+  redirect(`/profile?success=photoSet`);
 }
