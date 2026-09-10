@@ -142,8 +142,8 @@ const translations = {
     termsUrl: "Full terms",
   },
   Editor: {
-    newSubalbum: "New subalbum",
-    newAlbumTitle: "New subalbum",
+    newSubalbum: "New album",
+    newAlbumTitle: "New album",
     editAlbumTitle: "Edit album",
     uploadPhotos: "Upload photos",
     editAlbum: "Edit album",
@@ -159,6 +159,8 @@ const translations = {
     create: "Create album",
     cancel: "Cancel",
     fields: {
+      parent: "Parent album",
+      parentHelp: "The new album is created under this album.",
       title: "Title",
       slug: "Slug",
       slugHelp:
