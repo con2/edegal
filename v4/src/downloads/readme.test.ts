@@ -6,6 +6,7 @@ import { albumReadme } from "./readme";
 
 const album: ClientAlbumPage = {
   source: "v4",
+  id: "album-1",
   path: "/event/saturday",
   title: "Saturday",
   description: "",
@@ -14,6 +15,7 @@ const album: ClientAlbumPage = {
   layout: "simple",
   visibility: "public",
   isDownloadable: true,
+  photosProcessing: 0,
   breadcrumb: [],
   subalbums: [],
   photos: [],

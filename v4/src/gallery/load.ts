@@ -11,7 +11,7 @@ import type {
   Resolution,
   SubalbumVM,
 } from "./types";
-import { loadV4Album } from "./v4/provider";
+import { loadV4Album, v4AlbumVersion } from "./v4/provider";
 import type { Viewer } from "./viewer";
 import { applyVisibility } from "./visibility";
 
@@ -24,9 +24,16 @@ async function loadResolved(
     );
   }
   const { source, albumId } = resolution;
-  return cachedAlbum(source, albumId, () =>
-    source === "v4" ? loadV4Album(albumId) : loadLegacyAlbum(Number(albumId)),
-  );
+  if (source === "legacy") {
+    return cachedAlbum("legacy", albumId, () =>
+      loadLegacyAlbum(Number(albumId)),
+    );
+  }
+  // One tiny query decides whether the cached page is still current; the media worker and every
+  // mutation bump updated_at.
+  const version = await v4AlbumVersion(albumId);
+  if (version === null) return null;
+  return cachedAlbum("v4", albumId, () => loadV4Album(albumId), version);
 }
 
 function compareSubalbums(
@@ -86,7 +93,19 @@ export async function loadGalleryPage(
     const photo =
       album.photos.find((p) => p.path === resolution.photoPath) ?? null;
     if (!photo) return { kind: "not-found" };
-    return { kind: "ok", album, requestedPath: path, photo };
+    return {
+      kind: "ok",
+      album,
+      unfiltered: merged,
+      requestedPath: path,
+      photo,
+    };
   }
-  return { kind: "ok", album, requestedPath: path, photo: null };
+  return {
+    kind: "ok",
+    album,
+    unfiltered: merged,
+    requestedPath: path,
+    photo: null,
+  };
 }

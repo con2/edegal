@@ -28,6 +28,7 @@ export interface Crumb {
 }
 
 export interface PhotoVM {
+  id: string;
   path: string;
   title: string;
   visibility: Visibility;
@@ -67,6 +68,9 @@ export interface TermsVM {
 
 export interface AlbumPageVM {
   source: ContentSource;
+  id: string;
+  /** Server-only. */
+  parentId: string | null;
   path: string;
   title: string;
   description: string;
@@ -76,7 +80,11 @@ export interface AlbumPageVM {
   visibility: Visibility;
   /** Server-only; stripped before the payload reaches the client. */
   ownerId: string | null;
+  /** Server-only. */
+  isOpenForSubalbums: boolean;
   isDownloadable: boolean;
+  /** Photos uploaded but without a thumbnail yet; they are absent from `photos` until processed. */
+  photosProcessing: number;
   /** Ancestors excluding this album, root first. */
   breadcrumb: Crumb[];
   subalbums: SubalbumVM[];
@@ -94,7 +102,10 @@ export interface AlbumPageVM {
 export type ClientSubalbum = Omit<SubalbumVM, "ownerId">;
 
 /** What crosses the server/client boundary: the view-model minus server-only fields. */
-export type ClientAlbumPage = Omit<AlbumPageVM, "ownerId" | "subalbums"> & {
+export type ClientAlbumPage = Omit<
+  AlbumPageVM,
+  "ownerId" | "parentId" | "isOpenForSubalbums" | "subalbums"
+> & {
   subalbums: ClientSubalbum[];
 };
 
@@ -107,6 +118,8 @@ export type GalleryPageResult =
   | {
       kind: "ok";
       album: ClientAlbumPage;
+      /** Server-only view of the same album, for authorization decisions. */
+      unfiltered: AlbumPageVM;
       requestedPath: string;
       photo: PhotoVM | null;
     }

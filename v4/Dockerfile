@@ -32,6 +32,16 @@ COPY src/bin/migrate.mjs src/bin/migrate.mjs
 COPY migrations migrations
 CMD ["node", "src/bin/migrate.mjs", "db", "migrate"]
 
+# Background media worker: production dependencies only, run through tsx (a runtime dependency).
+FROM node:24-slim AS worker
+WORKDIR /usr/src/app
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+COPY tsconfig.json prisma.config.ts ./
+COPY src src
+CMD ["node_modules/.bin/tsx", "src/bin/worker.ts"]
+
 FROM node:24-slim AS runner
 WORKDIR /usr/src/app
 ENV NODE_ENV=production

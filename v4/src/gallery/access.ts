@@ -68,3 +68,17 @@ export function canCreateSubalbum(
 export function canDownload(album: { isDownloadable: boolean }): boolean {
   return album.isDownloadable;
 }
+
+/** Uploading into an album is the same right as editing it. */
+export const canUpload = canEditAlbum;
+
+/** Deleting or changing a photo follows its album. */
+export const canManagePhoto = canEditAlbum;
+
+/** The root album is never deleted. */
+export function canDeleteAlbum(
+  viewer: Viewer,
+  album: { source: ContentSource; ownerId: string | null; path: string },
+): boolean {
+  return album.path !== "/" && canEditAlbum(viewer, album);
+}

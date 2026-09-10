@@ -18,6 +18,15 @@ native_enum MediaRole {
   @@map("v4_media_role")
 }
 
+native_enum MediaJobStatus {
+  pending = "pending"
+  running = "running"
+  done = "done"
+  failed = "failed"
+
+  @@map("v4_media_job_status")
+}
+
 native_enum MediaFormat {
   jpeg = "jpeg"
   webp = "webp"
@@ -39,6 +48,7 @@ model User {
   albums       Album[]
   photographer Photographer?
   terms        Terms[]
+  photos       Photo[]
 
   @@map("v4_user")
 }
@@ -111,6 +121,7 @@ model Album {
   terms              Terms?                     @relation(fields:[termsId], references:[id], onDelete: SetNull)
   ownerId            Uuid?                      @map("owner_id")
   owner              User?                      @relation(fields:[ownerId], references:[id], onDelete: SetNull)
+  thumbnailIsAuto    Boolean                    @default(true) @map("thumbnail_is_auto")
   thumbnailPhotoId   Uuid?                      @map("thumbnail_photo_id")
   thumbnailPhoto     Photo?                     @relation("AlbumThumbnail", fields:[thumbnailPhotoId], references:[id], onDelete: SetNull)
   createdAt          TimestamptzString          @default(now()) @map("created_at")
@@ -146,9 +157,12 @@ model Photo {
   title       String             @default("")
   ordering    Int                @default(0)
   takenAt     TimestamptzString? @map("taken_at")
+  createdById Uuid?              @map("created_by_id")
+  createdBy   User?              @relation(fields:[createdById], references:[id], onDelete: SetNull)
   createdAt   TimestamptzString  @default(now()) @map("created_at")
 
   media       Media[]
+  jobs        MediaJob[]
   thumbnailOf Album[]            @relation("AlbumThumbnail")
 
   @@unique([albumId, slug])
@@ -170,4 +184,20 @@ model Media {
 
   @@unique([photoId, role, format])
   @@map("v4_media")
+}
+
+// Background work queued at upload time: previews and thumbnails for one photo.
+model MediaJob {
+  id         Uuid                    @id @default(uuid(7))
+  photoId    Uuid                    @map("photo_id")
+  photo      Photo                   @relation(fields:[photoId], references:[id], onDelete: Cascade)
+  status     pg.enum(MediaJobStatus) @default("pending")
+  attempts   Int                     @default(0)
+  error      String                  @default("")
+  createdAt  TimestamptzString       @default(now()) @map("created_at")
+  startedAt  TimestamptzString?      @map("started_at")
+  finishedAt TimestamptzString?      @map("finished_at")
+
+  @@index([status, createdAt])
+  @@map("v4_media_job")
 }

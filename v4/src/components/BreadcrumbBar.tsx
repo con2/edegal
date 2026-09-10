@@ -16,6 +16,8 @@ interface BreadcrumbBarProps {
   >;
   canEdit: boolean;
   canDownload: boolean;
+  /** Album management links for photographers; rendered before the download button. */
+  editor?: React.ReactNode;
 }
 
 export function BreadcrumbBar({
@@ -23,6 +25,7 @@ export function BreadcrumbBar({
   messages,
   canEdit,
   canDownload,
+  editor,
 }: BreadcrumbBarProps) {
   const crumbs = fullBreadcrumb(album, null, 1);
   return (
@@ -49,6 +52,7 @@ export function BreadcrumbBar({
         })}
       </nav>
       <nav className="BreadcrumbBar-actions">
+        {editor}
         {canDownload ? (
           <DownloadAlbumButton
             album={album}

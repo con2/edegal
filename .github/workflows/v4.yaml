@@ -86,6 +86,14 @@ jobs:
           tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}-migrate
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - uses: docker/build-push-action@v7
+        with:
+          context: v4
+          target: worker
+          push: true
+          tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}-worker
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     runs-on: qb-arc-runners

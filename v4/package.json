@@ -19,7 +19,8 @@
     "db:verify": "prisma db verify",
     "db:seed": "tsx src/bin/seed.ts",
     "legacy:schema": "tsx src/legacy/apply-schema.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "worker": "tsx src/bin/worker.ts"
   },
   "dependencies": {
     "@con2/components": "github:con2/components#v4.0.0",
@@ -35,6 +36,7 @@
     "react-dom": "19.2.8",
     "sanitize-html": "2.17.7",
     "sharp": "0.35.4",
+    "tsx": "4.23.13",
     "yazl": "2.5.1",
     "zod": "4.6.1"
   },
@@ -58,7 +60,6 @@
     "prettier": "3.9.6",
     "prisma": "8.0.0-rc.13",
     "sass": "1.104.0",
-    "tsx": "4.23.13",
     "typescript": "^5",
     "vitest": "5.0.0",
     "yauzl": "3.4.0"

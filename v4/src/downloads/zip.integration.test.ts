@@ -57,6 +57,7 @@ function photo(slug: string, key: string): PhotoVM {
     format: "jpeg" as const,
   };
   return {
+    id: slug,
     path: `/event/${slug}`,
     title: slug,
     visibility: "public",

@@ -41,6 +41,13 @@ export function AppBar({ rootAlbum, viewer, locale, messages }: AppBarProps) {
               locale={locale}
               messages={messages.LanguageSwitcher}
             />
+            {viewer.kind === "user" && viewer.isPhotographer ? (
+              <Nav.Item>
+                <Nav.Link as={Link} href="/profile">
+                  {messages.AppBar.profile}
+                </Nav.Link>
+              </Nav.Item>
+            ) : null}
             {viewer.kind === "user" ? (
               <>
                 <Navbar.Text className="me-3">

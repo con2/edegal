@@ -1,0 +1,258 @@
+"use server";
+
+import { normalizeFormData } from "@con2/components/helpers";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import {
+  PathTakenError,
+  assertPathFree,
+  childPath,
+  deleteAlbumSubtree,
+  deletePhotoFiles,
+  moveAlbumPath,
+  replaceCredits,
+  slugForAlbum,
+  sortPhotos as sortAlbumPhotos,
+  type PhotoSort,
+} from "@/editor/albums";
+import { ensurePhotographer } from "@/editor/photographers";
+import { AlbumFormSchema, DeleteAlbumSchema } from "@/editor/schemas";
+import {
+  canCreateSubalbum,
+  canDeleteAlbum,
+  canEditAlbum,
+  canManagePhoto,
+} from "@/gallery/access";
+import { invalidateAlbum } from "@/gallery/cache";
+import { touchAlbum } from "@/gallery/v4/touch";
+import { getViewer, type Viewer } from "@/gallery/viewer";
+import { albumJobCounts, pickAutoThumbnail } from "@/media/jobs";
+import { db } from "@/prisma/db";
+
+type SignedIn = Viewer & { kind: "user" };
+
+async function requireUser(): Promise<SignedIn> {
+  const viewer = await getViewer();
+  if (viewer.kind !== "user") throw new Error("sign in required");
+  return viewer;
+}
+
+async function requireAlbum(albumId: string) {
+  const album = await db.orm.public.Album.where({ id: albumId }).first();
+  if (!album) throw new Error("album not found");
+  return album;
+}
+
+function parentPathOf(path: string): string {
+  const segments = path.split("/").filter(Boolean);
+  return segments.length <= 1 ? "/" : "/" + segments.slice(0, -1).join("/");
+}
+
+function withMessage(
+  path: string,
+  kind: "success" | "error",
+  code: string,
+): string {
+  return `${path}?${kind}=${code}`;
+}
+
+export async function createAlbum(
+  locale: string,
+  parentId: string,
+  formData: FormData,
+) {
+  const viewer = await requireUser();
+  const parent = await requireAlbum(parentId);
+  if (
+    !canCreateSubalbum(viewer, {
+      source: "v4",
+      ownerId: parent.ownerId,
+      isOpenForSubalbums: parent.isOpenForSubalbums,
+    })
+  ) {
+    throw new Error("not allowed to create a subalbum here");
+  }
+  const form = AlbumFormSchema.parse(normalizeFormData(formData));
+  const slug = slugForAlbum(form.title, form.slug);
+  const path = childPath(parent.path, slug);
+  try {
+    await assertPathFree(path);
+  } catch (error) {
+    if (error instanceof PathTakenError)
+      return void redirect(
+        withMessage(`${parent.path}`, "error", "pathTaken") + "&new=1",
+      );
+    throw error;
+  }
+  const credits =
+    form.credits.length > 0
+      ? form.credits
+      : [
+          {
+            photographerId: (await ensurePhotographer(viewer)).id,
+            isCopyright: true,
+            description: "",
+          },
+        ];
+  const ownerId = viewer.isAdmin && form.ownerId ? form.ownerId : viewer.userId;
+
+  const album = await db.orm.public.Album.create({
+    parentId: parent.id,
+    slug,
+    path,
+    title: form.title,
+    body: form.body,
+    visibility: form.visibility,
+    isOpenForSubalbums: form.isOpenForSubalbums,
+    isDownloadable: form.isDownloadable,
+    ordering: form.ordering,
+    eventDate: form.eventDate,
+    eventMetadataUrl: form.eventMetadataUrl,
+    termsId: form.termsId || null,
+    ownerId,
+  });
+  await replaceCredits(album.id, credits);
+  await touchAlbum(album.id, parent.id);
+  invalidateAlbum("v4", album.id, parent.id);
+  revalidatePath(`/${locale}${parent.path}`);
+  return void redirect(withMessage(path, "success", "albumSaved"));
+}
+
+export async function updateAlbum(
+  locale: string,
+  albumId: string,
+  formData: FormData,
+) {
+  const viewer = await requireUser();
+  const album = await requireAlbum(albumId);
+  if (!canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+    throw new Error("not allowed to edit this album");
+  const form = AlbumFormSchema.parse(normalizeFormData(formData));
+  const isRoot = album.path === "/";
+  const slug = isRoot ? "" : slugForAlbum(form.title, form.slug);
+  const path = isRoot ? "/" : childPath(parentPathOf(album.path), slug);
+  try {
+    await assertPathFree(path, album.id);
+  } catch (error) {
+    if (error instanceof PathTakenError)
+      return void redirect(
+        withMessage(album.path, "error", "pathTaken") + "&edit=1",
+      );
+    throw error;
+  }
+
+  await db.orm.public.Album.where({ id: album.id }).update({
+    slug,
+    title: form.title,
+    body: form.body,
+    visibility: form.visibility,
+    isOpenForSubalbums: form.isOpenForSubalbums,
+    isDownloadable: form.isDownloadable,
+    ordering: form.ordering,
+    eventDate: form.eventDate,
+    eventMetadataUrl: form.eventMetadataUrl,
+    termsId: form.termsId || null,
+    ...(viewer.isAdmin && form.ownerId ? { ownerId: form.ownerId } : {}),
+  });
+  await replaceCredits(album.id, form.credits);
+  await moveAlbumPath(album.id, album.path, path);
+  await touchAlbum(album.id, album.parentId);
+  invalidateAlbum("v4", album.id, album.parentId);
+  revalidatePath(`/${locale}${album.path}`);
+  return void redirect(withMessage(path, "success", "albumSaved"));
+}
+
+export async function deleteAlbum(
+  locale: string,
+  albumId: string,
+  formData: FormData,
+) {
+  const viewer = await requireUser();
+  const album = await requireAlbum(albumId);
+  if (
+    !canDeleteAlbum(viewer, {
+      source: "v4",
+      ownerId: album.ownerId,
+      path: album.path,
+    })
+  )
+    throw new Error("not allowed to delete this album");
+  const { confirmSlug } = DeleteAlbumSchema.parse(normalizeFormData(formData));
+  if (confirmSlug !== album.slug)
+    return void redirect(
+      withMessage(album.path, "error", "confirmMismatch") + "&delete=1",
+    );
+  const parentPath = parentPathOf(album.path);
+  await deleteAlbumSubtree(album.id, album.path);
+  if (album.parentId) await touchAlbum(album.parentId);
+  invalidateAlbum("v4", album.id, album.parentId);
+  revalidatePath(`/${locale}${parentPath}`);
+  return void redirect(withMessage(parentPath, "success", "albumDeleted"));
+}
+
+export async function deletePhoto(locale: string, photoId: string) {
+  const viewer = await requireUser();
+  const photo = await db.orm.public.Photo.where({ id: photoId })
+    .include("album")
+    .first();
+  if (!photo) throw new Error("photo not found");
+  if (!canManagePhoto(viewer, { source: "v4", ownerId: photo.album.ownerId }))
+    throw new Error("not allowed to delete this photo");
+  await deletePhotoFiles(photo.id);
+  await db.orm.public.Photo.where({ id: photo.id }).delete();
+  if (photo.album.thumbnailPhotoId === photo.id) {
+    await db.orm.public.Album.where({ id: photo.albumId }).update({
+      thumbnailPhotoId: await pickAutoThumbnail(photo.albumId),
+      thumbnailIsAuto: true,
+    });
+  }
+  await touchAlbum(photo.albumId, photo.album.parentId);
+  invalidateAlbum("v4", photo.albumId, photo.album.parentId);
+  revalidatePath(`/${locale}${photo.album.path}`);
+  return void redirect(
+    withMessage(photo.album.path, "success", "photoDeleted"),
+  );
+}
+
+export async function setAlbumThumbnail(locale: string, photoId: string) {
+  const viewer = await requireUser();
+  const photo = await db.orm.public.Photo.where({ id: photoId })
+    .include("album")
+    .first();
+  if (!photo) throw new Error("photo not found");
+  if (!canEditAlbum(viewer, { source: "v4", ownerId: photo.album.ownerId }))
+    throw new Error("not allowed to edit this album");
+  await db.orm.public.Album.where({ id: photo.albumId }).update({
+    thumbnailPhotoId: photo.id,
+    thumbnailIsAuto: false,
+  });
+  await touchAlbum(photo.albumId, photo.album.parentId);
+  invalidateAlbum("v4", photo.albumId, photo.album.parentId);
+  revalidatePath(`/${locale}${photo.album.path}`);
+}
+
+export async function sortPhotos(
+  locale: string,
+  albumId: string,
+  by: PhotoSort,
+) {
+  const viewer = await requireUser();
+  const album = await requireAlbum(albumId);
+  if (!canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+    throw new Error("not allowed to edit this album");
+  await sortAlbumPhotos(album.id, by);
+  await touchAlbum(album.id);
+  invalidateAlbum("v4", album.id, album.parentId);
+  revalidatePath(`/${locale}${album.path}`);
+  return void redirect(withMessage(album.path, "success", "photosSorted"));
+}
+
+/** Polled by the upload panel until the worker has processed everything. */
+export async function albumProcessingStatus(albumId: string) {
+  const viewer = await requireUser();
+  const album = await requireAlbum(albumId);
+  if (!canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+    throw new Error("not allowed");
+  return albumJobCounts(album.id);
+}

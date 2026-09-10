@@ -17,6 +17,10 @@ kubectl -n conikuvat-v4 create secret generic v4 \
 
 The Kompassi OIDC client must allow the redirect URI `https://<hostname>/api/auth/callback/kompassi`.
 
+## Worker
+
+The `worker` Deployment (image tag `<sha>-worker`) generates previews for uploaded photos. It shares the ConfigMap, Secret and NFS mount with the web Deployment; `workerConcurrency` in values controls parallel conversions.
+
 ## Deploy
 
 ```sh
