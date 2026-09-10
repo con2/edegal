@@ -38,6 +38,8 @@ metadata:
     {{- include "v4.labels" . | nindent 4 }}
 spec:
   secretName: {{ include "v4.tlsSecretName" . }}
+  privateKey:
+    rotationPolicy: Always
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-prod
