@@ -5,6 +5,7 @@ import {
   SignInRequired,
   SubmitButton,
 } from "@con2/components";
+import { slugifyDash } from "@con2/components/helpers";
 import type { Metadata } from "next";
 
 import { AppBar } from "@/components/AppBar";
@@ -99,6 +100,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
               termsSaved: p.terms.saved,
               termsDeleted: p.terms.deleted,
               termsInUse: p.terms.inUse,
+              slugTaken: p.slugTaken,
             }}
           />
 
@@ -117,6 +119,23 @@ export default async function ProfilePage({ params, searchParams }: Props) {
                 maxLength={255}
                 defaultValue={photographer?.displayName ?? viewer.name ?? ""}
               />
+            </div>
+            <div className="mb-3">
+              <label className="form-label" htmlFor="Profile-slug">
+                {p.slug} *
+              </label>
+              <input
+                className="form-control"
+                id="Profile-slug"
+                name="slug"
+                required
+                pattern="[a-z0-9-]+"
+                maxLength={255}
+                defaultValue={
+                  photographer?.slug ?? slugifyDash(viewer.name ?? "")
+                }
+              />
+              <div className="form-text">{p.slugHelp}</div>
             </div>
             <div className="mb-3">
               <label className="form-label" htmlFor="Profile-email">

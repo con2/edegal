@@ -243,6 +243,10 @@ const translations = {
   Profile: {
     title: "Photographer profile",
     intro: "Your name and links are shown in the credits of your albums.",
+    slug: "Slug",
+    slugHelp:
+      "Part of your photographer page address (lowercase letters, digits and dashes). Changing it later breaks existing links to that page.",
+    slugTaken: "This slug is already in use by another photographer.",
     displayName: "Display name",
     email: "Email (not shown publicly)",
     introduction: "Introduction",

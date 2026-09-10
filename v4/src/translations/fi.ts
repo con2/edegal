@@ -242,6 +242,10 @@ const translations: Translations = {
   Profile: {
     title: "Kuvaajaprofiili",
     intro: "Nimesi ja linkkisi näytetään albumiesi tekijätiedoissa.",
+    slug: "Osoitetunnus",
+    slugHelp:
+      "Osa kuvaajasivusi osoitetta (pieniä kirjaimia, numeroita ja viivoja). Muuttaminen jälkikäteen rikkoo vanhat linkit sivullesi.",
+    slugTaken: "Tämä osoitetunnus on jo toisen kuvaajan käytössä.",
     displayName: "Näyttönimi",
     email: "Sähköposti (ei näytetä julkisesti)",
     introduction: "Esittely",
