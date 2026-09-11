@@ -70,30 +70,13 @@ jobs:
         with:
           images: ${{ env.IMAGE }}
           tags: type=sha,prefix=,format=short
-      - uses: docker/build-push-action@v7
+      - uses: docker/bake-action@v7
         with:
-          context: v4
-          target: runner
+          source: v4
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - uses: docker/build-push-action@v7
-        with:
-          context: v4
-          target: migrator
-          push: true
-          tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}-migrate
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - uses: docker/build-push-action@v7
-        with:
-          context: v4
-          target: worker
-          push: true
-          tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}-worker
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        env:
+          IMAGE: ${{ env.IMAGE }}
+          TAG: ${{ steps.meta.outputs.version }}
 
   deploy:
     runs-on: qb-arc-runners
