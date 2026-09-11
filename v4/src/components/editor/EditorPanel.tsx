@@ -103,6 +103,7 @@ export async function EditorPanel({
           viewer,
           album.path,
           existing.values.termsId || null,
+          album.path === "/" ? null : { id: album.id, path: album.path },
         )}
         isRoot={album.path === "/"}
         parent={null}

@@ -50,3 +50,9 @@ export function isAncestorOrSelf(ancestorPath: string, path: string): boolean {
   if (ancestorPath === path || ancestorPath === "/") return true;
   return path.startsWith(`${ancestorPath}/`);
 }
+
+/** The path of the album containing `path`; the root's parent is the root itself. */
+export function parentPathOf(path: string): string {
+  const segments = path.split("/").filter(Boolean);
+  return segments.length <= 1 ? "/" : "/" + segments.slice(0, -1).join("/");
+}

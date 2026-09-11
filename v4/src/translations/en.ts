@@ -166,6 +166,8 @@ const translations = {
     fields: {
       parent: "Parent album",
       parentHelp: "The new album is created under this album.",
+      parentMoveHelp:
+        "Path of the parent album. Type to search and pick a suggestion to move this album, with everything in it, under another album. Only albums you may add to are offered.",
       title: "Title",
       slug: "Slug",
       slugHelp:
@@ -221,6 +223,7 @@ const translations = {
     processing: "photos are being processed and will appear shortly",
     errors: {
       pathTaken: "An album or photo with this address already exists.",
+      invalidParent: "The chosen parent album is not available.",
       forbidden: "You do not have permission to do this.",
       invalid: "Please check the form.",
     },

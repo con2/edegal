@@ -1,6 +1,7 @@
 import { MarkdownEditor, SubmitButton } from "@con2/components";
 import Link from "next/link";
 
+import type { MoveTarget } from "@/editor/albums";
 import type { CreditInput } from "@/editor/schemas";
 import type { Translations } from "@/translations";
 
@@ -12,6 +13,8 @@ export interface AlbumFormValues {
   eventDate: string;
   visibility: "public" | "hidden" | "private";
   layout: "simple" | "yearly";
+  /** Current parent's path; the edit form lets it be changed to one of `options.parents`. */
+  parentPath: string;
   isOpenForSubalbums: boolean;
   isDownloadable: boolean;
   ordering: number;
@@ -22,6 +25,8 @@ export interface AlbumFormValues {
 }
 
 export interface AlbumFormOptions {
+  /** Albums the edited album may be moved under, or null when it cannot be moved. */
+  parents: MoveTarget[] | null;
   terms: { id: string; title: string }[];
   /** Title of the terms the album would inherit when none is chosen. */
   inheritedTermsTitle: string | null;
@@ -117,6 +122,30 @@ export function AlbumForm({
               readOnly
               value={`${parent.title} (${parent.path})`}
             />
+          </Field>
+        ) : null}
+        {options.parents ? (
+          <Field
+            id="AlbumForm-parentPath"
+            label={f.parent}
+            help={f.parentMoveHelp}
+          >
+            <input
+              className="form-control"
+              id="AlbumForm-parentPath"
+              name="parentPath"
+              type="text"
+              list="AlbumForm-parentOptions"
+              autoComplete="off"
+              defaultValue={values.parentPath}
+            />
+            <datalist id="AlbumForm-parentOptions">
+              {options.parents.map((target) => (
+                <option key={target.id} value={target.path}>
+                  {target.title}
+                </option>
+              ))}
+            </datalist>
           </Field>
         ) : null}
 

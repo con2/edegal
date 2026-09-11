@@ -3,7 +3,9 @@ import type {
   AlbumFormValues,
 } from "@/components/editor/AlbumForm";
 import type { CreditInput } from "@/editor/schemas";
-import { pathPrefixes } from "@/gallery/paths";
+import { parentPathOf, pathPrefixes } from "@/gallery/paths";
+
+import { moveTargets } from "./albums";
 import type { Viewer } from "@/gallery/viewer";
 import { db } from "@/prisma/db";
 
@@ -29,8 +31,10 @@ export async function albumFormOptions(
   viewer: SignedIn,
   childPath: string,
   currentTermsId: string | null,
+  /** The album being edited, when it may be moved to another parent. */
+  movable: { id: string; path: string } | null = null,
 ): Promise<AlbumFormOptions> {
-  const [terms, photographers, users, inherited] = await Promise.all([
+  const [terms, photographers, users, inherited, parents] = await Promise.all([
     db.orm.public.Terms.select("id", "title", "ownerId")
       .orderBy((t) => t.title.asc())
       .all(),
@@ -43,8 +47,10 @@ export async function albumFormOptions(
           .all()
       : Promise.resolve(null),
     inheritedTermsTitle(childPath),
+    movable ? moveTargets(viewer, movable) : Promise.resolve(null),
   ]);
   return {
+    parents,
     terms: terms
       .filter(
         (t) =>
@@ -83,6 +89,7 @@ export async function newAlbumDefaults(
       isOpenForSubalbums: false,
       isDownloadable: true,
       layout: "simple",
+      parentPath: "",
       ordering: 0,
       eventMetadataUrl: "",
       body: "",
@@ -117,6 +124,7 @@ export async function existingAlbumValues(
       isOpenForSubalbums: album.isOpenForSubalbums,
       isDownloadable: album.isDownloadable,
       layout: album.layout,
+      parentPath: parentPathOf(album.path),
       ordering: album.ordering,
       eventMetadataUrl: album.eventMetadataUrl,
       body: album.body,

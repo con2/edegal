@@ -58,6 +58,8 @@ export const AlbumFormSchema = z.object({
   eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   visibility: z.enum(["public", "hidden", "private"]),
   layout: z.enum(["simple", "yearly"]).default("simple"),
+  /** Path of the parent to move the album under; empty or unchanged keeps the current parent. */
+  parentPath: z.string().trim().max(1023).default(""),
   isOpenForSubalbums: checkbox,
   isDownloadable: checkbox,
   ordering: z.coerce.number().int().min(-1_000_000).max(1_000_000).default(0),

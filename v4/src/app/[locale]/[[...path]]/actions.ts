@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
-  PathTakenError,
   assertPathFree,
   childPath,
   deleteAlbumSubtree,
   deletePhotoFiles,
   moveAlbumPath,
+  moveTargets,
+  PathTakenError,
   replaceCredits,
   slugForAlbum,
   sortPhotos as sortAlbumPhotos,
@@ -26,7 +27,7 @@ import {
   canView,
 } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
-import { isAncestorOrSelf } from "@/gallery/paths";
+import { isAncestorOrSelf, parentPathOf } from "@/gallery/paths";
 import { touchAlbum } from "@/gallery/v4/touch";
 import { getViewer, type Viewer } from "@/gallery/viewer";
 import { albumJobCounts, pickAutoThumbnail } from "@/media/jobs";
@@ -44,11 +45,6 @@ async function requireAlbum(albumId: string) {
   const album = await db.orm.public.Album.where({ id: albumId }).first();
   if (!album) throw new Error("album not found");
   return album;
-}
-
-function parentPathOf(path: string): string {
-  const segments = path.split("/").filter(Boolean);
-  return segments.length <= 1 ? "/" : "/" + segments.slice(0, -1).join("/");
 }
 
 function withMessage(
@@ -134,7 +130,26 @@ export async function updateAlbum(
   const form = AlbumFormSchema.parse(normalizeFormData(formData));
   const isRoot = album.path === "/";
   const slug = isRoot ? "" : slugForAlbum(form.title, form.slug);
-  const path = isRoot ? "/" : childPath(parentPathOf(album.path), slug);
+  // A new parent is accepted only from the same list the form offered, so the album cannot be
+  // moved under itself or under an album the viewer may not add to.
+  const currentParentPath = parentPathOf(album.path);
+  const newParent =
+    !isRoot && form.parentPath && form.parentPath !== currentParentPath
+      ? ((await moveTargets(viewer, album)).find(
+          (t) => t.path === form.parentPath,
+        ) ?? null)
+      : null;
+  if (
+    !isRoot &&
+    form.parentPath &&
+    form.parentPath !== currentParentPath &&
+    !newParent
+  )
+    return void redirect(
+      withMessage(album.path, "error", "invalidParent") + "&edit=1",
+    );
+  const parentPath = newParent?.path ?? currentParentPath;
+  const path = isRoot ? "/" : childPath(parentPath, slug);
   try {
     await assertPathFree(path, album.id);
   } catch (error) {
@@ -161,6 +176,14 @@ export async function updateAlbum(
   });
   await replaceCredits(album.id, form.credits);
   await moveAlbumPath(album.id, album.path, path);
+  if (newParent) {
+    await db.orm.public.Album.where({ id: album.id }).update({
+      parentId: newParent.id,
+    });
+    await touchAlbum(newParent.id);
+    invalidateAlbum("v4", newParent.id, null);
+    revalidatePath(`/${locale}${newParent.path}`);
+  }
   await touchAlbum(album.id, album.parentId);
   invalidateAlbum("v4", album.id, album.parentId);
   revalidatePath(`/${locale}${album.path}`);

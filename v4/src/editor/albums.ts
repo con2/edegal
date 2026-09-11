@@ -1,7 +1,7 @@
 import { slugifyDash } from "@con2/components/helpers";
 
-import { canEditAlbum } from "@/gallery/access";
-import { pathPrefixes } from "@/gallery/paths";
+import { canCreateSubalbum, canEditAlbum } from "@/gallery/access";
+import { isAncestorOrSelf, pathPrefixes } from "@/gallery/paths";
 import { resolvePath } from "@/gallery/resolve";
 import type { Viewer } from "@/gallery/viewer";
 import { parseOrderingNumber } from "@/media/naming";
@@ -200,4 +200,40 @@ export async function thumbnailTargets(
         isOwnAlbum: false,
       });
   return targets;
+}
+
+export interface MoveTarget {
+  id: string;
+  path: string;
+  title: string;
+}
+
+/**
+ * Albums that may become `album`'s new parent: every v4 album the viewer may create subalbums
+ * in, except the album itself and everything below it. Sorted by path so the list reads like a
+ * tree.
+ */
+export async function moveTargets(
+  viewer: Viewer,
+  album: { id: string; path: string },
+): Promise<MoveTarget[]> {
+  const albums = await db.orm.public.Album.select(
+    "id",
+    "path",
+    "title",
+    "ownerId",
+    "isOpenForSubalbums",
+  ).all();
+  return albums
+    .filter(
+      (a) =>
+        !isAncestorOrSelf(album.path, a.path) &&
+        canCreateSubalbum(viewer, {
+          source: "v4",
+          ownerId: a.ownerId,
+          isOpenForSubalbums: a.isOpenForSubalbums,
+        }),
+    )
+    .sort((a, b) => a.path.localeCompare(b.path))
+    .map(({ id, path, title }) => ({ id, path, title }));
 }

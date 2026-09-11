@@ -35,6 +35,11 @@ npm run worker
 
 The worker also deletes finished job rows hourly (done after 7 days, failed after 30).
 
+The edit form's parent field moves an album, with everything in it, under another album. The
+suggestions list every album the user may create subalbums in (own or open albums for
+photographers, everything for admins) except the album itself and its descendants; the server
+action accepts only those.
+
 Photographers edit their name, links and reusable conditions of use at `/profile`.
 
 The v4 root album is created automatically when the server starts and none exists yet (see

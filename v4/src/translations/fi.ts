@@ -164,6 +164,8 @@ const translations: Translations = {
     fields: {
       parent: "Yläalbumi",
       parentHelp: "Uusi albumi luodaan tämän albumin alle.",
+      parentMoveHelp:
+        "Yläalbumin polku. Kirjoita hakeaksesi ja valitse ehdotuksista siirtääksesi tämän albumin kaikkine sisältöineen toisen albumin alle. Vain albumit, joihin saat lisätä, ovat valittavina.",
       title: "Otsikko",
       slug: "Osoitetunnus",
       slugHelp:
@@ -220,6 +222,7 @@ const translations: Translations = {
     processing: "kuvaa käsitellään ja ne ilmestyvät pian",
     errors: {
       pathTaken: "Tässä osoitteessa on jo albumi tai kuva.",
+      invalidParent: "Valittu yläalbumi ei ole käytettävissä.",
       forbidden: "Sinulla ei ole oikeutta tähän.",
       invalid: "Tarkista lomake.",
     },
