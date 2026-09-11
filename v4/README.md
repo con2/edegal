@@ -37,6 +37,11 @@ The worker also deletes finished job rows hourly (done after 7 days, failed afte
 
 Photographers edit their name, links and reusable conditions of use at `/profile`.
 
+The v4 root album is created automatically when the server starts and none exists yet (see
+`src/instrumentation.ts`), titled like the legacy root. Until an admin edits it, the front page
+shows the legacy root's body text. Album creation and editing controls only appear on v4 albums;
+legacy albums stay read-only apart from the "Edit in old admin" link.
+
 Public photographer pages live on dedicated routes rather than the gallery catch-all:
 `/photographers` tiles every photographer who has a cover picture (v4) or a credited album with a
 thumbnail (legacy), and `/photographers/<slug>` shows their introduction, links and albums grouped

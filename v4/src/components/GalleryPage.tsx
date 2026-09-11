@@ -58,7 +58,15 @@ export async function GalleryPage({
     canEdit: isAlbum && canEditAlbum(viewer, guard),
     canDelete: isAlbum && canDeleteAlbum(viewer, guard),
   };
-  const mode = photo === null ? editorMode(searchParams) : null;
+  const requestedMode = photo === null ? editorMode(searchParams) : null;
+  const modeAllowed = {
+    new: rights.canCreate,
+    edit: rights.canEdit,
+    upload: rights.canEdit,
+    delete: rights.canDelete,
+  };
+  const mode =
+    requestedMode && modeAllowed[requestedMode] ? requestedMode : null;
   const canManage = isAlbum && canManagePhoto(viewer, guard);
   const canPickProfilePhoto =
     isAlbum &&

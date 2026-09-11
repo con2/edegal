@@ -64,6 +64,7 @@ async function withLegacyRootSubalbums(
   const legacyOnly = legacy.subalbums.filter((s) => !v4Paths.has(s.path));
   return {
     ...root,
+    body: root.body.text.trim() ? root.body : legacy.body,
     subalbums: [...root.subalbums, ...legacyOnly].sort(compareSubalbums),
   };
 }
