@@ -92,13 +92,16 @@ export async function moveAlbumPath(
 export async function albumSubtree(
   albumId: string,
   path: string,
-): Promise<{ id: string; path: string }[]> {
-  const descendants = await db.orm.public.Album.where((a) =>
-    a.path.like(`${path}/%`),
-  )
-    .select("id", "path")
-    .all();
-  return [...descendants, { id: albumId, path }].sort(
+): Promise<{ id: string; path: string; ownerId: string | null }[]> {
+  const [descendants, self] = await Promise.all([
+    db.orm.public.Album.where((a) => a.path.like(`${path}/%`))
+      .select("id", "path", "ownerId")
+      .all(),
+    db.orm.public.Album.where({ id: albumId })
+      .select("id", "path", "ownerId")
+      .first(),
+  ]);
+  return [...descendants, ...(self ? [self] : [])].sort(
     (a, b) => b.path.length - a.path.length,
   );
 }
@@ -236,4 +239,25 @@ export async function moveTargets(
     )
     .sort((a, b) => a.path.localeCompare(b.path))
     .map(({ id, path, title }) => ({ id, path, title }));
+}
+
+/**
+ * Terms an album (or a profile default) may point at: the viewer's own and shared ones, or any
+ * for admins. Mirrors the choices the form offers, so a forged id is rejected the same way.
+ */
+export async function usableTermsId(
+  viewer: Viewer,
+  termsId: string,
+): Promise<string | null> {
+  if (!termsId) return null;
+  const terms = await db.orm.public.Terms.where({ id: termsId })
+    .select("id", "ownerId")
+    .first();
+  if (!terms) throw new Error("terms not found");
+  const allowed =
+    terms.ownerId === null ||
+    (viewer.kind === "user" &&
+      (viewer.isAdmin || terms.ownerId === viewer.userId));
+  if (!allowed) throw new Error("not allowed to use these terms");
+  return terms.id;
 }

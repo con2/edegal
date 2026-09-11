@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  albumSubtree,
   assertPathFree,
   childPath,
   deleteAlbumSubtree,
@@ -16,6 +17,7 @@ import {
   slugForAlbum,
   sortPhotos as sortAlbumPhotos,
   type PhotoSort,
+  usableTermsId,
 } from "@/editor/albums";
 import { ensurePhotographer } from "@/editor/photographers";
 import { AlbumFormSchema, DeleteAlbumSchema } from "@/editor/schemas";
@@ -23,8 +25,8 @@ import {
   canCreateSubalbum,
   canDeleteAlbum,
   canEditAlbum,
+  canList,
   canManagePhoto,
-  canView,
 } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
 import { isAncestorOrSelf, parentPathOf } from "@/gallery/paths";
@@ -108,7 +110,7 @@ export async function createAlbum(
     ordering: form.ordering,
     eventDate: form.eventDate,
     eventMetadataUrl: form.eventMetadataUrl,
-    termsId: form.termsId || null,
+    termsId: await usableTermsId(viewer, form.termsId),
     ownerId,
   });
   await replaceCredits(album.id, credits);
@@ -171,7 +173,7 @@ export async function updateAlbum(
     ordering: form.ordering,
     eventDate: form.eventDate,
     eventMetadataUrl: form.eventMetadataUrl,
-    termsId: form.termsId || null,
+    termsId: await usableTermsId(viewer, form.termsId),
     ...(viewer.isAdmin && form.ownerId ? { ownerId: form.ownerId } : {}),
   });
   await replaceCredits(album.id, form.credits);
@@ -209,6 +211,20 @@ export async function deleteAlbum(
   if (confirmSlug !== album.slug)
     return void redirect(
       withMessage(album.path, "error", "confirmMismatch") + "&delete=1",
+    );
+  // Open albums collect other photographers' subalbums; deleting those is theirs or an admin's call.
+  const subtree = await albumSubtree(album.id, album.path);
+  const foreign = subtree.some(
+    (a) =>
+      !canDeleteAlbum(viewer, {
+        source: "v4",
+        ownerId: a.ownerId,
+        path: a.path,
+      }),
+  );
+  if (foreign)
+    return void redirect(
+      withMessage(album.path, "error", "foreignSubalbums") + "&delete=1",
     );
   const parentPath = parentPathOf(album.path);
   await deleteAlbumSubtree(album.id, album.path);
@@ -258,6 +274,15 @@ export async function setAlbumThumbnail(
     throw new Error("photo is not in this album or below it");
   if (!canEditAlbum(viewer, { source: "v4", ownerId: target.ownerId }))
     throw new Error("not allowed to edit this album");
+  // The target's tile is as public as the target; the photo must be listable to the viewer.
+  if (
+    !canList(viewer, {
+      source: "v4",
+      visibility: photo.album.visibility,
+      ownerId: photo.album.ownerId,
+    })
+  )
+    throw new Error("not allowed to show this photo");
   await db.orm.public.Album.where({ id: target.id }).update({
     thumbnailPhotoId: photo.id,
     thumbnailIsAuto: false,
@@ -295,7 +320,7 @@ export async function albumProcessingStatus(albumId: string) {
 
 /**
  * Makes any v4 photo the signed-in photographer's profile photo. The photo need not be theirs,
- * but it must be one they may see, so a forged id cannot publish a private album's photo.
+ * but it must be one they may list, so a forged id cannot publish a hidden or private album's photo.
  */
 export async function setProfilePhoto(locale: string, photoId: string) {
   const viewer = await getViewer();
@@ -306,7 +331,7 @@ export async function setProfilePhoto(locale: string, photoId: string) {
     .first();
   if (
     !photo ||
-    !canView(viewer, {
+    !canList(viewer, {
       source: "v4",
       visibility: photo.album.visibility,
       ownerId: photo.album.ownerId,

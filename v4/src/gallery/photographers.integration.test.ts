@@ -18,7 +18,8 @@ async function insertLegacyFixtures() {
     values
       (1, 'legacy-only', 'Legacy Only', 'https://legacy.example', 'legacyonly', '', '', '', '', '', '', '<p>Hi <script>x()</script></p>', null),
       (2, 'shared', 'Shared Shooter', '', '', '', '', '', '', '', '', '<p>Old intro</p>', null),
-      (3, 'nocover', 'No Cover', '', '', '', '', '', '', '', '', '', null)
+      (3, 'nocover', 'No Cover', '', '', '', '', '', '', '', '', '', null),
+      (4, 'privatecover', 'Private Cover', '', '', '', '', '', '', '', '', '', null)
   `);
   await pool.query(`
     insert into edegal_album (id, slug, path, title, description, body, is_public, is_visible, is_downloadable, redirect_url, layout, lft, rght, tree_id, level, date, parent_id, photographer_id)
@@ -27,13 +28,16 @@ async function insertLegacyFixtures() {
       (2, 'con-2019', '/con-2019', 'Con 2019', '', '', true, true, true, '', 'simple', 2, 7, 1, 1, '2019-06-22', 1, null),
       (3, 'legacy-only', '/con-2019/legacy-only', 'Legacy Only - Saturday', '', '', true, true, true, '', 'simple', 3, 4, 1, 2, '2019-06-22', 2, 1),
       (4, 'shared', '/con-2019/shared', 'Shared Shooter: Sunday', '', '', true, true, true, '', 'simple', 5, 6, 1, 2, '2019-06-23', 2, 2),
-      (5, 'nocover', '/nocover', 'No Cover', '', '', true, true, true, '', 'simple', 9, 10, 2, 1, '2019-06-23', 1, 3)
+      (5, 'nocover', '/nocover', 'No Cover', '', '', true, true, true, '', 'simple', 9, 10, 2, 1, '2019-06-23', 1, 3),
+      (6, 'photographers', '/photographers', 'Photographers', '', '<p>Meet them <script>steal()</script></p>', true, true, true, '', 'simple', 11, 12, 3, 1, null, 1, null),
+      (7, 'secret', '/secret', 'Secret', '', '', false, true, true, '', 'simple', 13, 14, 4, 1, '2019-06-23', 1, 4)
   `);
   await pool.query(`
     insert into edegal_picture (id, slug, "order", path, title, description, is_public, album_id, taken_at)
     values
       (1, 'pic-1', 10, '/con-2019/legacy-only/pic-1', 'Pic 1', '', true, 3, null),
-      (2, 'pic-2', 10, '/con-2019/shared/pic-2', 'Pic 2', '', true, 4, null)
+      (2, 'pic-2', 10, '/con-2019/shared/pic-2', 'Pic 2', '', true, 4, null),
+      (3, 'pic-3', 10, '/secret/pic-3', 'Pic 3', '', true, 7, null)
   `);
   await pool.query(`
     insert into edegal_mediaspec (id, max_width, max_height, quality, format, role, active) values
@@ -42,7 +46,8 @@ async function insertLegacyFixtures() {
   await pool.query(`
     insert into edegal_media (id, width, height, src, picture_id, spec_id, format, role) values
       (1, 360, 240, 'previews/con-2019/legacy-only/pic-1.thumbnail.jpeg', 1, 1, 'jpeg', 'thumbnail'),
-      (2, 360, 240, 'previews/con-2019/shared/pic-2.thumbnail.jpeg', 2, 1, 'jpeg', 'thumbnail')
+      (2, 360, 240, 'previews/con-2019/shared/pic-2.thumbnail.jpeg', 2, 1, 'jpeg', 'thumbnail'),
+      (3, 360, 240, 'previews/secret/pic-3.thumbnail.jpeg', 3, 1, 'jpeg', 'thumbnail')
   `);
   await pool.query(`update edegal_album set cover_picture_id = 1 where id = 3`);
   await pool.query(`update edegal_album set cover_picture_id = 2 where id = 4`);
@@ -51,6 +56,9 @@ async function insertLegacyFixtures() {
   );
   await pool.query(
     `update edegal_photographer set cover_picture_id = 2 where id = 2`,
+  );
+  await pool.query(
+    `update edegal_photographer set cover_picture_id = 3 where id = 4`,
   );
 }
 
@@ -128,9 +136,11 @@ afterAll(async () => {
 });
 
 describe("loadPhotographersIndex", () => {
-  it("tiles every photographer with a cover once, sorted by name", async () => {
+  // "Private Cover" picked a picture from a private legacy album, so it earns no tile.
+  it("tiles every photographer with a public cover once, sorted by name", async () => {
     const index = await loadPhotographersIndex();
     expect(index.kind).toBe("photographers");
+    expect(index.body).toEqual({ kind: "html", text: "<p>Meet them </p>" });
     expect(index.subalbums.map((s) => [s.path, s.title])).toEqual([
       ["/photographers/legacy-only", "Legacy Only"],
       ["/photographers/shared", "Shared Shooter"],
@@ -171,6 +181,33 @@ describe("loadPhotographerPageBySlug", () => {
       ["/con-2026/shared", "Con 2026 » Friday"],
       ["/con-2019/shared", "Con 2019 » Sunday"],
     ]);
+  });
+
+  it("shows no cover when the chosen photo is in a non-public album", async () => {
+    expect(
+      (await loadPhotographerPageBySlug("privatecover"))?.cover,
+    ).toBeNull();
+    const album = await db.orm.public.Album.where({
+      path: "/con-2026/shared",
+    }).first();
+    await db.orm.public.Album.where({ id: album!.id }).update({
+      visibility: "private",
+    });
+    try {
+      // The merged page falls back to the public legacy cover instead of the private v4 photo.
+      expect((await loadPhotographerPageBySlug("shared"))?.cover?.path).toBe(
+        "/con-2019/shared/pic-2",
+      );
+      // Likewise the index tile comes from the legacy cover, not the private v4 photo.
+      const tile = (await loadPhotographersIndex()).subalbums.find(
+        (s) => s.path === "/photographers/shared",
+      );
+      expect(tile?.thumbnail?.fallback.src).toContain("pic-2.thumbnail.jpeg");
+    } finally {
+      await db.orm.public.Album.where({ id: album!.id }).update({
+        visibility: "public",
+      });
+    }
   });
 
   it("returns null for slugs no photographer has", async () => {

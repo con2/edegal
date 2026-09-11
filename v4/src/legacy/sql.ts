@@ -192,7 +192,9 @@ export async function legacyPhotographerTiles(): Promise<
     `select p.id, p.slug, p.display_name,
        (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id) as cover_media
      from edegal_photographer p
-     where p.cover_picture_id is not null
+     join edegal_picture cp on cp.id = p.cover_picture_id
+     join edegal_album ca on ca.id = cp.album_id
+     where cp.is_public and ca.is_public and ca.is_visible
      order by p.display_name`,
   );
   return rows.filter((r) => r.cover_media && r.cover_media.length > 0);
@@ -203,7 +205,9 @@ export async function legacyPhotographerById(
 ): Promise<LegacyPhotographerPageRow | null> {
   const { rows } = await pool.query<LegacyPhotographerPageRow>(
     `select ${photographerColumns}, p.email, p.body,
-       (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id) as cover_media,
+       case when cp.is_public and ca.is_public and ca.is_visible
+         then (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id)
+       end as cover_media,
        cp.path as cover_path, cph.display_name as cover_credit_name, cph.slug as cover_credit_slug
      from edegal_photographer p
      left join edegal_picture cp on cp.id = p.cover_picture_id

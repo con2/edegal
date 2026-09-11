@@ -224,6 +224,9 @@ const translations = {
     errors: {
       pathTaken: "An album or photo with this address already exists.",
       invalidParent: "The chosen parent album is not available.",
+      confirmMismatch: "The slug you typed does not match the album.",
+      foreignSubalbums:
+        "This album contains albums owned by other photographers. They must delete theirs first, or ask an admin.",
       forbidden: "You do not have permission to do this.",
       invalid: "Please check the form.",
     },

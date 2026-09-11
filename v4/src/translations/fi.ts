@@ -223,6 +223,9 @@ const translations: Translations = {
     errors: {
       pathTaken: "Tässä osoitteessa on jo albumi tai kuva.",
       invalidParent: "Valittu yläalbumi ei ole käytettävissä.",
+      confirmMismatch: "Kirjoittamasi osoitetunnus ei vastaa albumia.",
+      foreignSubalbums:
+        "Albumissa on toisten kuvaajien omistamia albumeita. Heidän täytyy poistaa omansa ensin, tai pyydä adminia.",
       forbidden: "Sinulla ei ole oikeutta tähän.",
       invalid: "Tarkista lomake.",
     },

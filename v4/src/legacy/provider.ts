@@ -74,6 +74,14 @@ export function toCredit(
 }
 
 /** Legacy bodies are prose-editor HTML; strip anything the editor would not have produced. */
+/** The only way legacy HTML may reach `dangerouslySetInnerHTML`. */
+export function legacyHtmlBody(html: string | null | undefined): {
+  kind: "html";
+  text: string;
+} {
+  return { kind: "html", text: html ? sanitizeBody(html) : "" };
+}
+
 function sanitizeBody(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "h1", "h2"]),
@@ -167,7 +175,7 @@ export async function loadLegacyAlbum(
     path: album.path,
     title: album.title,
     description: album.description,
-    body: { kind: "html", text: album.body ? sanitizeBody(album.body) : "" },
+    body: legacyHtmlBody(album.body),
     cover: null,
     date: album.date,
     layout: album.layout === "yearly" ? "yearly" : "simple",
@@ -213,7 +221,7 @@ export async function loadLegacySeries(
     path: series.path,
     title: series.title,
     description: series.description,
-    body: { kind: "html", text: series.body ? sanitizeBody(series.body) : "" },
+    body: legacyHtmlBody(series.body),
     cover: null,
     date: null,
     layout: "simple",
@@ -310,10 +318,7 @@ export async function loadLegacyPhotographerPage(
     path: `/photographers/${photographer.slug}`,
     title: photographer.display_name,
     description: "",
-    body: {
-      kind: "html",
-      text: photographer.body ? sanitizeBody(photographer.body) : "",
-    },
+    body: legacyHtmlBody(photographer.body),
     cover: legacyCover(photographer),
     date: null,
     layout: "yearly",

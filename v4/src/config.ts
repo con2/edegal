@@ -3,11 +3,29 @@
  * deployment chart and this file are the only two places that know variable names.
  */
 
+// `next build` imports these modules to collect page data with NODE_ENV=production but without
+// the deployment's secrets; only a running server or worker must have them.
+const production =
+  process.env.NODE_ENV === "production" &&
+  process.env.NEXT_PHASE !== "phase-production-build";
+
 function env(name: string, fallback: string): string {
   return process.env[name] || fallback;
 }
 
-export const databaseUrl = env(
+/**
+ * Development gets a working default; production must set the variable. Booting with a
+ * default secret would let anyone forge sessions, and a default database URL would silently
+ * point production at nothing, so the process refuses to start instead.
+ */
+function secretEnv(name: string, devFallback: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (production) throw new Error(`${name} must be set in production`);
+  return devFallback;
+}
+
+export const databaseUrl = secretEnv(
   "DATABASE_URL",
   "postgresql://edegal:photos@localhost:5432/edegal",
 );
@@ -21,7 +39,7 @@ export const mediaRoot = env("MEDIA_ROOT", "./media");
 export const mediaBaseUrl = env("MEDIA_BASE_URL", "/media").replace(/\/$/, "");
 
 export const publicUrl = env("NEXTAUTH_URL", "http://localhost:3160");
-export const authSecret = env("AUTH_SECRET", "insecure-dev-secret");
+export const authSecret = secretEnv("AUTH_SECRET", "insecure-dev-secret");
 
 export const kompassiBaseUrl = env(
   "KOMPASSI_BASE_URL",
@@ -29,11 +47,11 @@ export const kompassiBaseUrl = env(
 );
 export const kompassiOidc = {
   wellKnown: `${kompassiBaseUrl}/oidc/.well-known/openid-configuration/`,
-  clientId: env(
+  clientId: secretEnv(
     "KOMPASSI_OIDC_CLIENT_ID",
     "kompassi-dev-client-id-uusi-larppikuvat-fi",
   ),
-  clientSecret: env(
+  clientSecret: secretEnv(
     "KOMPASSI_OIDC_CLIENT_SECRET",
     "kompassi-dev-client-secret-uusi-larppikuvat-fi-insecure",
   ),

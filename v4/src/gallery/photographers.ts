@@ -1,5 +1,6 @@
 import { legacyEnabled } from "@/config";
 import {
+  legacyHtmlBody,
   legacyPhotographerSubalbums,
   loadLegacyPhotographerPage,
 } from "@/legacy/provider";
@@ -29,7 +30,7 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
         a.include("thumbnailPhoto", (t) => t.include("media")),
       ),
   )
-    .include("coverPhoto", (p) => p.include("media"))
+    .include("coverPhoto", (p) => p.include("media").include("album"))
     .orderBy((p) => p.displayName.asc())
     .all();
   return photographers.flatMap((photographer) => {
@@ -39,7 +40,7 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
       .sort((a, b) => (a.eventDate < b.eventDate ? 1 : -1));
     const newest = albums[0];
     const thumbnail =
-      (photographer.coverPhoto
+      (photographer.coverPhoto?.album.visibility === "public"
         ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
         : null) ??
       (newest?.thumbnailPhoto
@@ -82,7 +83,7 @@ export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
     path: photographersPath,
     title: "Photographers",
     description: "",
-    body: { kind: "html", text: intro?.body ?? "" },
+    body: legacyHtmlBody(intro?.body),
     cover: null,
     date: null,
     layout: "simple",
@@ -126,9 +127,11 @@ export async function loadV4PhotographerPage(
     )
     .first();
   if (!photographer) return null;
-  const coverMedia = photographer.coverPhoto
-    ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
-    : null;
+  // The profile page is public, so a photo picked from a non-public album stays off it.
+  const coverMedia =
+    photographer.coverPhoto?.album.visibility === "public"
+      ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
+      : null;
   const cover: CoverVM | null =
     photographer.coverPhoto && coverMedia
       ? {

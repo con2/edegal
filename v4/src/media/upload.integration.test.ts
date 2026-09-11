@@ -80,6 +80,13 @@ describe("photo upload and processing", () => {
     expect(await claimJob()).toBeNull();
   });
 
+  // Photos outrank albums in path resolution, so a photo named like a subalbum would hide it.
+  it("refuses a photo whose path would shadow a subalbum", async () => {
+    await db.orm.public.Album.create({ parentId: albumId, slug: "shadow", path: "/uploads/shadow", title: "Shadow" });
+    expect((await POST(request(albumId, "shadow.jpg", await jpeg(10, 10)), { params: Promise.resolve({ albumId }) })).status).toBe(409);
+    expect(await db.orm.public.Photo.where({ path: "/uploads/shadow" }).first()).toBeNull();
+  });
+
   it("rejects duplicates, unsupported files and oversized declarations", async () => {
     expect((await POST(request(albumId, "img_0001.jpg", await jpeg(10, 10)), { params: Promise.resolve({ albumId }) })).status).toBe(409);
     expect((await POST(request(albumId, "notes.txt", Buffer.from("hello"), "text/plain"), { params: Promise.resolve({ albumId }) })).status).toBe(415);

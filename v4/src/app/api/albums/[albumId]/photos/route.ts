@@ -1,3 +1,4 @@
+import { assertPathFree, PathTakenError } from "@/editor/albums";
 import { canUpload } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
 import { touchAlbum } from "@/gallery/v4/touch";
@@ -55,6 +56,13 @@ export async function POST(
   if (existing) return fail("exists", 409);
 
   const photoPath = `${album.path === "/" ? "" : album.path}/${slug}`;
+  // A photo path must not shadow an album or legacy content: photos win in path resolution.
+  try {
+    await assertPathFree(photoPath);
+  } catch (error) {
+    if (error instanceof PathTakenError) return fail("exists", 409);
+    throw error;
+  }
   // Storage keys are derived from the path at upload time and never move; a renamed-away album
   // may have left files behind under the same key, so fall back to a unique key base.
   const keyTaken = await db.orm.public.Media.where({
