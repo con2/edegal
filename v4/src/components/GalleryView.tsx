@@ -45,10 +45,26 @@ export function GalleryView({
     pathname === album.path || album.photos.some((p) => p.path === pathname);
   const currentPath = belongsToAlbum ? pathname : initialPath;
 
-  const navigate = useCallback((path: string, mode: "push" | "replace") => {
-    if (mode === "push") window.history.pushState(null, "", path);
-    else window.history.replaceState(null, "", path);
-  }, []);
+  const navigate = useCallback(
+    (path: string, mode: "push" | "replace") => {
+      if (mode === "replace") {
+        window.history.replaceState(window.history.state, "", path);
+        return;
+      }
+      // Closing a photo that was opened from this album's grid goes back in history, so the
+      // browser restores the grid's scroll position as it does for the back button.
+      if (path === album.path && window.history.state?.openedFromAlbum) {
+        window.history.back();
+        return;
+      }
+      window.history.pushState(
+        { openedFromAlbum: path !== album.path },
+        "",
+        path,
+      );
+    },
+    [album.path],
+  );
 
   const index = album.photos.findIndex((p) => p.path === currentPath);
   const photo = index >= 0 ? album.photos[index] : null;
