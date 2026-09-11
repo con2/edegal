@@ -5,6 +5,7 @@ import {
   canDeleteAlbum,
   canEditAlbum,
   canList,
+  canSeePhoto,
   canUpload,
   canView,
 } from "./access";
@@ -71,6 +72,22 @@ describe("canList", () => {
     expect(canList(owner, v4("hidden"))).toBe(true);
     expect(canList(admin, v4("hidden"))).toBe(true);
     expect(canList(photographer, legacy("hidden"))).toBe(true);
+  });
+});
+
+describe("canSeePhoto", () => {
+  it("shows non-public legacy pictures to staff, like Django's is_staff", () => {
+    expect(canSeePhoto(photographer, legacy("public"), "private")).toBe(true);
+    expect(canSeePhoto(anonymous, legacy("public"), "private")).toBe(false);
+  });
+
+  // Photographers are not staff over each other's v4 content.
+  it("shows non-public v4 photos only to the album owner and admins", () => {
+    expect(canSeePhoto(owner, v4("public"), "private")).toBe(true);
+    expect(canSeePhoto(admin, v4("public"), "hidden")).toBe(true);
+    expect(canSeePhoto(photographer, v4("public"), "private")).toBe(false);
+    expect(canSeePhoto(photographer, v4("public"), "hidden")).toBe(false);
+    expect(canSeePhoto(anonymous, v4("public"), "public")).toBe(true);
   });
 });
 

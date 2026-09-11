@@ -37,6 +37,18 @@ export function canList(viewer: Viewer, item: Guarded): boolean {
   );
 }
 
+/**
+ * A non-public photo is shown to whoever could list a non-public album with the same owner:
+ * staff for legacy content, the owner and admins for v4 content.
+ */
+export function canSeePhoto(
+  viewer: Viewer,
+  album: { source: ContentSource; ownerId: string | null },
+  photoVisibility: Visibility,
+): boolean {
+  return canList(viewer, { ...album, visibility: photoVisibility });
+}
+
 export function canEditAlbum(
   viewer: Viewer,
   album: { source: ContentSource; ownerId: string | null },

@@ -1,4 +1,4 @@
-import { canList, canView, isStaff } from "./access";
+import { canList, canSeePhoto, canView } from "./access";
 import type { AlbumPageVM, ClientAlbumPage } from "./types";
 import type { Viewer } from "./viewer";
 
@@ -30,6 +30,6 @@ export function applyVisibility(
         }),
       )
       .map(({ ownerId: _o, ...s }) => s),
-    photos: photos.filter((p) => p.visibility === "public" || isStaff(viewer)),
+    photos: photos.filter((p) => canSeePhoto(viewer, vm, p.visibility)),
   };
 }
