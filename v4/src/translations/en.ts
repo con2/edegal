@@ -184,6 +184,11 @@ const translations = {
       openForSubalbumsHelp:
         "Any photographer may create their own subalbums under this album and upload photos to them. Typical for the main album of an event. Leave off for your personal albums.",
       isDownloadable: "Visitors may download originals and the whole album",
+      layout: "Layout",
+      layoutHelp:
+        "Yearly groups the subalbums under a heading per year; use it for albums that collect events over time, such as the front page.",
+      layoutSimple: "Simple grid",
+      layoutYearly: "Grouped by year",
       ordering: "Ordering number",
       orderingHelp:
         "Subalbums with a smaller number come first; equal numbers are ordered by date.",

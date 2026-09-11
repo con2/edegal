@@ -10,6 +10,13 @@ native_enum AlbumVisibility {
   @@map("v4_album_visibility")
 }
 
+native_enum AlbumLayout {
+  simple = "simple"
+  yearly = "yearly"
+
+  @@map("v4_album_layout")
+}
+
 native_enum MediaRole {
   original = "original"
   preview = "preview"
@@ -113,6 +120,7 @@ model Album {
   title              String
   body               String                     @default("")
   visibility         pg.enum(AlbumVisibility)   @default("public")
+  layout             pg.enum(AlbumLayout)       @default("simple")
   isOpenForSubalbums Boolean                    @default(false) @map("is_open_for_subalbums")
   eventMetadataUrl   String                     @default("") @map("event_metadata_url")
   ordering           Int                        @default(0)

@@ -57,6 +57,7 @@ export const AlbumFormSchema = z.object({
   slug,
   eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   visibility: z.enum(["public", "hidden", "private"]),
+  layout: z.enum(["simple", "yearly"]).default("simple"),
   isOpenForSubalbums: checkbox,
   isDownloadable: checkbox,
   ordering: z.coerce.number().int().min(-1_000_000).max(1_000_000).default(0),

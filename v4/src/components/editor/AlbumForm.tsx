@@ -11,6 +11,7 @@ export interface AlbumFormValues {
   slug: string;
   eventDate: string;
   visibility: "public" | "hidden" | "private";
+  layout: "simple" | "yearly";
   isOpenForSubalbums: boolean;
   isDownloadable: boolean;
   ordering: number;
@@ -179,6 +180,18 @@ export function AlbumForm({
             </Field>
           </div>
         </div>
+
+        <Field id="AlbumForm-layout" label={f.layout} help={f.layoutHelp}>
+          <select
+            className="form-select"
+            id="AlbumForm-layout"
+            name="layout"
+            defaultValue={values.layout}
+          >
+            <option value="simple">{f.layoutSimple}</option>
+            <option value="yearly">{f.layoutYearly}</option>
+          </select>
+        </Field>
 
         <fieldset className="mb-3">
           <legend className="form-label fs-6">{f.visibility}</legend>

@@ -96,6 +96,16 @@
                   "kind": "scalar"
                 }
               },
+              "layout": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "v4_album_layout"
+                  }
+                }
+              },
               "ordering": {
                 "nullable": false,
                 "type": {
@@ -306,6 +316,9 @@
                 },
                 "isOpenForSubalbums": {
                   "column": "is_open_for_subalbums"
+                },
+                "layout": {
+                  "column": "layout"
                 },
                 "ordering": {
                   "column": "ordering"
@@ -1394,6 +1407,14 @@
       "public": {
         "entries": {
           "native_enum": {
+            "v4_album_layout": {
+              "kind": "postgres-enum",
+              "members": [
+                "simple",
+                "yearly"
+              ],
+              "typeName": "v4_album_layout"
+            },
             "v4_album_visibility": {
               "kind": "postgres-enum",
               "members": [
@@ -1494,6 +1515,24 @@
                   },
                   "nativeType": "bool",
                   "nullable": false
+                },
+                "layout": {
+                  "codecId": "pg/enum@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "simple"
+                  },
+                  "nativeType": "v4_album_layout",
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "v4_album_layout"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AlbumLayout",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "ordering": {
                   "codecId": "pg/int4@1",
@@ -2558,6 +2597,13 @@
             }
           },
           "valueSet": {
+            "AlbumLayout": {
+              "kind": "valueSet",
+              "values": [
+                "simple",
+                "yearly"
+              ]
+            },
             "AlbumVisibility": {
               "kind": "valueSet",
               "values": [
@@ -2598,7 +2644,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "d39467c6b8b2db2922473ea4cc7236c2b9601b57504daecedd255ef6be8d303a"
+    "storageHash": "3ec1af1ead9090828f9dce8167ba5010b8eb55e22d40c6e099ff592f28cbcb73"
   },
   "execution": {
     "executionHash": "257459898a35085a251ab9d3a93bfd2ad3a89c61f7794668d0a98318be55788c",

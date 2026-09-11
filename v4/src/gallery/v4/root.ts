@@ -18,5 +18,6 @@ export async function ensureRootAlbum(): Promise<void> {
     slug: "",
     path: "/",
     title: legacyRoot?.title ?? "Gallery",
+    layout: legacyRoot?.layout === "yearly" ? "yearly" : "simple",
   });
 }

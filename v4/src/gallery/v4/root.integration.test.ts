@@ -12,7 +12,7 @@ beforeAll(async () => {
   await pool.query(`truncate edegal_album cascade`);
   await pool.query(`
     insert into edegal_album (id, slug, path, title, description, body, is_public, is_visible, is_downloadable, redirect_url, layout, lft, rght, tree_id, level, date, parent_id)
-    values (1, '', '/', 'Larppikuvat.fi', 'Photos of larps', '<p>Welcome</p>', true, true, true, '', 'simple', 1, 2, 1, 0, null, null)
+    values (1, '', '/', 'Larppikuvat.fi', 'Photos of larps', '<p>Welcome</p>', true, true, true, '', 'yearly', 1, 2, 1, 0, null, null)
   `);
 });
 
@@ -26,7 +26,9 @@ describe("ensureRootAlbum", () => {
     await ensureRootAlbum();
     await ensureRootAlbum();
     const roots = await db.orm.public.Album.where({ path: "/" }).all();
-    expect(roots.map((r) => r.title)).toEqual(["Larppikuvat.fi"]);
+    expect(roots.map((r) => [r.title, r.layout])).toEqual([
+      ["Larppikuvat.fi", "yearly"],
+    ]);
   });
 
   it("serves the legacy body on the front page until the v4 root has one", async () => {

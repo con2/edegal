@@ -1,0 +1,66 @@
+[
+  {
+    "id": "createNativeEnumType.v4_album_layout",
+    "label": "Create enum type \"v4_album_layout\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_album_layout"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"v4_album_layout\"",
+        "sql": "CREATE TYPE \"public\".\"v4_album_layout\" AS ENUM ('simple', 'yearly')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "column.public.v4_album.layout",
+    "label": "Add column \"layout\" to \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "layout",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"layout\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "layout"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"layout\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\" ADD COLUMN \"layout\" \"v4_album_layout\" DEFAULT 'simple'::\"v4_album_layout\" NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"layout\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "layout"
+        ]
+      }
+    ]
+  }
+]

@@ -136,7 +136,7 @@ export async function loadV4Album(
     body: { kind: "markdown", text: album.body },
     cover: null,
     date: album.eventDate,
-    layout: "simple",
+    layout: album.layout,
     visibility: album.visibility,
     ownerId: album.ownerId,
     isOpenForSubalbums: album.isOpenForSubalbums,

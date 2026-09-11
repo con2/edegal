@@ -183,6 +183,11 @@ const translations: Translations = {
         "Kuka tahansa kuvaaja voi luoda tämän albumin alle omia alialbumeja ja ladata niihin kuvia. Tyypillistä tapahtuman pääalbumille. Jätä pois omista albumeistasi.",
       isDownloadable:
         "Vierailijat voivat ladata alkuperäiset kuvat ja koko albumin",
+      layout: "Asettelu",
+      layoutHelp:
+        "Vuosittainen ryhmittelee alialbumit vuosiotsikoiden alle; sopii albumeille, jotka keräävät tapahtumia vuosien mittaan, kuten etusivulle.",
+      layoutSimple: "Yksinkertainen ruudukko",
+      layoutYearly: "Vuosittain ryhmitelty",
       ordering: "Järjestysnumero",
       orderingHelp:
         "Pienemmän numeron alialbumit ensin; samat numerot järjestetään päivän mukaan.",
