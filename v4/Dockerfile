@@ -3,6 +3,10 @@ WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# Production dependencies for the worker, pruned from the full install instead of installed again.
+FROM deps AS prod-deps
+RUN npm prune --omit=dev
+
 FROM node:24 AS builder
 WORKDIR /usr/src/app
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -36,9 +40,8 @@ CMD ["node", "src/bin/migrate.mjs", "db", "migrate"]
 FROM node:24-slim AS worker
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
-COPY tsconfig.json prisma.config.ts ./
+COPY --from=prod-deps /usr/src/app/node_modules ./node_modules
+COPY package.json tsconfig.json prisma.config.ts ./
 COPY src src
 CMD ["node_modules/.bin/tsx", "src/bin/worker.ts"]
 
