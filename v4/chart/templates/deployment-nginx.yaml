@@ -6,13 +6,20 @@ metadata:
     {{- include "v4.labels" . | nindent 4 }}
 data:
   default.conf: |
+    server_tokens off;
     server {
       listen 8080;
       server_name _;
+      # Same origin as the app: a stray HTML or SVG on the export must not run as a page.
+      add_header X-Content-Type-Options nosniff always;
+      location ~ /\. {
+        deny all;
+      }
       location /media/ {
         alias /media/;
         expires 30d;
-        add_header Cache-Control "public";
+        add_header Cache-Control "public" always;
+        add_header X-Content-Type-Options nosniff always;
         try_files $uri =404;
       }
       location = /nginx-health {
@@ -38,17 +45,26 @@ spec:
         component: nginx
     spec:
       enableServiceLinks: false
+      automountServiceAccountToken: false
       securityContext:
         runAsUser: 1082
         runAsGroup: 1082
         fsGroup: 1082
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: nginx
           image: nginxinc/nginx-unprivileged:1-alpine
           ports:
             - containerPort: 8080
+          resources:
+            {{- toYaml .Values.resources.nginx | nindent 12 }}
           securityContext:
+            readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           readinessProbe:
             httpGet:
               path: /nginx-health
@@ -60,7 +76,15 @@ spec:
             - name: config
               mountPath: /etc/nginx/conf.d/default.conf
               subPath: default.conf
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /var/cache/nginx
       volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
         - name: media
           nfs:
             server: {{ .Values.mediaNfs.server }}

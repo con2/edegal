@@ -3,6 +3,7 @@ import { loadLegacyAlbum, loadLegacySeries } from "@/legacy/provider";
 import { resolveLegacyUpstreamRedirect } from "@/legacy/redirects";
 import { legacyAlbumByPath } from "@/legacy/sql";
 
+import { canView } from "./access";
 import { cachedAlbum } from "./cache";
 import { resolvePath } from "./resolve";
 import type {
@@ -83,8 +84,11 @@ export async function loadGalleryPage(
 
   const loaded = await loadResolved(resolution);
   if (!loaded) return { kind: "not-found" };
-  if (resolution.kind === "album" && loaded.redirectUrl)
+  if (resolution.kind === "album" && loaded.redirectUrl) {
+    // A redirect reveals the album exists and where it went; private albums keep that to staff.
+    if (!canView(viewer, loaded)) return { kind: "not-found" };
     return { kind: "redirect", to: loaded.redirectUrl };
+  }
 
   const merged = await withLegacyRootSubalbums(loaded);
   return presentAlbumPage(

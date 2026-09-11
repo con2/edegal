@@ -251,6 +251,7 @@ const translations: Translations = {
     clear: "Tyhjennä valmiit",
     errors: {
       tooLarge: "Yli 100 Mt",
+      tooManyPixels: "Yli 100 megapikseliä",
       unsupported: "Ei JPEG-, PNG- tai WebP-kuva (HEIC ei ole tuettu)",
       exists: "Albumissa on jo tämän niminen kuva",
       forbidden: "Ei sallittu",

@@ -57,6 +57,29 @@ export async function replaceCredits(
  * Moves an album to a new path together with every descendant album and photo. Storage keys are
  * left alone: files never move.
  */
+/**
+ * Before a move or rename, checks that every descendant album and photo lands on a free path.
+ * The unique index would catch v4 collisions anyway, but legacy content is only found this way.
+ */
+export async function assertSubtreePathsFree(
+  oldPath: string,
+  newPath: string,
+): Promise<void> {
+  if (oldPath === newPath) return;
+  const [albums, photos] = await Promise.all([
+    db.orm.public.Album.where((a) => a.path.like(`${oldPath}/%`))
+      .select("id", "path")
+      .all(),
+    db.orm.public.Photo.where((p) => p.path.like(`${oldPath}/%`))
+      .select("path")
+      .all(),
+  ]);
+  for (const album of albums)
+    await assertPathFree(newPath + album.path.slice(oldPath.length), album.id);
+  for (const photo of photos)
+    await assertPathFree(newPath + photo.path.slice(oldPath.length));
+}
+
 export async function moveAlbumPath(
   albumId: string,
   oldPath: string,
@@ -116,21 +139,27 @@ export async function deleteAlbumSubtree(
   const photos = await db.orm.public.Photo.where((p) => p.albumId.in(albumIds))
     .include("media")
     .all();
-  for (const photo of photos) {
-    for (const media of photo.media)
-      await mediaStorage.delete(media.storageKey);
-  }
-  for (const album of subtree) {
-    await db.orm.public.Album.where({ id: album.id }).delete();
-  }
+  // Rows go first, in one transaction: a leftover file is harmless, a row pointing at a
+  // deleted file is a permanently broken photo.
+  await db.transaction(async (tx) => {
+    for (const album of subtree)
+      await tx.orm.public.Album.where({ id: album.id }).delete();
+  });
+  await deleteStorageKeys(
+    photos.flatMap((p) => p.media.map((m) => m.storageKey)),
+  );
   return { albums: subtree.length, photos: photos.length };
 }
 
-export async function deletePhotoFiles(photoId: string): Promise<void> {
+export async function photoStorageKeys(photoId: string): Promise<string[]> {
   const media = await db.orm.public.Media.where({ photoId })
     .select("storageKey")
     .all();
-  for (const m of media) await mediaStorage.delete(m.storageKey);
+  return media.map((m) => m.storageKey);
+}
+
+export async function deleteStorageKeys(keys: string[]): Promise<void> {
+  for (const key of keys) await mediaStorage.delete(key);
 }
 
 export type PhotoSort = "takenAt" | "filename";

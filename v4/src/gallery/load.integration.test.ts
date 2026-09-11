@@ -5,6 +5,7 @@ import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
 import { resolvePath } from "./resolve";
+import { v4PublicPhotoCount, v4RandomPublicPhotoPath } from "./v4/provider";
 import type { Viewer } from "./viewer";
 
 const anonymous: Viewer = { kind: "anonymous" };
@@ -29,7 +30,8 @@ async function insertLegacyFixtures() {
       (3, 'hidden', '/legacy-event/hidden', 'Hidden legacy', '', '', true, false, true, '', 'simple', 3, 4, 1, 2, '2019-06-22', 2),
       (4, 'private', '/legacy-event/private', 'Private legacy', '', '', false, true, true, '', 'simple', 5, 6, 1, 2, '2019-06-22', 2),
       (5, 'shared', '/shared', 'Legacy shared', '', '', true, true, true, '', 'simple', 8, 9, 1, 1, '2018-01-01', 1),
-      (6, 'old-name', '/old-name', 'Moved', '', '', true, true, true, '/legacy-event', 'simple', 11, 12, 2, 1, null, 1)
+      (6, 'old-name', '/old-name', 'Moved', '', '', true, true, true, '/legacy-event', 'simple', 11, 12, 2, 1, null, 1),
+      (7, 'secret-move', '/secret-move', 'Secret move', '', '', false, true, true, '/legacy-event', 'simple', 13, 14, 3, 1, null, 1)
   `);
   await pool.query(`
     insert into edegal_termsandconditions (id, digest, text, is_public, url, user_id)
@@ -83,12 +85,18 @@ async function insertV4Fixtures() {
     title: "V4 shared",
     eventDate: "2026-01-01",
   });
-  await db.orm.public.Album.create({
+  const secret = await db.orm.public.Album.create({
     parentId: root.id,
     slug: "secret",
     path: "/secret",
     title: "V4 private",
     visibility: "private",
+  });
+  await db.orm.public.Photo.create({
+    albumId: secret.id,
+    slug: "hidden-1",
+    path: "/secret/hidden-1",
+    title: "Hidden 1",
   });
   const photo = await db.orm.public.Photo.create({
     albumId: shared.id,
@@ -162,6 +170,28 @@ describe("resolvePath", () => {
       source: "v4",
     });
     expect(await resolvePath("/nope")).toBeNull();
+  });
+});
+
+describe("visibility of redirects and random picks", () => {
+  // A redirect discloses the album and its destination; a private one shows neither to visitors.
+  it("follows a private legacy redirect only for staff", async () => {
+    expect(await loadGalleryPage("/secret-move", anonymous)).toEqual({
+      kind: "not-found",
+    });
+    expect(await loadGalleryPage("/secret-move", staff)).toEqual({
+      kind: "redirect",
+      to: "/legacy-event",
+    });
+    expect(await loadGalleryPage("/old-name", anonymous)).toEqual({
+      kind: "redirect",
+      to: "/legacy-event",
+    });
+  });
+
+  it("counts and samples only photos in public v4 albums", async () => {
+    expect(await v4PublicPhotoCount()).toBe(1);
+    expect(await v4RandomPublicPhotoPath()).toBe("/shared/img-1");
   });
 });
 

@@ -24,6 +24,23 @@ legacyAdminUrl: https://conikuvat.fi/admin/
 # Parallel image conversions in the media worker (AVIF encoding is CPU heavy).
 workerConcurrency: 2
 
+# Sized from production usage (node 140-530 MiB, worker 100-220 MiB idle, nginx mostly page cache).
+# An upload holds up to 100 MB of body plus the decoded image (about 4 bytes per pixel, capped at
+# 100 megapixels), and the worker decodes `workerConcurrency` images at once.
+resources:
+  node:
+    requests: {cpu: 100m, memory: 512Mi}
+    limits: {cpu: "2", memory: 2Gi}
+  worker:
+    requests: {cpu: 100m, memory: 512Mi}
+    limits: {cpu: "2", memory: 2Gi}
+  migrate:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: "1", memory: 512Mi}
+  nginx:
+    requests: {cpu: 20m, memory: 64Mi}
+    limits: {cpu: "1", memory: 512Mi}
+
 # THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
 # DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET
 # and the chart skips creating its own.

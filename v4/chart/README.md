@@ -16,6 +16,20 @@ kubectl -n conikuvat-v4 create secret generic v4 \
 ```
 
 The Kompassi OIDC client must allow the redirect URI `https://<hostname>/api/auth/callback/kompassi`.
+All four keys are mandatory: the server refuses to start without them rather than falling back
+to development defaults.
+
+**Never run `prisma db update` or `db init` against these databases.** They share the schema
+with the legacy Django tables, and `db update` plans `DROP TABLE` for every table the contract
+does not know about. The migration init container only ever runs `migration check` and
+`db migrate`.
+
+## Resources
+
+`resources.*` in values sets requests and limits per container. The defaults were sized from
+production usage with headroom for one 100 MB upload decoding at up to 100 megapixels in the web
+process, and `workerConcurrency` such decodes in the worker. nginx memory is mostly reclaimable
+page cache from the NFS export.
 
 ## Worker
 

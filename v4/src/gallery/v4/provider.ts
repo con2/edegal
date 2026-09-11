@@ -10,6 +10,7 @@ import { pathPrefixes } from "@/gallery/paths";
 import { formatPreference } from "@/media/specs";
 import { mediaUrl } from "@/media/url";
 import { pgTimestampToIso } from "@/lib/time";
+import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
 interface MediaRow {
@@ -166,19 +167,22 @@ export async function loadV4Album(
   };
 }
 
+/** Photos in public albums; hidden and private albums are not sampled for /random. */
 export async function v4PublicPhotoCount(): Promise<number> {
-  const result = await db.orm.public.Photo.aggregate((a) => ({ n: a.count() }));
-  return result.n;
+  const { rows } = await pool.query<{ n: string }>(
+    `select count(*) as n from v4_photo p join v4_album a on a.id = p.album_id where a.visibility = 'public'`,
+  );
+  return Number(rows[0]?.n ?? 0);
 }
 
 export async function v4RandomPublicPhotoPath(): Promise<string | null> {
   const count = await v4PublicPhotoCount();
   if (count === 0) return null;
-  const rows = await db.orm.public.Photo.select("path")
-    .orderBy((p) => p.id.asc())
-    .offset(Math.floor(Math.random() * count))
-    .limit(1)
-    .all();
+  const { rows } = await pool.query<{ path: string }>(
+    `select p.path from v4_photo p join v4_album a on a.id = p.album_id
+     where a.visibility = 'public' order by p.id offset $1 limit 1`,
+    [Math.floor(Math.random() * count)],
+  );
   return rows[0]?.path ?? null;
 }
 

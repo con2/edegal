@@ -18,11 +18,15 @@ spec:
         component: node
     spec:
       enableServiceLinks: false
+      automountServiceAccountToken: false
       securityContext:
         # Matches the owner of the existing media files on the NFS export.
         runAsUser: 1082
         runAsGroup: 1082
         fsGroup: 1082
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         - name: migrate
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-migrate"
@@ -32,9 +36,13 @@ spec:
                 name: v4
             - secretRef:
                 name: {{ include "v4.secretName" . }}
+          resources:
+            {{- toYaml .Values.resources.migrate | nindent 12 }}
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: tmp
               mountPath: /tmp
@@ -48,9 +56,13 @@ spec:
                 name: v4
             - secretRef:
                 name: {{ include "v4.secretName" . }}
+          resources:
+            {{- toYaml .Values.resources.node | nindent 12 }}
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           startupProbe:
             httpGet:
               path: /api/health

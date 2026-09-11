@@ -80,6 +80,27 @@ describe("photo upload and processing", () => {
     expect(await claimJob()).toBeNull();
   });
 
+  // Without Content-Length the size is only known while reading, so the cap must apply mid-stream.
+  it("rejects a chunked body that grows past the limit", async () => {
+    const chunk = new Uint8Array(1024 * 1024);
+    let sent = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (sent >= 101) return controller.close();
+        sent += 1;
+        controller.enqueue(chunk);
+      },
+    });
+    const chunked = new Request(`http://test/api/albums/${albumId}/photos`, {
+      method: "POST",
+      headers: { "content-type": "image/jpeg", "x-file-name": "chunked.jpg" },
+      body,
+      // @ts-expect-error Node's fetch requires duplex for streaming bodies; the type omits it.
+      duplex: "half",
+    });
+    expect((await POST(chunked, { params: Promise.resolve({ albumId }) })).status).toBe(413);
+  });
+
   // Photos outrank albums in path resolution, so a photo named like a subalbum would hide it.
   it("refuses a photo whose path would shadow a subalbum", async () => {
     await db.orm.public.Album.create({ parentId: albumId, slug: "shadow", path: "/uploads/shadow", title: "Shadow" });

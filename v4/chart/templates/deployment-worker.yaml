@@ -19,11 +19,15 @@ spec:
         component: worker
     spec:
       enableServiceLinks: false
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 120
       securityContext:
         runAsUser: 1082
         runAsGroup: 1082
         fsGroup: 1082
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-worker"
@@ -35,9 +39,13 @@ spec:
           env:
             - name: WORKER_CONCURRENCY
               value: {{ .Values.workerConcurrency | quote }}
+          resources:
+            {{- toYaml .Values.resources.worker | nindent 12 }}
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: media
               mountPath: /usr/src/app/media

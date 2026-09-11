@@ -27,10 +27,19 @@ export function storageKeyFor(photoPath: string, role: ProducedMedia["role"], fo
   return `${roleDirectories[role]}${photoPath}.${format}`;
 }
 
+/**
+ * Decoding allocates about four bytes per pixel, so this bounds the memory one upload can take
+ * in the web process and the worker. Comfortably above current camera sensors.
+ */
+export const maxInputPixels = 100_000_000;
+
 /** Formats the pipeline can decode. HEIC is not among them: prebuilt sharp has no HEVC decoder. */
 export async function inspectUpload(data: Buffer): Promise<UploadInfo | null> {
   try {
-    const { format, width, height } = await sharp(data, { failOn: "none" }).metadata();
+    const { format, width, height } = await sharp(data, {
+      failOn: "none",
+      limitInputPixels: maxInputPixels,
+    }).metadata();
     if ((format === "jpeg" || format === "png" || format === "webp") && width && height) {
       return { format, width, height };
     }
@@ -41,7 +50,7 @@ export async function inspectUpload(data: Buffer): Promise<UploadInfo | null> {
 }
 
 function decode(original: Buffer): Sharp {
-  return sharp(original, { failOn: "none" }).rotate();
+  return sharp(original, { failOn: "none", limitInputPixels: maxInputPixels }).rotate();
 }
 
 /**

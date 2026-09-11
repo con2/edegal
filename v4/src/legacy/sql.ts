@@ -144,7 +144,7 @@ export async function legacyAlbumsForRedirectWalk(
 ): Promise<LegacyRedirectRow[]> {
   if (paths.length === 0) return [];
   const { rows } = await pool.query<LegacyRedirectRow>(
-    `select path, redirect_url, is_public from edegal_album where path = any($1::text[]) and redirect_url <> ''`,
+    `select path, redirect_url, is_public from edegal_album where path = any($1::text[]) and redirect_url <> '' and is_public`,
     [paths],
   );
   return rows;

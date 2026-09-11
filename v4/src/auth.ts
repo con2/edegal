@@ -47,6 +47,8 @@ export const authOptions: AuthOptions = {
       name: "Kompassi",
       type: "oauth",
       idToken: true,
+      // PKCE binds the code to this login, nonce binds the ID token to it; state alone is the default.
+      checks: ["pkce", "state", "nonce"],
       authorization: { params: { scope: "openid email profile" } },
       profile(profile: KompassiProfile) {
         return {

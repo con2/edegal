@@ -7,12 +7,14 @@ import { redirect } from "next/navigation";
 import {
   albumSubtree,
   assertPathFree,
+  assertSubtreePathsFree,
   childPath,
   deleteAlbumSubtree,
-  deletePhotoFiles,
+  deleteStorageKeys,
   moveAlbumPath,
   moveTargets,
   PathTakenError,
+  photoStorageKeys,
   replaceCredits,
   slugForAlbum,
   sortPhotos as sortAlbumPhotos,
@@ -154,6 +156,7 @@ export async function updateAlbum(
   const path = isRoot ? "/" : childPath(parentPath, slug);
   try {
     await assertPathFree(path, album.id);
+    await assertSubtreePathsFree(album.path, path);
   } catch (error) {
     if (error instanceof PathTakenError)
       return void redirect(
@@ -242,8 +245,9 @@ export async function deletePhoto(locale: string, photoId: string) {
   if (!photo) throw new Error("photo not found");
   if (!canManagePhoto(viewer, { source: "v4", ownerId: photo.album.ownerId }))
     throw new Error("not allowed to delete this photo");
-  await deletePhotoFiles(photo.id);
+  const storageKeys = await photoStorageKeys(photo.id);
   await db.orm.public.Photo.where({ id: photo.id }).delete();
+  await deleteStorageKeys(storageKeys);
   if (photo.album.thumbnailPhotoId === photo.id) {
     await db.orm.public.Album.where({ id: photo.albumId }).update({
       thumbnailPhotoId: await pickAutoThumbnail(photo.albumId),

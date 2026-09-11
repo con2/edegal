@@ -252,6 +252,7 @@ const translations = {
     clear: "Clear finished",
     errors: {
       tooLarge: "Larger than 100 MB",
+      tooManyPixels: "More than 100 megapixels",
       unsupported: "Not a JPEG, PNG or WebP image (HEIC is not supported)",
       exists: "A photo with this name already exists in the album",
       forbidden: "Not allowed",
