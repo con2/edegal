@@ -27,7 +27,11 @@ interface Props {
 export default async function RootLayout({ children, params }: Props) {
   const { locale } = await params;
   return (
-    <html lang={toSupportedLanguage(locale)} className={roboto.variable}>
+    <html
+      lang={toSupportedLanguage(locale)}
+      className={roboto.variable}
+      data-scroll-behavior="smooth"
+    >
       <body>{children}</body>
     </html>
   );
