@@ -29,17 +29,17 @@ workerConcurrency: 2
 # 100 megapixels), and the worker decodes `workerConcurrency` images at once.
 resources:
   node:
-    requests: {cpu: 100m, memory: 512Mi}
-    limits: {cpu: "2", memory: 2Gi}
+    requests: { cpu: 100m, memory: 512Mi }
+    limits: { cpu: "2", memory: 2Gi }
   worker:
-    requests: {cpu: 100m, memory: 512Mi}
-    limits: {cpu: "2", memory: 2Gi}
+    requests: { cpu: 100m, memory: 512Mi }
+    limits: { cpu: "2", memory: 2Gi }
   migrate:
-    requests: {cpu: 50m, memory: 128Mi}
-    limits: {cpu: "1", memory: 512Mi}
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: "1", memory: 512Mi }
   nginx:
-    requests: {cpu: 20m, memory: 64Mi}
-    limits: {cpu: "1", memory: 512Mi}
+    requests: { cpu: 20m, memory: 64Mi }
+    limits: { cpu: "1", memory: 512Mi }
 
 # THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
 # DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET
