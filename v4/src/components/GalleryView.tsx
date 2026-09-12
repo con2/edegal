@@ -47,13 +47,16 @@ export function GalleryView({
 
   const navigate = useCallback(
     (path: string, mode: "push" | "replace") => {
+      // Only our own key is passed on: Next treats a state object carrying its internal
+      // marker as its own call and skips the router sync that updates `usePathname`.
+      const openedFromAlbum = Boolean(window.history.state?.openedFromAlbum);
       if (mode === "replace") {
-        window.history.replaceState(window.history.state, "", path);
+        window.history.replaceState({ openedFromAlbum }, "", path);
         return;
       }
       // Closing a photo that was opened from this album's grid goes back in history, so the
       // browser restores the grid's scroll position as it does for the back button.
-      if (path === album.path && window.history.state?.openedFromAlbum) {
+      if (path === album.path && openedFromAlbum) {
         window.history.back();
         return;
       }
