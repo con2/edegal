@@ -10,6 +10,7 @@ data:
     server {
       listen 8080;
       server_name _;
+      access_log off;
       # Same origin as the app: a stray HTML or SVG on the export must not run as a page.
       add_header X-Content-Type-Options nosniff always;
       location ~ /\. {
