@@ -139,6 +139,26 @@ export async function legacySeriesById(
   return rows[0] ?? null;
 }
 
+export async function legacySeriesBySlug(
+  slug: string,
+): Promise<LegacySeriesRow | null> {
+  const { rows } = await pool.query<LegacySeriesRow>(
+    `select id, path, title, description, body, is_public, is_visible from edegal_series where slug = $1`,
+    [slug],
+  );
+  return rows[0] ?? null;
+}
+
+/** Every legacy series, for offering their slugs when a v4 counterpart is created. */
+export async function legacySeriesList(): Promise<
+  { slug: string; title: string }[]
+> {
+  const { rows } = await pool.query<{ slug: string; title: string }>(
+    `select slug, title from edegal_series order by title`,
+  );
+  return rows;
+}
+
 export async function legacyAlbumsForRedirectWalk(
   paths: string[],
 ): Promise<LegacyRedirectRow[]> {

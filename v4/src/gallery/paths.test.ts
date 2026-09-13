@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { isAncestorOrSelf, normalizeGalleryPath, pathPrefixes } from "./paths";
+import {
+  isAncestorOrSelf,
+  isReservedRootPath,
+  lastSegment,
+  normalizeGalleryPath,
+  pathPrefixes,
+} from "./paths";
 
 describe("normalizeGalleryPath", () => {
   it("maps no segments to the root", () => {
@@ -55,5 +61,23 @@ describe("isAncestorOrSelf", () => {
   it("rejects siblings and prefixes that are not whole segments", () => {
     expect(isAncestorOrSelf("/con", "/concert")).toBe(false);
     expect(isAncestorOrSelf("/con/sat", "/con")).toBe(false);
+  });
+});
+
+describe("isReservedRootPath", () => {
+  it("reserves only root-level slugs that routing claims", () => {
+    expect(isReservedRootPath("/admin")).toBe(true);
+    expect(isReservedRootPath("/photographers")).toBe(true);
+    expect(isReservedRootPath("/admin/x")).toBe(false);
+    expect(isReservedRootPath("/tracon-2026")).toBe(false);
+    expect(isReservedRootPath("/")).toBe(false);
+  });
+});
+
+describe("lastSegment", () => {
+  it("returns the final segment, empty for the root", () => {
+    expect(lastSegment("/desucon-2026")).toBe("desucon-2026");
+    expect(lastSegment("/a/b")).toBe("b");
+    expect(lastSegment("/")).toBe("");
   });
 });

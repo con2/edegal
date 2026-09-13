@@ -56,3 +56,26 @@ export function parentPathOf(path: string): string {
   const segments = path.split("/").filter(Boolean);
   return segments.length <= 1 ? "/" : "/" + segments.slice(0, -1).join("/");
 }
+
+/** Root slugs the Gateway or a dedicated route claims; an album there would never be reached. */
+export const reservedRootSlugs = new Set([
+  "admin",
+  "static",
+  "api",
+  "media",
+  "_next",
+  "profile",
+  "random",
+  "photographers",
+  "favicon.ico",
+]);
+
+export function isReservedRootPath(path: string): boolean {
+  const segments = path.split("/").filter(Boolean);
+  return segments.length === 1 && reservedRootSlugs.has(segments[0]);
+}
+
+/** `/desucon-2026` → `desucon-2026`; the root has no slug. */
+export function lastSegment(path: string): string {
+  return path.split("/").filter(Boolean).pop() ?? "";
+}

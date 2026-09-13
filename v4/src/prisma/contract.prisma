@@ -133,6 +133,9 @@ model Album {
   thumbnailIsAuto    Boolean                    @default(true) @map("thumbnail_is_auto")
   thumbnailPhotoId   Uuid?                      @map("thumbnail_photo_id")
   thumbnailPhoto     Photo?                     @relation("AlbumThumbnail", fields:[thumbnailPhotoId], references:[id], onDelete: SetNull)
+  redirectUrl        String                     @default("") @map("redirect_url")
+  seriesId           Uuid?                      @map("series_id")
+  series             Series?                    @relation(fields:[seriesId], references:[id], onDelete: SetNull)
   createdAt          TimestamptzString          @default(now()) @map("created_at")
   updatedAt          temporal.updatedAtString() @map("updated_at")
 
@@ -141,7 +144,36 @@ model Album {
 
   @@unique([parentId, slug])
   @@index([parentId, ordering, eventDate])
+  @@index([seriesId])
   @@map("v4_album")
+}
+
+// A chronological group of albums (campaign runs, an annual event) with its own page at /<slug>.
+// A series sharing its slug with a legacy edegal_series renders as one merged page.
+model Series {
+  id          Uuid                       @id @default(uuid(7))
+  slug        String                     @unique
+  path        String                     @unique
+  title       String
+  description String                     @default("")
+  body        String                     @default("")
+  visibility  pg.enum(AlbumVisibility)   @default("public")
+  createdAt   TimestamptzString          @default(now()) @map("created_at")
+  updatedAt   temporal.updatedAtString() @map("updated_at")
+
+  albums      Album[]
+
+  @@map("v4_series")
+}
+
+// Old path -> new path, written when an album is renamed or moved so links keep working.
+model Redirect {
+  fromPath  String            @id @map("from_path")
+  toPath    String            @map("to_path")
+  createdAt TimestamptzString @default(now()) @map("created_at")
+
+  @@index([toPath])
+  @@map("v4_redirect")
 }
 
 model AlbumCredit {

@@ -22,11 +22,14 @@ export interface AlbumFormValues {
   body: string;
   termsId: string;
   ownerId: string;
+  redirectUrl: string;
+  seriesId: string;
 }
 
 export interface AlbumFormOptions {
   /** Albums the edited album may be moved under, or null when it cannot be moved. */
   parents: MoveTarget[] | null;
+  series: { id: string; title: string; slug: string }[];
   terms: { id: string; title: string }[];
   /** Title of the terms the album would inherit when none is chosen. */
   inheritedTermsTitle: string | null;
@@ -327,6 +330,24 @@ export function AlbumForm({
           />
         </div>
 
+        {!isRoot ? (
+          <Field id="AlbumForm-series" label={f.series} help={f.seriesHelp}>
+            <select
+              className="form-select"
+              id="AlbumForm-series"
+              name="seriesId"
+              defaultValue={values.seriesId}
+            >
+              <option value="">{f.seriesNone}</option>
+              {options.series.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title} (/{s.slug})
+                </option>
+              ))}
+            </select>
+          </Field>
+        ) : null}
+
         <Field
           id="AlbumForm-eventMetadataUrl"
           label={f.eventMetadataUrl}
@@ -341,6 +362,23 @@ export function AlbumForm({
             defaultValue={values.eventMetadataUrl}
           />
         </Field>
+
+        {!isRoot ? (
+          <Field
+            id="AlbumForm-redirectUrl"
+            label={f.redirectUrl}
+            help={f.redirectUrlHelp}
+          >
+            <input
+              className="form-control"
+              id="AlbumForm-redirectUrl"
+              name="redirectUrl"
+              type="text"
+              maxLength={1023}
+              defaultValue={values.redirectUrl}
+            />
+          </Field>
+        ) : null}
 
         {options.users ? (
           <Field id="AlbumForm-owner" label={f.owner}>

@@ -94,3 +94,8 @@ export function canDeleteAlbum(
 ): boolean {
   return album.path !== "/" && canEditAlbum(viewer, album);
 }
+
+/** Series group albums across photographers, so only admins shape them. */
+export function canManageSeries(viewer: Viewer): boolean {
+  return viewer.kind === "user" && viewer.isAdmin;
+}

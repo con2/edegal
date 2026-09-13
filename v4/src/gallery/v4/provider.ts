@@ -1,12 +1,14 @@
 import type {
   AlbumPageVM,
+  Crumb,
   MediaFormat,
   MediaSet,
   MediaVariant,
   PhotoVM,
   SubalbumVM,
 } from "@/gallery/types";
-import { pathPrefixes } from "@/gallery/paths";
+import { lastSegment, pathPrefixes } from "@/gallery/paths";
+import { seriesNeighbours } from "@/gallery/series";
 import { formatPreference } from "@/media/specs";
 import { mediaUrl } from "@/media/url";
 import { pgTimestampToIso } from "@/lib/time";
@@ -79,9 +81,29 @@ export async function loadV4Album(
   const ancestors = await db.orm.public.Album.where((a) =>
     a.path.in(pathPrefixes(album.path)),
   )
-    .select("path", "title", "termsId")
+    .select("path", "title", "termsId", "seriesId")
     .all();
   ancestors.sort((a, b) => a.path.length - b.path.length);
+
+  // The album's own series, else the nearest ancestor's, as Django does.
+  const seriesId =
+    [album.seriesId, ...ancestors.map((a) => a.seriesId).reverse()].find(
+      (id) => id !== null,
+    ) ?? null;
+  const series = seriesId
+    ? await db.orm.public.Series.where({ id: seriesId })
+        .select("path", "title")
+        .first()
+    : null;
+  const breadcrumb: Crumb[] = ancestors.map(({ path, title }) => ({
+    path,
+    title,
+  }));
+  if (series)
+    breadcrumb.splice(1, 0, { path: series.path, title: series.title });
+  const neighbours = series
+    ? await seriesNeighbours(lastSegment(series.path), album.path)
+    : { previous: null, next: null };
 
   // The album's own terms, else the nearest ancestor's.
   const termsId =
@@ -100,7 +122,7 @@ export async function loadV4Album(
     thumbnail: child.thumbnailPhoto
       ? buildMediaSet(child.thumbnailPhoto.media, "thumbnail")
       : null,
-    externalUrl: null,
+    externalUrl: child.redirectUrl.includes("://") ? child.redirectUrl : null,
     ownerId: child.ownerId,
   }));
 
@@ -144,7 +166,7 @@ export async function loadV4Album(
     isDownloadable: album.isDownloadable,
     photosProcessing,
     hasManualOrdering: album.photos.some((p) => p.ordering !== 0),
-    breadcrumb: ancestors.map(({ path, title }) => ({ path, title })),
+    breadcrumb,
     subalbums,
     photos,
     credits: album.credits.map((credit) => ({
@@ -160,9 +182,9 @@ export async function loadV4Album(
     terms: terms
       ? { kind: "markdown", text: terms.text, url: terms.url }
       : null,
-    previousInSeries: null,
-    nextInSeries: null,
-    redirectUrl: null,
+    previousInSeries: neighbours.previous,
+    nextInSeries: neighbours.next,
+    redirectUrl: album.redirectUrl || null,
     legacyAdminUrl: null,
   };
 }

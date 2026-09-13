@@ -1,0 +1,368 @@
+[
+  {
+    "id": "table.v4_redirect",
+    "label": "Create table \"v4_redirect\"",
+    "summary": "Creates table \"v4_redirect\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_redirect"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_redirect\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_redirect\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_redirect\"",
+        "sql": "CREATE TABLE \"public\".\"v4_redirect\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"from_path\" text NOT NULL,\n  \"to_path\" text NOT NULL,\n  PRIMARY KEY (\"from_path\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_redirect\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_redirect\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.v4_series",
+    "label": "Create table \"v4_series\"",
+    "summary": "Creates table \"v4_series\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "v4_series"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"v4_series\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_series\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"v4_series\"",
+        "sql": "CREATE TABLE \"public\".\"v4_series\" (\n  \"body\" text DEFAULT '' NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text DEFAULT '' NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"path\" text NOT NULL,\n  \"slug\" text NOT NULL,\n  \"title\" text NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  \"visibility\" \"v4_album_visibility\" DEFAULT 'public'::\"v4_album_visibility\" NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"v4_series\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_series\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.v4_album.redirect_url",
+    "label": "Add column \"redirect_url\" to \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "redirect_url",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"redirect_url\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "redirect_url"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"redirect_url\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\" ADD COLUMN \"redirect_url\" text DEFAULT '' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"redirect_url\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "redirect_url"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.v4_album.series_id",
+    "label": "Add column \"series_id\" to \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "series_id",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"series_id\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "series_id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"series_id\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\" ADD COLUMN \"series_id\" uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"series_id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_album",
+          "series_id"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_series.v4_series_slug_key",
+    "label": "Add unique constraint on \"v4_series\" (slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_series_slug_key",
+        "table": "v4_series"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_series_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_series_slug_key",
+          "public",
+          "\"public\".\"v4_series\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_series_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_series\" ADD CONSTRAINT \"v4_series_slug_key\" UNIQUE (\"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_series_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_series_slug_key",
+          "public",
+          "\"public\".\"v4_series\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.v4_series.v4_series_path_key",
+    "label": "Add unique constraint on \"v4_series\" (path)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "v4_series_path_key",
+        "table": "v4_series"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"v4_series_path_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_series_path_key",
+          "public",
+          "\"public\".\"v4_series\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"v4_series_path_key\"",
+        "sql": "ALTER TABLE \"public\".\"v4_series\" ADD CONSTRAINT \"v4_series_path_key\" UNIQUE (\"path\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"v4_series_path_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_series_path_key",
+          "public",
+          "\"public\".\"v4_series\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_album.v4_album_series_id_idx_57e32972",
+    "label": "Create index \"v4_album_series_id_idx_57e32972\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_album_series_id_idx_57e32972",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_album_series_id_idx_57e32972\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_series_id_idx_57e32972\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_album_series_id_idx_57e32972\"",
+        "sql": "CREATE INDEX \"v4_album_series_id_idx_57e32972\" ON \"public\".\"v4_album\" (\"series_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_album_series_id_idx_57e32972\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_album_series_id_idx_57e32972\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.v4_redirect.v4_redirect_to_path_idx_371e6735",
+    "label": "Create index \"v4_redirect_to_path_idx_371e6735\" on \"v4_redirect\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "v4_redirect_to_path_idx_371e6735",
+        "table": "v4_redirect"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"v4_redirect_to_path_idx_371e6735\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_redirect_to_path_idx_371e6735\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"v4_redirect_to_path_idx_371e6735\"",
+        "sql": "CREATE INDEX \"v4_redirect_to_path_idx_371e6735\" ON \"public\".\"v4_redirect\" (\"to_path\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"v4_redirect_to_path_idx_371e6735\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"v4_redirect_to_path_idx_371e6735\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.v4_album.v4_album_series_id_fkey",
+    "label": "Add foreign key \"v4_album_series_id_fkey\" on \"v4_album\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "v4_album_series_id_fkey",
+        "table": "v4_album"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"v4_album_series_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_series_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"v4_album_series_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"v4_album\"\nADD CONSTRAINT \"v4_album_series_id_fkey\"\nFOREIGN KEY (\"series_id\")\nREFERENCES \"public\".\"v4_series\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"v4_album_series_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "v4_album_series_id_fkey",
+          "public",
+          "\"public\".\"v4_album\""
+        ]
+      }
+    ]
+  }
+]

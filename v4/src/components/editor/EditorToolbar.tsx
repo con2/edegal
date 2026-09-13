@@ -9,12 +9,16 @@ export interface EditorRights {
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  /** Admins on the front page. */
+  canCreateSeries: boolean;
 }
 
 interface EditorToolbarProps {
   locale: string;
   albumId: string;
   albumPath: string;
+  /** Series pages have no photos or subalbums of their own, only edit and delete. */
+  kind: "album" | "series";
   rights: EditorRights;
   hasPhotos: boolean;
   hasManualOrdering: boolean;
@@ -26,6 +30,7 @@ export function EditorToolbar({
   locale,
   albumId,
   albumPath,
+  kind,
   rights,
   hasPhotos,
   hasManualOrdering,
@@ -39,13 +44,20 @@ export function EditorToolbar({
           {messages.newSubalbum}…
         </Link>
       ) : null}
+      {rights.canCreateSeries ? (
+        <Link className="btn btn-link btn-sm" href={href("newSeries")}>
+          {messages.newSeries}…
+        </Link>
+      ) : null}
       {rights.canEdit ? (
         <>
-          <Link className="btn btn-link btn-sm" href={href("upload")}>
-            {messages.uploadPhotos}…
-          </Link>
+          {kind === "album" ? (
+            <Link className="btn btn-link btn-sm" href={href("upload")}>
+              {messages.uploadPhotos}…
+            </Link>
+          ) : null}
           <Link className="btn btn-link btn-sm" href={href("edit")}>
-            {messages.editAlbum}…
+            {kind === "series" ? messages.editSeries : messages.editAlbum}…
           </Link>
           {hasPhotos ? (
             <SortPhotosMenu
@@ -69,7 +81,7 @@ export function EditorToolbar({
       ) : null}
       {rights.canDelete ? (
         <Link className="btn btn-link btn-sm ms-3" href={href("delete")}>
-          {messages.deleteAlbum}…
+          {kind === "series" ? messages.deleteSeries : messages.deleteAlbum}…
         </Link>
       ) : null}
     </>

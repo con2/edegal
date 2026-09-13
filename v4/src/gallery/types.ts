@@ -130,7 +130,7 @@ export type ClientAlbumPage = Omit<
 export type Resolution =
   | { kind: "album"; source: ContentSource; albumId: string; albumPath: string }
   | { kind: "photo"; source: ContentSource; albumId: string; photoPath: string }
-  | { kind: "series"; seriesId: number; path: string };
+  | { kind: "series"; source: ContentSource; seriesId: string; path: string };
 
 export type GalleryPageResult =
   | {

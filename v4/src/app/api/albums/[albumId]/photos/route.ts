@@ -1,4 +1,5 @@
 import { assertPathFree, PathTakenError } from "@/editor/albums";
+import { clearRedirect } from "@/gallery/redirects";
 import { canUpload } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
 import { touchAlbum } from "@/gallery/v4/touch";
@@ -125,6 +126,7 @@ export async function POST(
     return created;
   });
 
+  await clearRedirect(photoPath);
   await touchAlbum(album.id);
   invalidateAlbum("v4", album.id, album.parentId);
   return Response.json(

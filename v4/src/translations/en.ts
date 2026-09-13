@@ -163,6 +163,12 @@ const translations = {
     save: "Save",
     create: "Create album",
     cancel: "Cancel",
+    newSeries: "New series",
+    newSeriesTitle: "New series",
+    editSeries: "Edit series",
+    editSeriesTitle: "Edit series",
+    deleteSeries: "Delete series",
+    createSeries: "Create series",
     fields: {
       parent: "Parent album",
       parentHelp: "The new album is created under this album.",
@@ -211,6 +217,19 @@ const translations = {
       addCredit: "Add credit",
       removeCredit: "Remove",
       owner: "Owner",
+      series: "Series",
+      seriesHelp:
+        "A chronological group of albums, such as the runs of a campaign or the years of an event. The series appears in the breadcrumb and links this album to the previous and next one in it. Admins create series on the front page.",
+      seriesNone: "Not part of a series",
+      seriesSlugHelp:
+        "Part of the address, right under the front page. Pick a slug from the suggestions to continue a series that started on the old site.",
+      seriesVisibilityPublicHelp: "Listed and reachable by everyone.",
+      seriesVisibilityPrivateHelp: "Only admins can view it.",
+      description: "Short description",
+      descriptionHelp: "One sentence for search engines and link previews.",
+      redirectUrl: "Redirect",
+      redirectUrlHelp:
+        "Visitors opening this album are sent here instead. A web address (https://…) is shown as a link tile in the parent album; a gallery path (/some-album) forwards to that album. Leave empty for a normal album.",
     },
     deleteConfirm: {
       title: "Delete album",
@@ -220,9 +239,17 @@ const translations = {
       typeSlug: "Type the album slug to confirm",
       confirm: "Delete permanently",
     },
+    deleteSeriesConfirm: {
+      title: "Delete series",
+      warning:
+        "This deletes the series page. Its albums stay where they are and merely leave the series.",
+      counts: "",
+      typeSlug: "Type the series slug to confirm",
+      confirm: "Delete series",
+    },
     processing: "photos are being processed and will appear shortly",
     errors: {
-      pathTaken: "An album or photo with this address already exists.",
+      pathTaken: "An album, series or photo with this address already exists.",
       invalidParent: "The chosen parent album is not available.",
       confirmMismatch: "The slug you typed does not match the album.",
       foreignSubalbums:
@@ -236,6 +263,8 @@ const translations = {
       thumbnailSet: "Album thumbnail changed.",
       photoDeleted: "Photo deleted.",
       albumDeleted: "Album deleted.",
+      seriesSaved: "Series saved.",
+      seriesDeleted: "Series deleted.",
     },
   },
   Upload: {

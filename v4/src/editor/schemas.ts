@@ -52,6 +52,20 @@ const eventMetadataUrl = z
   )
   .default("");
 
+/** Empty, an absolute http(s) URL, or a gallery path such as /desucon-2026. */
+const redirectUrl = z
+  .string()
+  .trim()
+  .max(1023)
+  .refine(
+    (value) =>
+      value === "" ||
+      /^https?:\/\/\S+$/.test(value) ||
+      /^\/[a-z0-9/-]*$/.test(value),
+    "redirectUrl",
+  )
+  .default("");
+
 export const AlbumFormSchema = z.object({
   title: z.string().trim().min(1).max(1023),
   slug,
@@ -69,8 +83,25 @@ export const AlbumFormSchema = z.object({
   termsId: z.union([uuid, z.literal("")]).default(""),
   credits: creditsJson,
   ownerId: z.union([uuid, z.literal("")]).optional(),
+  redirectUrl,
+  /** Empty string means "not part of a series". */
+  seriesId: z.union([uuid, z.literal("")]).default(""),
 });
 export type AlbumForm = z.infer<typeof AlbumFormSchema>;
+
+export const SeriesFormSchema = z.object({
+  title: z.string().trim().min(1).max(1023),
+  slug: z
+    .string()
+    .trim()
+    .max(255)
+    .regex(/^[a-z0-9-]*$/, "slug")
+    .default(""),
+  description: z.string().trim().max(2000).default(""),
+  visibility: z.enum(["public", "hidden", "private"]),
+  body: z.string().max(100_000).default(""),
+});
+export type SeriesForm = z.infer<typeof SeriesFormSchema>;
 
 export const LinksSchema = z.array(
   z.object({

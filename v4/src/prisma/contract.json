@@ -32,6 +32,14 @@
       "model": "PhotographerLink",
       "namespace": "public"
     },
+    "v4_redirect": {
+      "model": "Redirect",
+      "namespace": "public"
+    },
+    "v4_series": {
+      "model": "Series",
+      "namespace": "public"
+    },
     "v4_terms": {
       "model": "Terms",
       "namespace": "public"
@@ -131,6 +139,20 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "redirectUrl": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "seriesId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               },
@@ -263,6 +285,21 @@
                   "namespace": "public"
                 }
               },
+              "series": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "seriesId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Series",
+                  "namespace": "public"
+                }
+              },
               "terms": {
                 "cardinality": "N:1",
                 "on": {
@@ -331,6 +368,12 @@
                 },
                 "path": {
                   "column": "path"
+                },
+                "redirectUrl": {
+                  "column": "redirect_url"
+                },
+                "seriesId": {
+                  "column": "series_id"
                 },
                 "slug": {
                   "column": "slug"
@@ -1139,6 +1182,167 @@
               "table": "v4_photographer_link"
             }
           },
+          "Redirect": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "fromPath": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "toPath": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "fromPath": {
+                  "column": "from_path"
+                },
+                "toPath": {
+                  "column": "to_path"
+                }
+              },
+              "namespaceId": "public",
+              "table": "v4_redirect"
+            }
+          },
+          "Series": {
+            "fields": {
+              "body": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "path": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "slug": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "visibility": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "v4_album_visibility"
+                  }
+                }
+              }
+            },
+            "relations": {
+              "albums": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "seriesId"
+                  ]
+                },
+                "to": {
+                  "model": "Album",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "body": {
+                  "column": "body"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "path": {
+                  "column": "path"
+                },
+                "slug": {
+                  "column": "slug"
+                },
+                "title": {
+                  "column": "title"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                },
+                "visibility": {
+                  "column": "visibility"
+                }
+              },
+              "namespaceId": "public",
+              "table": "v4_series"
+            }
+          },
           "Terms": {
             "fields": {
               "createdAt": {
@@ -1558,6 +1762,20 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "redirect_url": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "series_id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": true
+                },
                 "slug": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -1679,6 +1897,23 @@
                     "namespaceId": "public",
                     "tableName": "v4_photo"
                   }
+                },
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "series_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_album"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "v4_series"
+                  }
                 }
               ],
               "indexes": [
@@ -1706,6 +1941,14 @@
                   ],
                   "name": "v4_album_parent_id_ordering_event_date_idx_eb9f7c25",
                   "prefix": "v4_album_parent_id_ordering_event_date_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "series_id"
+                  ],
+                  "name": "v4_album_series_id_idx_57e32972",
+                  "prefix": "v4_album_series_id_idx",
                   "unique": false
                 },
                 {
@@ -2453,6 +2696,139 @@
               },
               "uniques": []
             },
+            "v4_redirect": {
+              "columns": {
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "from_path": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "to_path": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "to_path"
+                  ],
+                  "name": "v4_redirect_to_path_idx_371e6735",
+                  "prefix": "v4_redirect_to_path_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "from_path"
+                ]
+              },
+              "uniques": []
+            },
+            "v4_series": {
+              "columns": {
+                "body": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "path": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "slug": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "title": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "visibility": {
+                  "codecId": "pg/enum@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "public"
+                  },
+                  "nativeType": "v4_album_visibility",
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "v4_album_visibility"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AlbumVisibility",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "slug"
+                  ]
+                },
+                {
+                  "columns": [
+                    "path"
+                  ]
+                }
+              ]
+            },
             "v4_terms": {
               "columns": {
                 "created_at": {
@@ -2644,10 +3020,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3ec1af1ead9090828f9dce8167ba5010b8eb55e22d40c6e099ff592f28cbcb73"
+    "storageHash": "64abb5f2b17cb94bf934760d475dc42e181d98e2fb35d8abb95bbd4415a99f3c"
   },
   "execution": {
-    "executionHash": "257459898a35085a251ab9d3a93bfd2ad3a89c61f7794668d0a98318be55788c",
+    "executionHash": "4de61373a8bb18837777d69f3fc78addb7349f6fb48ac3b4e9660aca0d6bd51b",
     "mutations": {
       "defaults": [
         {
@@ -2744,6 +3120,32 @@
             "column": "id",
             "namespace": "public",
             "table": "v4_photographer_link"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "v4_series"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updated_at",
+            "namespace": "public",
+            "table": "v4_series"
           }
         },
         {

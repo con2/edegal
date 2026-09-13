@@ -52,3 +52,32 @@ describe("AlbumFormSchema", () => {
     ).toThrow();
   });
 });
+
+describe("AlbumFormSchema redirectUrl", () => {
+  const base = {
+    title: "T",
+    eventDate: "2026-01-01",
+    visibility: "public",
+    isOpenForSubalbums: "false",
+    isDownloadable: "true",
+  };
+  it("accepts an empty value, an http(s) URL or a gallery path", () => {
+    for (const redirectUrl of [
+      "",
+      "https://flickr.com/x",
+      "/desucon-2026/kuvat",
+    ])
+      expect(AlbumFormSchema.parse({ ...base, redirectUrl }).redirectUrl).toBe(
+        redirectUrl,
+      );
+  });
+  it("rejects other schemes and malformed paths", () => {
+    for (const redirectUrl of [
+      "javascript:alert(1)",
+      "ftp://x",
+      "not a path",
+      "/Ääkköset",
+    ])
+      expect(() => AlbumFormSchema.parse({ ...base, redirectUrl })).toThrow();
+  });
+});

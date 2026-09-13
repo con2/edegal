@@ -22,17 +22,23 @@ import {
   usableTermsId,
 } from "@/editor/albums";
 import { ensurePhotographer } from "@/editor/photographers";
-import { AlbumFormSchema, DeleteAlbumSchema } from "@/editor/schemas";
+import {
+  AlbumFormSchema,
+  DeleteAlbumSchema,
+  SeriesFormSchema,
+} from "@/editor/schemas";
 import {
   canCreateSubalbum,
   canDeleteAlbum,
   canEditAlbum,
   canList,
   canManagePhoto,
+  canManageSeries,
 } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
 import { isAncestorOrSelf, parentPathOf } from "@/gallery/paths";
-import { touchAlbum } from "@/gallery/v4/touch";
+import { clearRedirect, recordMove } from "@/gallery/redirects";
+import { touchAlbum, touchSeries } from "@/gallery/v4/touch";
 import { getViewer, type Viewer } from "@/gallery/viewer";
 import { albumJobCounts, pickAutoThumbnail } from "@/media/jobs";
 import { db } from "@/prisma/db";
@@ -57,6 +63,29 @@ function withMessage(
   code: string,
 ): string {
   return `${path}?${kind}=${code}`;
+}
+
+async function requireSeriesId(seriesId: string): Promise<string | null> {
+  if (!seriesId) return null;
+  const series = await db.orm.public.Series.where({ id: seriesId })
+    .select("id")
+    .first();
+  if (!series) throw new Error("series not found");
+  return series.id;
+}
+
+/** Series pages list their members and link them to each other, so both sides go stale. */
+async function touchSeriesMembership(
+  ...seriesIds: (string | null | undefined)[]
+): Promise<void> {
+  for (const id of new Set(seriesIds))
+    if (id) {
+      await touchSeries(id);
+      const series = await db.orm.public.Series.where({ id })
+        .select("slug")
+        .first();
+      if (series) invalidateAlbum("v4", `series:${series.slug}`);
+    }
 }
 
 export async function createAlbum(
@@ -114,8 +143,12 @@ export async function createAlbum(
     eventMetadataUrl: form.eventMetadataUrl,
     termsId: await usableTermsId(viewer, form.termsId),
     ownerId,
+    redirectUrl: form.redirectUrl,
+    seriesId: await requireSeriesId(form.seriesId),
   });
   await replaceCredits(album.id, credits);
+  await clearRedirect(path);
+  await touchSeriesMembership(album.seriesId);
   await touchAlbum(album.id, parent.id);
   invalidateAlbum("v4", album.id, parent.id);
   revalidatePath(`/${locale}${parent.path}`);
@@ -178,9 +211,16 @@ export async function updateAlbum(
     eventMetadataUrl: form.eventMetadataUrl,
     termsId: await usableTermsId(viewer, form.termsId),
     ...(viewer.isAdmin && form.ownerId ? { ownerId: form.ownerId } : {}),
+    ...(isRoot
+      ? {}
+      : {
+          redirectUrl: form.redirectUrl,
+          seriesId: await requireSeriesId(form.seriesId),
+        }),
   });
   await replaceCredits(album.id, form.credits);
   await moveAlbumPath(album.id, album.path, path);
+  if (!isRoot) await touchSeriesMembership(album.seriesId, form.seriesId);
   if (newParent) {
     await db.orm.public.Album.where({ id: album.id }).update({
       parentId: newParent.id,
@@ -230,7 +270,13 @@ export async function deleteAlbum(
       withMessage(album.path, "error", "foreignSubalbums") + "&delete=1",
     );
   const parentPath = parentPathOf(album.path);
+  const seriesIds = await db.orm.public.Album.where((a) =>
+    a.id.in(subtree.map((s) => s.id)),
+  )
+    .select("seriesId")
+    .all();
   await deleteAlbumSubtree(album.id, album.path);
+  await touchSeriesMembership(...seriesIds.map((a) => a.seriesId));
   if (album.parentId) await touchAlbum(album.parentId);
   invalidateAlbum("v4", album.id, album.parentId);
   revalidatePath(`/${locale}${parentPath}`);
@@ -350,4 +396,100 @@ export async function setProfilePhoto(locale: string, photoId: string) {
   revalidatePath(`/${locale}/photographers/${photographer.slug}`);
   revalidatePath(`/${locale}/profile`);
   redirect(`/profile?success=photoSet`);
+}
+
+function seriesRedirectTarget(slug: string): string {
+  return `/${slug}`;
+}
+
+export async function createSeries(locale: string, formData: FormData) {
+  const viewer = await requireUser();
+  if (!canManageSeries(viewer)) throw new Error("admin privileges required");
+  const form = SeriesFormSchema.parse(normalizeFormData(formData));
+  const slug = slugForAlbum(form.title, form.slug);
+  const path = seriesRedirectTarget(slug);
+  try {
+    await assertPathFree(path);
+  } catch (error) {
+    if (error instanceof PathTakenError)
+      return void redirect(
+        withMessage("/", "error", "pathTaken") + "&newSeries=1",
+      );
+    throw error;
+  }
+  await db.orm.public.Series.create({
+    slug,
+    path,
+    title: form.title,
+    description: form.description,
+    body: form.body,
+    visibility: form.visibility,
+  });
+  await clearRedirect(path);
+  invalidateAlbum("v4", `series:${slug}`);
+  revalidatePath(`/${locale}${path}`);
+  return void redirect(withMessage(path, "success", "seriesSaved"));
+}
+
+export async function updateSeries(
+  locale: string,
+  seriesId: string,
+  formData: FormData,
+) {
+  const viewer = await requireUser();
+  if (!canManageSeries(viewer)) throw new Error("admin privileges required");
+  const series = await db.orm.public.Series.where({ id: seriesId }).first();
+  if (!series) throw new Error("series not found");
+  const form = SeriesFormSchema.parse(normalizeFormData(formData));
+  const slug = slugForAlbum(form.title, form.slug);
+  const path = seriesRedirectTarget(slug);
+  if (slug !== series.slug) {
+    try {
+      await assertPathFree(path);
+    } catch (error) {
+      if (error instanceof PathTakenError)
+        return void redirect(
+          withMessage(series.path, "error", "pathTaken") + "&edit=1",
+        );
+      throw error;
+    }
+  }
+  await db.transaction(async (tx) => {
+    if (slug !== series.slug) await recordMove(tx, series.path, path);
+    await tx.orm.public.Series.where({ id: series.id }).update({
+      slug,
+      path,
+      title: form.title,
+      description: form.description,
+      body: form.body,
+      visibility: form.visibility,
+    });
+  });
+  await touchSeries(series.id);
+  invalidateAlbum("v4", `series:${series.slug}`);
+  invalidateAlbum("v4", `series:${slug}`);
+  revalidatePath(`/${locale}${path}`);
+  return void redirect(withMessage(path, "success", "seriesSaved"));
+}
+
+/** Members stay; they merely leave the series (the foreign key is SET NULL). */
+export async function deleteSeries(
+  locale: string,
+  seriesId: string,
+  formData: FormData,
+) {
+  const viewer = await requireUser();
+  if (!canManageSeries(viewer)) throw new Error("admin privileges required");
+  const series = await db.orm.public.Series.where({ id: seriesId }).first();
+  if (!series) throw new Error("series not found");
+  const { confirmSlug } = DeleteAlbumSchema.parse(normalizeFormData(formData));
+  if (confirmSlug !== series.slug)
+    return void redirect(
+      withMessage(series.path, "error", "confirmMismatch") + "&delete=1",
+    );
+  await touchSeries(series.id);
+  await db.orm.public.Series.where({ id: series.id }).delete();
+  invalidateAlbum("v4", `series:${series.slug}`);
+  revalidatePath(`/${locale}/`);
+  return void redirect(withMessage("/", "success", "seriesDeleted"));
 }

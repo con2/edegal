@@ -42,6 +42,25 @@ action accepts only those.
 
 Photographers edit their name, links and reusable conditions of use at `/profile`.
 
+### Redirects
+
+Renaming or moving an album records every old path (the album, its subalbums and photos) in
+`v4_redirect`, so old links keep working with a redirect; a later move re-points the earlier
+records. The edit form's redirect field does what the legacy `redirect_url` did: a web address
+turns the album into an external link tile and forwards visitors, a gallery path forwards to that
+album, and either applies to everything below the album. Root slugs that routing claims (`/admin`,
+`/api`, `/media`, `/photographers`, ...) cannot be used for albums.
+
+### Series
+
+A series groups albums chronologically (the runs of a campaign, the years of an event) and has its
+own page at `/<slug>`. Admins create series from the front page (`?newSeries=1`) and edit or
+delete them on the series page; any photographer may put their album in a series through the album
+form. Members get the series in their breadcrumb and previous/next links ordered by event date.
+A v4 series with the same slug as a legacy series renders as one page and links across both, so
+a series that started on the old site continues here: the slug field suggests legacy slugs that
+have no v4 counterpart yet.
+
 The v4 root album is created automatically when the server starts and none exists yet (see
 `src/instrumentation.ts`), titled like the legacy root. Until an admin edits it, the front page
 shows the legacy root's body text. Album creation and editing controls only appear on v4 albums;

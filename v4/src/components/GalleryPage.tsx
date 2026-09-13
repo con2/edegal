@@ -6,6 +6,7 @@ import {
   canDownload,
   canEditAlbum,
   canManagePhoto,
+  canManageSeries,
 } from "@/gallery/access";
 import { thumbnailTargets } from "@/editor/albums";
 import type { GalleryPageResult } from "@/gallery/types";
@@ -53,17 +54,21 @@ export async function GalleryPage({
     path: album.path,
   };
   const isAlbum = unfiltered.kind === "album";
+  const isV4Series = unfiltered.kind === "series" && album.source === "v4";
+  const manageSeries = isV4Series && canManageSeries(viewer);
   const rights = {
     canCreate: isAlbum && canCreateSubalbum(viewer, guard),
-    canEdit: isAlbum && canEditAlbum(viewer, guard),
-    canDelete: isAlbum && canDeleteAlbum(viewer, guard),
+    canEdit: (isAlbum && canEditAlbum(viewer, guard)) || manageSeries,
+    canDelete: (isAlbum && canDeleteAlbum(viewer, guard)) || manageSeries,
+    canCreateSeries: isAlbum && album.path === "/" && canManageSeries(viewer),
   };
   const requestedMode = photo === null ? editorMode(searchParams) : null;
   const modeAllowed = {
     new: rights.canCreate,
     edit: rights.canEdit,
-    upload: rights.canEdit,
+    upload: isAlbum && rights.canEdit,
     delete: rights.canDelete,
+    newSeries: rights.canCreateSeries,
   };
   const mode =
     requestedMode && modeAllowed[requestedMode] ? requestedMode : null;
@@ -117,7 +122,10 @@ export async function GalleryPage({
           LanguageSwitcher: t.LanguageSwitcher,
         }}
       />
-      {album.breadcrumb.length > 0 || rights.canCreate || rights.canEdit ? (
+      {album.breadcrumb.length > 0 ||
+      rights.canCreate ||
+      rights.canEdit ||
+      rights.canCreateSeries ? (
         <BreadcrumbBar
           album={album}
           messages={{
@@ -135,11 +143,12 @@ export async function GalleryPage({
             canDownload(album) && album.photos.some((p) => p.original !== null)
           }
           editor={
-            rights.canCreate || rights.canEdit ? (
+            rights.canCreate || rights.canEdit || rights.canCreateSeries ? (
               <EditorToolbar
                 locale={locale}
                 albumId={album.id}
                 albumPath={album.path}
+                kind={isV4Series ? "series" : "album"}
                 rights={rights}
                 hasPhotos={album.photos.length > 0}
                 hasManualOrdering={album.hasManualOrdering}

@@ -10,7 +10,8 @@ import type {
   Visibility,
   CoverVM,
 } from "@/gallery/types";
-import { pathPrefixes } from "@/gallery/paths";
+import { lastSegment, pathPrefixes } from "@/gallery/paths";
+import { seriesNeighbours, seriesVersion } from "@/gallery/series";
 import { titleInPhotographerContext } from "@/gallery/titles";
 
 import { buildLegacyMediaSet, legacyOriginal } from "./media";
@@ -27,7 +28,6 @@ import {
   legacyPhotographerById,
   legacyPhotographerTiles,
   legacyPictures,
-  legacySeriesAlbums,
   legacySeriesById,
   legacySubalbums,
 } from "./sql";
@@ -107,7 +107,7 @@ function toSubalbum(row: LegacySubalbumRow): SubalbumVM | null {
   };
 }
 
-function toSubalbums(rows: LegacySubalbumRow[]): SubalbumVM[] {
+export function toLegacySubalbums(rows: LegacySubalbumRow[]): SubalbumVM[] {
   return rows.map(toSubalbum).filter((s): s is SubalbumVM => s !== null);
 }
 
@@ -145,6 +145,20 @@ export async function loadLegacyAlbum(
     const row = await legacySeriesById(seriesId);
     series = row ? { path: row.path, title: row.title } : null;
   }
+  // Django's denormalised links know legacy members only; once v4 albums join the series, the
+  // merged member list decides.
+  const seriesSlug = series ? lastSegment(series.path) : null;
+  const neighbours =
+    seriesSlug && (await seriesVersion(seriesSlug)) !== null
+      ? await seriesNeighbours(seriesSlug, album.path)
+      : {
+          previous: album.previous_path
+            ? { path: album.previous_path, title: album.previous_title ?? "" }
+            : null,
+          next: album.next_path
+            ? { path: album.next_path, title: album.next_title ?? "" }
+            : null,
+        };
 
   const photos = pictures.flatMap((p): PhotoVM[] => {
     const thumbnail = buildLegacyMediaSet(p.media, "thumbnail");
@@ -186,60 +200,16 @@ export async function loadLegacyAlbum(
     photosProcessing: 0,
     hasManualOrdering: false,
     breadcrumb: buildBreadcrumb(ancestors, series),
-    subalbums: toSubalbums(subalbums),
+    subalbums: toLegacySubalbums(subalbums),
     photos,
     credits,
     terms: album.terms
       ? { kind: "text", text: album.terms.text, url: album.terms.url }
       : null,
-    previousInSeries: album.previous_path
-      ? { path: album.previous_path, title: album.previous_title ?? "" }
-      : null,
-    nextInSeries: album.next_path
-      ? { path: album.next_path, title: album.next_title ?? "" }
-      : null,
+    previousInSeries: neighbours.previous,
+    nextInSeries: neighbours.next,
     redirectUrl: album.redirect_url || null,
     legacyAdminUrl: `${legacyAdminUrl}edegal/album/${album.id}/change/`,
-  };
-}
-
-/** A series lists its member albums like an album lists subalbums; it has no pictures of its own. */
-export async function loadLegacySeries(
-  seriesId: number,
-): Promise<AlbumPageVM | null> {
-  const series = await legacySeriesById(seriesId);
-  if (!series) return null;
-  const [root, albums] = await Promise.all([
-    legacyAncestors(["/"]),
-    legacySeriesAlbums(series.id),
-  ]);
-  return {
-    source: "legacy",
-    kind: "series",
-    id: `series:${series.id}`,
-    parentId: null,
-    path: series.path,
-    title: series.title,
-    description: series.description,
-    body: legacyHtmlBody(series.body),
-    cover: null,
-    date: null,
-    layout: "simple",
-    visibility: legacyVisibility(series.is_public, series.is_visible),
-    ownerId: null,
-    isOpenForSubalbums: false,
-    isDownloadable: false,
-    photosProcessing: 0,
-    hasManualOrdering: false,
-    breadcrumb: root.map(({ path, title }) => ({ path, title })),
-    subalbums: toSubalbums(albums),
-    photos: [],
-    credits: [],
-    terms: null,
-    previousInSeries: null,
-    nextInSeries: null,
-    redirectUrl: null,
-    legacyAdminUrl: `${legacyAdminUrl}edegal/series/${series.id}/change/`,
   };
 }
 
@@ -299,7 +269,7 @@ export async function loadLegacyPhotographerPage(
     (await legacyAncestors([...prefixes])).map((a) => [a.path, a.title]),
   );
 
-  const subalbums = toSubalbums(albums).map((tile) => ({
+  const subalbums = toLegacySubalbums(albums).map((tile) => ({
     ...tile,
     title: titleInPhotographerContext(
       pathPrefixes(tile.path)

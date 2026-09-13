@@ -1,11 +1,13 @@
 import { legacyEnabled } from "@/config";
-import { loadLegacyAlbum, loadLegacySeries } from "@/legacy/provider";
-import { resolveLegacyUpstreamRedirect } from "@/legacy/redirects";
+import { loadLegacyAlbum } from "@/legacy/provider";
 import { legacyAlbumByPath } from "@/legacy/sql";
 
 import { canView } from "./access";
 import { cachedAlbum } from "./cache";
+import { lastSegment } from "./paths";
+import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
+import { loadSeriesPageBySlug, seriesVersion } from "./series";
 import type {
   AlbumPageVM,
   GalleryPageResult,
@@ -20,8 +22,13 @@ async function loadResolved(
   resolution: Resolution,
 ): Promise<AlbumPageVM | null> {
   if (resolution.kind === "series") {
-    return cachedAlbum("legacy", `series:${resolution.seriesId}`, () =>
-      loadLegacySeries(resolution.seriesId),
+    // One page per slug whichever table matched; a v4 row's updated_at versions it.
+    const slug = lastSegment(resolution.path);
+    return cachedAlbum(
+      "v4",
+      `series:${slug}`,
+      () => loadSeriesPageBySlug(slug),
+      await seriesVersion(slug),
     );
   }
   const { source, albumId } = resolution;
@@ -76,9 +83,7 @@ export async function loadGalleryPage(
 ): Promise<GalleryPageResult> {
   const resolution = await resolvePath(path);
   if (!resolution) {
-    const target = legacyEnabled
-      ? await resolveLegacyUpstreamRedirect(path)
-      : null;
+    const target = await resolveRedirect(path);
     return target ? { kind: "redirect", to: target } : { kind: "not-found" };
   }
 

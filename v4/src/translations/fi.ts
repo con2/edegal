@@ -161,6 +161,12 @@ const translations: Translations = {
     save: "Tallenna",
     create: "Luo albumi",
     cancel: "Peruuta",
+    newSeries: "Uusi sarja",
+    newSeriesTitle: "Uusi sarja",
+    editSeries: "Muokkaa sarjaa",
+    editSeriesTitle: "Muokkaa sarjaa",
+    deleteSeries: "Poista sarja",
+    createSeries: "Luo sarja",
     fields: {
       parent: "Yläalbumi",
       parentHelp: "Uusi albumi luodaan tämän albumin alle.",
@@ -210,6 +216,19 @@ const translations: Translations = {
       addCredit: "Lisää tekijä",
       removeCredit: "Poista",
       owner: "Omistaja",
+      series: "Sarja",
+      seriesHelp:
+        "Aikajärjestyksessä etenevä albumiryhmä, kuten kampanjan pelautukset tai tapahtuman vuodet. Sarja näkyy murupolussa ja linkittää albumin sarjan edelliseen ja seuraavaan. Ylläpitäjät luovat sarjat etusivulla.",
+      seriesNone: "Ei kuulu sarjaan",
+      seriesSlugHelp:
+        "Osa osoitetta, suoraan etusivun alla. Valitse ehdotuksista osoitetunnus jatkaaksesi vanhalla sivustolla alkanutta sarjaa.",
+      seriesVisibilityPublicHelp: "Näkyy kaikille.",
+      seriesVisibilityPrivateHelp: "Vain ylläpitäjät näkevät sen.",
+      description: "Lyhyt kuvaus",
+      descriptionHelp: "Yksi virke hakukoneille ja linkkien esikatseluihin.",
+      redirectUrl: "Uudelleenohjaus",
+      redirectUrlHelp:
+        "Albumin avaava vierailija ohjataan tänne. Verkko-osoite (https://…) näytetään yläalbumissa linkkiruutuna; gallerian polku (/joku-albumi) ohjaa siihen albumiin. Jätä tyhjäksi tavalliselle albumille.",
     },
     deleteConfirm: {
       title: "Poista albumi",
@@ -219,9 +238,17 @@ const translations: Translations = {
       typeSlug: "Kirjoita albumin osoitetunnus vahvistukseksi",
       confirm: "Poista pysyvästi",
     },
+    deleteSeriesConfirm: {
+      title: "Poista sarja",
+      warning:
+        "Tämä poistaa sarjan sivun. Sen albumit jäävät paikoilleen ja vain irtoavat sarjasta.",
+      counts: "",
+      typeSlug: "Kirjoita sarjan osoitetunnus vahvistukseksi",
+      confirm: "Poista sarja",
+    },
     processing: "kuvaa käsitellään ja ne ilmestyvät pian",
     errors: {
-      pathTaken: "Tässä osoitteessa on jo albumi tai kuva.",
+      pathTaken: "Tässä osoitteessa on jo albumi, sarja tai kuva.",
       invalidParent: "Valittu yläalbumi ei ole käytettävissä.",
       confirmMismatch: "Kirjoittamasi osoitetunnus ei vastaa albumia.",
       foreignSubalbums:
@@ -235,6 +262,8 @@ const translations: Translations = {
       thumbnailSet: "Albumin kansikuva vaihdettu.",
       photoDeleted: "Kuva poistettu.",
       albumDeleted: "Albumi poistettu.",
+      seriesSaved: "Sarja tallennettu.",
+      seriesDeleted: "Sarja poistettu.",
     },
   },
   Upload: {

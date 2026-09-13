@@ -14,3 +14,17 @@ export async function touchAlbum(
     [ids],
   );
 }
+
+/**
+ * Bumps a series and every album in it. Membership and dates decide each member's previous/next
+ * links and the series listing, so all of their cached pages go stale together.
+ */
+export async function touchSeries(seriesId: string): Promise<void> {
+  await pool.query(`update v4_series set updated_at = now() where id = $1`, [
+    seriesId,
+  ]);
+  await pool.query(
+    `update v4_album set updated_at = now() where series_id = $1`,
+    [seriesId],
+  );
+}

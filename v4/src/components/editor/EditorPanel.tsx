@@ -2,12 +2,16 @@ import { albumSubtree } from "@/editor/albums";
 import {
   albumFormOptions,
   existingAlbumValues,
+  existingSeriesValues,
   newAlbumDefaults,
+  newSeriesValues,
+  seriesFormOptions,
 } from "@/editor/formData";
 import {
   canCreateSubalbum,
   canDeleteAlbum,
   canEditAlbum,
+  canManageSeries,
 } from "@/gallery/access";
 import type { AlbumPageVM } from "@/gallery/types";
 import type { Viewer } from "@/gallery/viewer";
@@ -17,20 +21,30 @@ import type { Translations } from "@/translations";
 import {
   albumProcessingStatus,
   createAlbum,
+  createSeries,
   deleteAlbum,
+  deleteSeries,
   updateAlbum,
+  updateSeries,
 } from "@/app/[locale]/[[...path]]/actions";
 
 import { AlbumForm } from "./AlbumForm";
 import { DeleteAlbumConfirm } from "./DeleteAlbumConfirm";
+import { SeriesForm } from "./SeriesForm";
 import { UploadPanel } from "./UploadPanel";
 
-export type EditorMode = "new" | "edit" | "upload" | "delete";
+export type EditorMode = "new" | "edit" | "upload" | "delete" | "newSeries";
 
 export function editorMode(
   searchParams: Record<string, string | string[] | undefined>,
 ): EditorMode | null {
-  for (const mode of ["new", "edit", "upload", "delete"] as const) {
+  for (const mode of [
+    "new",
+    "edit",
+    "upload",
+    "delete",
+    "newSeries",
+  ] as const) {
     if (searchParams[mode] !== undefined) return mode;
   }
   return null;
@@ -52,14 +66,40 @@ export async function EditorPanel({
   viewer,
   messages,
 }: EditorPanelProps) {
-  if (viewer.kind !== "user" || album.source !== "v4" || album.kind !== "album")
-    return null;
+  if (viewer.kind !== "user" || album.source !== "v4") return null;
+  if (album.kind === "series")
+    return (
+      <SeriesEditorPanel
+        mode={mode}
+        locale={locale}
+        series={album}
+        viewer={viewer}
+        messages={messages.Editor}
+      />
+    );
+  if (album.kind !== "album") return null;
   const guard = {
     source: album.source,
     ownerId: album.ownerId,
     isOpenForSubalbums: album.isOpenForSubalbums,
     path: album.path,
   };
+
+  if (mode === "newSeries") {
+    if (album.path !== "/" || !canManageSeries(viewer)) return null;
+    return (
+      <SeriesForm
+        locale={locale}
+        action={createSeries.bind(null, locale)}
+        heading={messages.Editor.newSeriesTitle}
+        submitLabel={messages.Editor.createSeries}
+        cancelHref="/"
+        values={newSeriesValues}
+        options={await seriesFormOptions()}
+        messages={messages.Editor}
+      />
+    );
+  }
 
   if (mode === "new") {
     if (!canCreateSubalbum(viewer, guard)) return null;
@@ -136,7 +176,54 @@ export async function EditorPanel({
       action={deleteAlbum.bind(null, locale, album.id)}
       album={{ path: album.path, title: album.title, slug: row?.slug ?? "" }}
       counts={{ albums: subtree.length, photos: photos.n }}
+      texts={messages.Editor.deleteConfirm}
       messages={messages.Editor}
     />
   );
+}
+
+async function SeriesEditorPanel({
+  mode,
+  locale,
+  series,
+  viewer,
+  messages,
+}: {
+  mode: EditorMode;
+  locale: string;
+  series: AlbumPageVM;
+  viewer: Viewer;
+  messages: Translations["Editor"];
+}) {
+  if (!canManageSeries(viewer)) return null;
+  if (mode === "edit") {
+    const values = await existingSeriesValues(series.id);
+    if (!values) return null;
+    return (
+      <SeriesForm
+        locale={locale}
+        action={updateSeries.bind(null, locale, series.id)}
+        heading={messages.editSeriesTitle}
+        submitLabel={messages.save}
+        cancelHref={series.path}
+        values={values}
+        options={await seriesFormOptions()}
+        messages={messages}
+      />
+    );
+  }
+  if (mode === "delete") {
+    const values = await existingSeriesValues(series.id);
+    if (!values) return null;
+    return (
+      <DeleteAlbumConfirm
+        action={deleteSeries.bind(null, locale, series.id)}
+        album={{ path: series.path, title: series.title, slug: values.slug }}
+        counts={null}
+        texts={messages.deleteSeriesConfirm}
+        messages={messages}
+      />
+    );
+  }
+  return null;
 }

@@ -1,7 +1,12 @@
 import { slugifyDash } from "@con2/components/helpers";
 
 import { canCreateSubalbum, canEditAlbum } from "@/gallery/access";
-import { isAncestorOrSelf, pathPrefixes } from "@/gallery/paths";
+import {
+  isAncestorOrSelf,
+  isReservedRootPath,
+  pathPrefixes,
+} from "@/gallery/paths";
+import { recordMove } from "@/gallery/redirects";
 import { resolvePath } from "@/gallery/resolve";
 import type { Viewer } from "@/gallery/viewer";
 import { parseOrderingNumber } from "@/media/naming";
@@ -20,11 +25,15 @@ export function slugForAlbum(title: string, requested: string): string {
   return requested || slugifyDash(title) || "album";
 }
 
-/** Refuses paths already used by any v4 or legacy album or photo (other than `selfAlbumId`). */
+/**
+ * Refuses paths already used by any v4 or legacy album, photo or series (other than
+ * `selfAlbumId`), and root slugs that routing claims.
+ */
 export async function assertPathFree(
   path: string,
   selfAlbumId?: string,
 ): Promise<void> {
+  if (isReservedRootPath(path)) throw new PathTakenError(path);
   const taken = await resolvePath(path);
   if (!taken) return;
   if (
@@ -54,10 +63,6 @@ export async function replaceCredits(
 }
 
 /**
- * Moves an album to a new path together with every descendant album and photo. Storage keys are
- * left alone: files never move.
- */
-/**
  * Before a move or rename, checks that every descendant album and photo lands on a free path.
  * The unique index would catch v4 collisions anyway, but legacy content is only found this way.
  */
@@ -80,6 +85,10 @@ export async function assertSubtreePathsFree(
     await assertPathFree(newPath + photo.path.slice(oldPath.length));
 }
 
+/**
+ * Moves an album to a new path together with every descendant album and photo, leaving redirects
+ * from every old path. Storage keys are left alone: files never move.
+ */
 export async function moveAlbumPath(
   albumId: string,
   oldPath: string,
@@ -87,6 +96,7 @@ export async function moveAlbumPath(
 ): Promise<void> {
   if (oldPath === newPath) return;
   await db.transaction(async (tx) => {
+    await recordMove(tx, oldPath, newPath);
     await tx.orm.public.Album.where({ id: albumId }).update({ path: newPath });
     const descendants = await tx.orm.public.Album.where((a) =>
       a.path.like(`${oldPath}/%`),
@@ -94,8 +104,10 @@ export async function moveAlbumPath(
       .select("id", "path")
       .all();
     for (const album of descendants) {
+      const target = newPath + album.path.slice(oldPath.length);
+      await recordMove(tx, album.path, target);
       await tx.orm.public.Album.where({ id: album.id }).update({
-        path: newPath + album.path.slice(oldPath.length),
+        path: target,
       });
     }
     const photos = await tx.orm.public.Photo.where((p) =>
@@ -104,8 +116,10 @@ export async function moveAlbumPath(
       .select("id", "path")
       .all();
     for (const photo of photos) {
+      const target = newPath + photo.path.slice(oldPath.length);
+      await recordMove(tx, photo.path, target);
       await tx.orm.public.Photo.where({ id: photo.id }).update({
-        path: newPath + photo.path.slice(oldPath.length),
+        path: target,
       });
     }
   });
