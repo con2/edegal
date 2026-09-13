@@ -1,6 +1,11 @@
 import "dotenv/config";
 
-import { claimJob, cleanupFinishedJobs, processMediaJob } from "@/media/jobs";
+import {
+  claimJob,
+  cleanupFinishedJobs,
+  processMediaJob,
+  requeueStrandedJobs,
+} from "@/media/jobs";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
@@ -10,6 +15,7 @@ import { db } from "@/prisma/db";
  */
 const concurrency = Number(process.env.WORKER_CONCURRENCY || 2);
 const idleSleepMs = 2000;
+const strandedCheckIntervalMs = 5 * 60 * 1000;
 const cleanupIntervalMs = 60 * 60 * 1000;
 let stopping = false;
 
@@ -44,30 +50,41 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
   });
 }
 
-async function cleanup() {
+/** Housekeeping shared by all worker processes; every statement is safe to run concurrently. */
+async function maintenance() {
+  let sinceCleanupMs = cleanupIntervalMs;
   while (!stopping) {
     try {
-      const deleted = await cleanupFinishedJobs();
-      if (deleted > 0)
-        console.log(`cleanup: removed ${deleted} finished job(s)`);
+      const { requeued, failed } = await requeueStrandedJobs();
+      if (requeued > 0 || failed > 0)
+        console.log(
+          `maintenance: requeued ${requeued} stranded job(s), failed ${failed}`,
+        );
+      if (sinceCleanupMs >= cleanupIntervalMs) {
+        const deleted = await cleanupFinishedJobs();
+        if (deleted > 0)
+          console.log(`maintenance: removed ${deleted} finished job(s)`);
+        sinceCleanupMs = 0;
+      }
     } catch (error) {
       console.error(
-        `cleanup failed: ${error instanceof Error ? error.message : error}`,
+        `maintenance failed: ${error instanceof Error ? error.message : error}`,
       );
     }
     for (
       let waited = 0;
-      waited < cleanupIntervalMs && !stopping;
+      waited < strandedCheckIntervalMs && !stopping;
       waited += idleSleepMs
     )
       await sleep(idleSleepMs);
+    sinceCleanupMs += strandedCheckIntervalMs;
   }
 }
 
 console.log(`media worker started with concurrency ${concurrency}`);
 await Promise.all([
   ...Array.from({ length: concurrency }, (_, i) => slot(i)),
-  cleanup(),
+  maintenance(),
 ]);
 await db.close();
 await pool.end();

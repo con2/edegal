@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
-import { albumJobCounts, claimJob, cleanupFinishedJobs, processMediaJob } from "./jobs";
+import { albumJobCounts, claimJob, cleanupFinishedJobs, processMediaJob, requeueStrandedJobs } from "./jobs";
 import { mediaStorage } from "./storage";
 
 vi.mock("@/gallery/viewer", () => ({
@@ -117,6 +117,23 @@ describe("photo upload and processing", () => {
       body: new Uint8Array(Buffer.from("x")),
     });
     expect((await POST(big, { params: Promise.resolve({ albumId }) })).status).toBe(413);
+  });
+
+  it("returns stranded running jobs to the queue and fails ones out of attempts", async () => {
+    const photo = await db.orm.public.Photo.where({ albumId }).first();
+    const stale = new Date(Date.now() - 20 * 60 * 1000).toISOString();
+    // Attempts count the claim that stranded them, so 1 and 3 are one and three claims made.
+    const [young, old, spent] = await db.orm.public.MediaJob.createAll([
+      { photoId: photo!.id, status: "running", attempts: 1, startedAt: new Date().toISOString() },
+      { photoId: photo!.id, status: "running", attempts: 1, startedAt: stale },
+      { photoId: photo!.id, status: "running", attempts: 3, startedAt: stale },
+    ]);
+    expect(await requeueStrandedJobs()).toEqual({ requeued: 1, failed: 1 });
+    const statusOf = async (id: string) => (await db.orm.public.MediaJob.where({ id }).first())!.status;
+    expect(await statusOf(young.id)).toBe("running");
+    expect(await statusOf(old.id)).toBe("pending");
+    expect(await statusOf(spent.id)).toBe("failed");
+    await db.orm.public.MediaJob.where((j) => j.id.in([young.id, old.id, spent.id])).deleteAndCount();
   });
 
   it("cleans up old finished jobs but keeps recent and failed-but-fresh ones", async () => {

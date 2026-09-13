@@ -21,19 +21,25 @@ kompassi:
 
 legacyAdminUrl: https://conikuvat.fi/admin/
 
-# Parallel image conversions in the media worker (AVIF encoding is CPU heavy).
-workerConcurrency: 2
+# Media worker: `replicas` processes with `workerConcurrency` parallel conversions each. Any number
+# of processes may run at once; jobs are claimed with SKIP LOCKED and a job whose process died is
+# requeued after 15 minutes.
+worker:
+  replicas: 4
+workerConcurrency: 4
 
 # Sized from production usage (node 140-530 MiB, worker 100-220 MiB idle, nginx mostly page cache).
 # An upload holds up to 100 MB of body plus the decoded image (about 4 bytes per pixel, capped at
-# 100 megapixels), and the worker decodes `workerConcurrency` images at once.
+# 100 megapixels), and the worker decodes `workerConcurrency` images at once. Each AVIF encode
+# runs libvips on one thread plus libaom's own four, so the worker's CPU limit stays above the
+# slot count to avoid throttling mid-encode.
 resources:
   node:
     requests: { cpu: 100m, memory: 512Mi }
     limits: { cpu: "2", memory: 2Gi }
   worker:
-    requests: { cpu: 100m, memory: 512Mi }
-    limits: { cpu: "2", memory: 2Gi }
+    requests: { cpu: "2", memory: 1Gi }
+    limits: { cpu: "5", memory: 4Gi }
   migrate:
     requests: { cpu: 50m, memory: 128Mi }
     limits: { cpu: "1", memory: 512Mi }

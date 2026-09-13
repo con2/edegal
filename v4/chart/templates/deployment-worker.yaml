@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "v4.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.worker.replicas }}
   selector:
     matchLabels:
       stack: v4
@@ -21,6 +21,15 @@ spec:
       enableServiceLinks: false
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 120
+      # One worker per node when possible, so the encodes do not compete for the same cores.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              stack: v4
+              component: worker
       securityContext:
         runAsUser: 1082
         runAsGroup: 1082
@@ -39,6 +48,9 @@ spec:
           env:
             - name: WORKER_CONCURRENCY
               value: {{ .Values.workerConcurrency | quote }}
+            # sharp runs its work on the libuv pool; below the slot count, slots would queue.
+            - name: UV_THREADPOOL_SIZE
+              value: {{ max 4 (int .Values.workerConcurrency) | quote }}
           resources:
             {{- toYaml .Values.resources.worker | nindent 12 }}
           securityContext:

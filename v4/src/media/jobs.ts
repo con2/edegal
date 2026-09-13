@@ -115,6 +115,31 @@ export async function albumJobCounts(albumId: string): Promise<{ processing: num
   return { processing: Number(rows[0]?.processing ?? 0), failed: Number(rows[0]?.failed ?? 0) };
 }
 
+/** How long a job may stay `running` before its worker is presumed dead. */
+export const strandedAfterMinutes = 15;
+
+/**
+ * Returns jobs whose worker died mid-job to the queue. A worker that stops gracefully finishes
+ * its jobs first, so only a killed pod or a lost node leaves jobs `running` this long. A job that
+ * has already used its attempts is marked failed instead of looping forever.
+ */
+export async function requeueStrandedJobs(): Promise<{ requeued: number; failed: number }> {
+  const { rows } = await pool.query<{ status: "pending" | "failed" }>(
+    `update v4_media_job
+     set status = case when attempts < $2 then 'pending' else 'failed' end::v4_media_job_status,
+         started_at = null,
+         finished_at = case when attempts < $2 then null else now() end,
+         error = case when attempts < $2 then error else 'worker died while processing' end
+     where status = 'running' and started_at < now() - make_interval(mins => $1)
+     returning status`,
+    [strandedAfterMinutes, maxAttempts],
+  );
+  return {
+    requeued: rows.filter((r) => r.status === "pending").length,
+    failed: rows.filter((r) => r.status === "failed").length,
+  };
+}
+
 /**
  * Removes finished jobs so the table stays small: done jobs after a week, failed ones after a
  * month (their error text is the only record of what went wrong). Returns the number deleted.

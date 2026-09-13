@@ -33,7 +33,13 @@ page cache from the NFS export.
 
 ## Worker
 
-The `worker` Deployment (image tag `<sha>-worker`) generates previews for uploaded photos. It shares the ConfigMap, Secret and NFS mount with the web Deployment; `workerConcurrency` in values controls parallel conversions.
+The `worker` Deployment (image tag `<sha>-worker`) generates previews for uploaded photos. It shares
+the ConfigMap, Secret and NFS mount with the web Deployment. `worker.replicas` processes run
+`workerConcurrency` conversions each; the pods spread across nodes. Scaling is safe: jobs are
+claimed with `SKIP LOCKED`, a job whose process died is requeued after 15 minutes (and failed once
+out of attempts), and the album thumbnail choice tolerates two jobs of one album finishing together.
+Each conversion needs about one CPU for libvips plus libaom's threads for AVIF and up to 400 MB for
+a 100 megapixel input, which is what `resources.worker` is sized for.
 
 ## Deploy
 
