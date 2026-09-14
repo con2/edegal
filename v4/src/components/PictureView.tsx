@@ -196,6 +196,7 @@ function PhotoToolbar({
           onClick={() => {
             const setProfilePhoto = editor.setProfilePhoto;
             if (!setProfilePhoto) return;
+            if (!window.confirm(editor.messages.confirmSetProfilePhoto)) return;
             startTransition(() => setProfilePhoto(photo.id));
           }}
         >
@@ -205,7 +206,7 @@ function PhotoToolbar({
       {editor?.manage ? (
         <button
           type="button"
-          className="btn btn-link btn-sm text-danger"
+          className="btn btn-link btn-sm"
           disabled={busy}
           onClick={() => {
             const manage = editor.manage;

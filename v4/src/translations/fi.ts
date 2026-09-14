@@ -157,6 +157,7 @@ const translations: Translations = {
     setAsProfilePhoto: "Käytä profiilikuvanani",
     deletePhoto: "Poista kuva",
     confirmDeletePhoto: "Poistetaanko tämä kuva pysyvästi?",
+    confirmSetProfilePhoto: "Käytetäänkö tätä kuvaa profiilikuvanasi?",
     save: "Tallenna",
     create: "Luo albumi",
     cancel: "Peruuta",

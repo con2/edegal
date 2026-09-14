@@ -159,6 +159,7 @@ const translations = {
     setAsProfilePhoto: "Use as my profile photo",
     deletePhoto: "Delete photo",
     confirmDeletePhoto: "Delete this photo permanently?",
+    confirmSetProfilePhoto: "Use this photo as your profile photo?",
     save: "Save",
     create: "Create album",
     cancel: "Cancel",
