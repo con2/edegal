@@ -1,2 +1,52 @@
-[tool.black]
+[project]
+name = "edegal"
+version = "2.0.0"
+description = "Fast web image gallery: Django backend and admin"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "admin-multiupload @ git+https://github.com/con2/django-admin-multiupload.git@django3",
+    "beautifulsoup4",
+    "celery",
+    "Django",
+    "django-environ",
+    "django-mptt",
+    "django-prose-editor[sanitize]",
+    "django-redis",
+    "gunicorn",
+    "Pillow",
+    "psycopg[c,pool]",
+    "pydantic[email]",
+    "redis",
+    "requests",
+    "requests-oauthlib",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+]
+
+[tool.uv]
+exclude-newer = "3 days"
+
+[tool.ruff]
+target-version = "py314"
 line-length = 110
+extend-exclude = ["**/migrations/*.py"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "B",
+    "I",
+    "UP",
+]
+ignore = [
+    "E501",  # line length is ruff format's business
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Django settings build on a star import of the defaults.
+"edegal_site/settings.py" = ["F403", "F405"]

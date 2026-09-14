@@ -1,9 +1,13 @@
-version: '2.2'
 services:
   test:
-    build: backend
+    build:
+      context: backend
+      target: test
     init: true
-    command: scripts/wait-for-it.sh --strict postgres:5432 -- python manage.py test
+    command:
+      - sh
+      - -c
+      - scripts/wait-for-it.sh --strict postgres:5432 && ruff check . && ruff format --check . && python manage.py test
     # ports:
     #   - 8000:8000
     links:
