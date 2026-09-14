@@ -1,0 +1,114 @@
+[
+  {
+    "id": "createNativeEnumType.v4_media_format_new",
+    "label": "Create enum type \"v4_media_format_new\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_format_new"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"v4_media_format_new\"",
+        "sql": "CREATE TYPE \"public\".\"v4_media_format_new\" AS ENUM ('jpeg', 'webp', 'avif')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "alterType.v4_media.format",
+    "label": "Alter type of \"v4_media\".\"format\" to v4_media_format_new",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "format",
+        "table": "v4_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"format\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_media",
+          "format"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"format\"",
+        "sql": "ALTER TABLE \"public\".\"v4_media\" ALTER COLUMN \"format\" TYPE \"public\".\"v4_media_format_new\" USING \"format\"::text::\"public\".\"v4_media_format_new\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"format\" has type \"v4_media_format_new\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "v4_media",
+          "format",
+          "v4_media_format_new"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "dropNativeEnumType.v4_media_format",
+    "label": "Drop enum type \"v4_media_format\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_format"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "drop enum type \"v4_media_format\"",
+        "sql": "DROP TYPE \"public\".\"v4_media_format\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "renameType.v4_media_format_new",
+    "label": "Rename enum type \"v4_media_format_new\" to \"v4_media_format\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_format"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "rename enum type \"v4_media_format_new\" to \"v4_media_format\"",
+        "sql": "ALTER TYPE \"public\".\"v4_media_format_new\" RENAME TO \"v4_media_format\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  }
+]

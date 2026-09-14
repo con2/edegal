@@ -7,7 +7,6 @@ const contentTypes: Record<string, string> = {
   jpg: "image/jpeg",
   webp: "image/webp",
   avif: "image/avif",
-  heif: "image/heif",
   png: "image/png",
   gif: "image/gif",
   zip: "application/zip",

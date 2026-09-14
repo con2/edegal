@@ -21,4 +21,4 @@ export const scaledMediaSpecs: ScaledMediaSpec[] = [
 ];
 
 /** Order in which alternate formats are offered to the browser inside `<picture>`. */
-export const formatPreference: MediaFormat[] = ["avif", "webp", "heif", "jpeg"];
+export const formatPreference: MediaFormat[] = ["avif", "webp", "jpeg"];

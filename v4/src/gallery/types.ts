@@ -4,7 +4,7 @@
  */
 
 export type Visibility = "public" | "hidden" | "private";
-export type MediaFormat = "jpeg" | "webp" | "avif" | "heif";
+export type MediaFormat = "jpeg" | "webp" | "avif";
 export type ContentSource = "v4" | "legacy";
 
 export interface MediaVariant {

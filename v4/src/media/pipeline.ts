@@ -83,8 +83,6 @@ async function encode(image: Sharp, spec: ScaledMediaSpec): Promise<Buffer> {
     case "avif":
       // Originals are 4:2:0 JPEGs already; sharp's 4:4:4 default costs 5 % for nothing.
       return resized.avif({ quality: spec.quality, chromaSubsampling: "4:2:0" }).toBuffer();
-    case "heif":
-      return resized.heif({ quality: spec.quality }).toBuffer();
   }
 }
 

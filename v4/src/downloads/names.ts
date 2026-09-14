@@ -4,7 +4,6 @@ const extensions: Record<MediaFormat, string> = {
   jpeg: "jpg",
   webp: "webp",
   avif: "avif",
-  heif: "heif",
 };
 
 /** Flat entry names like the legacy zips: the photo slug plus the original's real extension. */

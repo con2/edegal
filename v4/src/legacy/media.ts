@@ -4,7 +4,7 @@ import { mediaUrl } from "@/media/url";
 
 import type { LegacyMediaRow } from "./rows";
 
-const knownFormats: readonly string[] = ["jpeg", "webp", "avif", "heif"];
+const knownFormats: readonly string[] = ["jpeg", "webp", "avif"];
 
 function toVariant(row: LegacyMediaRow): MediaVariant | null {
   if (!row.src || !knownFormats.includes(row.format)) return null;
