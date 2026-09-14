@@ -296,17 +296,11 @@ picture img {
   justify-content: center;
   align-items: center;
 }
-/* The button is exactly the photo's box: as wide as the stage or as tall, whichever fits.
-   Nested under .PictureView to outrank Bootstrap's pointer cursor on [type="button"]. */
-.PictureView .PictureView-photo {
-  display: block;
-  padding: 0;
-  border: none;
-  background: none;
+/* Exactly the photo's box: as wide as the stage or as tall, whichever fits. */
+.PictureView-photo {
   width: min(100cqw, 100cqh * var(--PictureView-ratio));
   aspect-ratio: var(--PictureView-ratio);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-  cursor: zoom-in;
 
   picture,
   img {
@@ -327,7 +321,6 @@ picture img {
   }
   .PictureView-photo {
     box-shadow: none;
-    cursor: zoom-out;
   }
 }
 

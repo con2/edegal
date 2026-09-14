@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { type CSSProperties, useEffect, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 
 import { canDownload } from "@/gallery/access";
@@ -16,6 +22,8 @@ import {
   ChevronRightIcon,
   CloseIcon,
   DownloadIcon,
+  FullscreenIcon,
+  SlideshowIcon,
 } from "./icons";
 import { Picture } from "./Picture";
 
@@ -95,7 +103,10 @@ interface PhotoToolbarProps {
   album: ClientAlbumPage;
   photo: PhotoVM;
   downloadable: boolean;
+  slideshow: boolean;
   onDownload: () => void;
+  onToggleSlideshow: () => void;
+  onMaximize: () => void;
   editor: PhotoEditor | null;
   messages: Translations["PictureView"];
   onNavigate: PictureViewProps["onNavigate"];
@@ -105,7 +116,10 @@ function PhotoToolbar({
   album,
   photo,
   downloadable,
+  slideshow,
   onDownload,
+  onToggleSlideshow,
+  onMaximize,
   editor,
   messages,
   onNavigate,
@@ -125,6 +139,22 @@ function PhotoToolbar({
         <CloseIcon className="PictureView-toolbarIcon" />
         {messages.backToAlbum}
       </a>
+      <button
+        type="button"
+        className="btn btn-link btn-sm"
+        onClick={onMaximize}
+      >
+        <FullscreenIcon className="PictureView-toolbarIcon" />
+        {messages.maximize}
+      </button>
+      <button
+        type="button"
+        className="btn btn-link btn-sm"
+        onClick={onToggleSlideshow}
+      >
+        <SlideshowIcon className="PictureView-toolbarIcon" />
+        {slideshow ? messages.stopSlideshow : messages.startSlideshow}
+      </button>
       {downloadable ? (
         <button
           type="button"
@@ -224,7 +254,16 @@ export function PictureView({
   const next = album.photos[index + 1];
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [maximized, setMaximized] = useState(false);
+  // The URL carries the slideshow flag so that it can be linked to; Next keeps the hook in
+  // sync with our own replaceState calls.
+  const slideshow = useSearchParams().has("slideshow");
   const downloadable = canDownload(album) && photo.original !== null;
+
+  const toggleSlideshow = useCallback(
+    () =>
+      onNavigate(slideshow ? photo.path : `${photo.path}?slideshow`, "replace"),
+    [slideshow, photo.path, onNavigate],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -237,9 +276,6 @@ export function PictureView({
   useEffect(() => {
     // Keyboard shortcuts belong to the picture, not to an open dialog.
     if (downloadOpen) return;
-    const slideshow = new URLSearchParams(window.location.search).has(
-      "slideshow",
-    );
     const go = (direction: Direction, keepSlideshow = false) => {
       const target =
         direction === "album"
@@ -260,7 +296,7 @@ export function PictureView({
         return;
       }
       if (event.key === "s" || event.key === "S") {
-        onNavigate(`${photo.path}?slideshow`, "replace");
+        toggleSlideshow();
         return;
       }
       if (event.code === "Escape" && maximized) {
@@ -287,6 +323,8 @@ export function PictureView({
     onNavigate,
     downloadOpen,
     maximized,
+    slideshow,
+    toggleSlideshow,
   ]);
 
   const preview = photo.preview ?? photo.thumbnail;
@@ -305,7 +343,10 @@ export function PictureView({
             album={album}
             photo={photo}
             downloadable={downloadable}
+            slideshow={slideshow}
             onDownload={() => setDownloadOpen(true)}
+            onToggleSlideshow={toggleSlideshow}
+            onMaximize={() => setMaximized(true)}
             editor={editor}
             messages={messages.PictureView}
             onNavigate={onNavigate}
@@ -323,19 +364,9 @@ export function PictureView({
             )}
 
         <div className="PictureView-stage">
-          <button
-            type="button"
-            className="PictureView-photo"
-            style={photoStyle}
-            title={
-              maximized
-                ? messages.PictureView.exitMaximized
-                : messages.PictureView.maximize
-            }
-            onClick={() => setMaximized((current) => !current)}
-          >
+          <div className="PictureView-photo" style={photoStyle}>
             <Picture media={preview} alt={photo.title} loading="eager" />
-          </button>
+          </div>
         </div>
 
         {maximized
