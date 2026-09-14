@@ -7,5 +7,10 @@ kompassi:
   photographerGroup: larppikuvat-staff
   adminGroup: admins
 legacyAdminUrl: https://larppikuvat.fi/admin/
+mail:
+  smtpHostname: sr1.pahaip.fi
+  smtpPort: 25
+  sender: root@tracon.fi
+  from: Larppikuvat.fi <root@tracon.fi>
 # Secret `v4` in namespace larppikuvat-v4 is managed out of band.
 existingSecretName: v4

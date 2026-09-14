@@ -92,6 +92,16 @@ by year. A slug present in both the v4 and legacy tables renders as one merged p
 match neither fall back to the ordinary gallery resolution, so legacy albums under `/photographers`
 still open.
 
+## Contacting photographers
+
+The picture view and the download dialog offer "Contact photographer" when a credited copyright
+holder has given an email address in their profile. The form posts to `/api/contact`, which
+resolves the album or photo path as the visitor would see it, mails every such address with the
+visitor's address as reply-to, and allows five messages per address in ten minutes. Mail goes out
+through `SMTP_HOSTNAME` (with `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`) from `MAIL_SENDER`
+as `FORMATTED_MAIL_FROM`; without a hostname, development prints the message to the terminal and
+production reports the form as unavailable.
+
 ## Downloads
 
 `GET /api/zip/<album path>` streams the album's originals as a zip after the same visibility checks as the album page. Single originals are served straight from `/media`. The download dialog shows the album's terms (`v4_terms`, inherited from ancestors) and credit instructions before either.

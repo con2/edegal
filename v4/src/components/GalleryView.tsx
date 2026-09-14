@@ -22,6 +22,7 @@ interface GalleryViewProps {
     | "BreadcrumbBar"
     | "DownloadDialog"
     | "Download"
+    | "ContactDialog"
   >;
   editor: PhotoEditor | null;
   /** True while an editor panel is shown above the grid. */
@@ -85,6 +86,7 @@ export function GalleryView({
           PictureView: messages.PictureView,
           DownloadDialog: messages.DownloadDialog,
           Download: messages.Download,
+          ContactDialog: messages.ContactDialog,
         }}
         onNavigate={navigate}
         editor={editor}

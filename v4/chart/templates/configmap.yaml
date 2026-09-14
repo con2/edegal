@@ -13,3 +13,7 @@ data:
   ADMIN_GROUP: {{ .Values.kompassi.adminGroup | quote }}
   LEGACY_ENABLED: "true"
   LEGACY_ADMIN_URL: {{ .Values.legacyAdminUrl | quote }}
+  SMTP_HOSTNAME: {{ .Values.mail.smtpHostname | quote }}
+  SMTP_PORT: {{ .Values.mail.smtpPort | quote }}
+  MAIL_SENDER: {{ .Values.mail.sender | quote }}
+  FORMATTED_MAIL_FROM: {{ .Values.mail.from | quote }}

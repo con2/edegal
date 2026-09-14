@@ -24,6 +24,14 @@ with the legacy Django tables, and `db update` plans `DROP TABLE` for every tabl
 does not know about. The migration init container only ever runs `migration check` and
 `db migrate`.
 
+## Mail
+
+`mail.*` feeds the contact form: `smtpHostname`, `smtpPort`, `sender` (envelope sender) and `from`
+(the From header). Both production values files point at the same relay the legacy stack uses,
+`sr1.pahaip.fi:25`, which needs no credentials. A relay that does gets `SMTP_USERNAME` and
+`SMTP_PASSWORD` added to the Secret; the containers load every key of it. With an empty hostname the
+form tells visitors that sending is unavailable.
+
 ## Resources
 
 `resources.*` in values sets requests and limits per container. The defaults were sized from

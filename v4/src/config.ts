@@ -68,3 +68,13 @@ export const legacyAdminUrl = env(
 ).replace(/\/?$/, "/");
 
 export const timezone = "Europe/Helsinki";
+
+/** Outgoing mail, larpit-fi style: no host means messages are logged in development and refused in production. */
+export const smtp = {
+  host: env("SMTP_HOSTNAME", ""),
+  port: Number(env("SMTP_PORT", "587")),
+  username: env("SMTP_USERNAME", ""),
+  password: env("SMTP_PASSWORD", ""),
+};
+export const mailSender = env("MAIL_SENDER", "edegal@localhost");
+export const mailFrom = env("FORMATTED_MAIL_FROM", "Edegal <edegal@localhost>");

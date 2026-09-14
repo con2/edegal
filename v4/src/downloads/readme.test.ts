@@ -16,6 +16,7 @@ const album: ClientAlbumPage = {
   layout: "simple",
   visibility: "public",
   effectiveVisibility: "public",
+  contactable: false,
   cover: null,
   isDownloadable: true,
   photosProcessing: 0,

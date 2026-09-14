@@ -7,5 +7,10 @@ kompassi:
   photographerGroup: conikuvat-staff
   adminGroup: admins
 legacyAdminUrl: https://conikuvat.fi/admin/
+mail:
+  smtpHostname: sr1.pahaip.fi
+  smtpPort: 25
+  sender: root@tracon.fi
+  from: Conikuvat.fi <root@tracon.fi>
 # Secret `v4` in namespace conikuvat-v4 is managed out of band.
 existingSecretName: v4

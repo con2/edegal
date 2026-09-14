@@ -21,6 +21,14 @@ kompassi:
 
 legacyAdminUrl: https://conikuvat.fi/admin/
 
+# Outgoing mail for the contact form. An empty hostname makes the form report the service as
+# unavailable. SMTP_USERNAME and SMTP_PASSWORD, when the relay needs them, go in the Secret.
+mail:
+  smtpHostname: ""
+  smtpPort: 587
+  sender: edegal@localhost
+  from: Edegal <edegal@localhost>
+
 # Media worker: `replicas` processes with `workerConcurrency` parallel conversions each. Any number
 # of processes may run at once; jobs are claimed with SKIP LOCKED and a job whose process died is
 # requeued after 15 minutes.
@@ -48,8 +56,8 @@ resources:
     limits: { cpu: "1", memory: 512Mi }
 
 # THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
-# DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET
-# and the chart skips creating its own.
+# DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET (and optionally
+# SMTP_USERNAME, SMTP_PASSWORD) and the chart skips creating its own.
 existingSecretName: ""
 secret:
   databaseUrl: postgresql://changeme:changeme@postgres:5432/changeme

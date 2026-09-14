@@ -25,6 +25,7 @@ const translations: Translations = {
       "Käyttääksesi näitä kuvia sinun tulee hyväksyä seuraavat ehdot:",
     closeButtonText: "Sulje",
     downloadButtonText: "Lataa albumi",
+    contactPhotographer: "Ota yhteyttä valokuvaajaan",
     twitterCredit:
       "Jos käytät näitä kuvia Twitterissä, ilmoita tekijä seuraavasti:",
     instagramCredit:
@@ -48,6 +49,7 @@ const translations: Translations = {
       "Käyttääksesi tätä kuvaa sinun tulee hyväksyä seuraavat ehdot:",
     closeButtonText: "Sulje",
     downloadButtonText: "Avaa alkuperäinen kuva",
+    contactPhotographer: "Ota yhteyttä valokuvaajaan",
     twitterCredit:
       "Jos käytät tätä kuvaa Twitterissä, ilmoita tekijä seuraavasti:",
     instagramCredit:
@@ -63,39 +65,6 @@ const translations: Translations = {
     acceptTermsAndConditions: "Hyväksyn ehdot",
     defaultTerms:
       "Kuvan käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvan käyttöön.",
-  },
-  ContactDialog: {
-    closeButtonText: "Sulje",
-    dialogTitle: "Ota yhteyttä valokuvaajaan",
-    sendingContactText: "Lähetetään",
-    sendContactText: "Lähetä",
-    errorText: "Viestin lähettäminen epäonnistui. Yritä myöhemmin uudelleen.",
-    successText: "Viestisi on lähetetty.",
-    fields: {
-      subject: {
-        title: "Aihe",
-        choices: {
-          takedown: "Olen tässä kuvassa ja haluan, että se poistetaan",
-          permission: "Haluaisin käyttää tätä kuvaa",
-          other: "Muu",
-        },
-      },
-      recipient: {
-        title: "Vastaanottaja",
-      },
-      email: {
-        title: "Sähköpostiosoitteesi",
-      },
-      album: {
-        title: "Albumi",
-      },
-      picture: {
-        title: "Kuva",
-      },
-      message: {
-        title: "Viesti",
-      },
-    },
   },
   ErrorBoundary: {
     defaultMessage:
@@ -350,6 +319,29 @@ const translations: Translations = {
         "Näitä käyttöehtoja käyttävät albumit, joita et omista, eikä niitä voi poistaa.",
     },
   },
+  ContactDialog: {
+    dialogTitle: "Ota yhteyttä valokuvaajaan",
+    closeButtonText: "Sulje",
+    sendText: "Lähetä",
+    sendingText: "Lähetetään",
+    successText: "Viestisi on lähetetty.",
+    errorText: "Viestin lähettäminen epäonnistui. Yritä myöhemmin uudelleen.",
+    tooManyText:
+      "Olet lähettänyt useita viestejä lyhyessä ajassa. Odota hetki ennen seuraavaa.",
+    fields: {
+      recipient: "Vastaanottaja",
+      album: "Albumi",
+      picture: "Kuva",
+      email: "Sähköpostiosoitteesi",
+      subject: "Aihe",
+      message: "Viesti",
+    },
+    subjects: {
+      takedown: "Olen tässä kuvassa ja haluan, että se poistetaan",
+      permission: "Haluaisin käyttää tätä kuvaa",
+      other: "Muu",
+    },
+  },
   PictureView: {
     backToAlbum: "Takaisin albumiin",
     downloadOriginal: "Lataa alkuperäinen kuva",
@@ -357,6 +349,7 @@ const translations: Translations = {
     startSlideshow: "Aloita diaesitys",
     stopSlideshow: "Lopeta diaesitys",
     nextPicture: "Seuraava kuva",
+    contactPhotographer: "Ota yhteyttä valokuvaajaan",
     previousPicture: "Edellinen kuva",
   },
 };

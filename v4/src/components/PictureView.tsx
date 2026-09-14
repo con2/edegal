@@ -16,6 +16,7 @@ import type { ThumbnailTarget } from "@/editor/albums";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
+import { ContactDialog } from "./ContactDialog";
 import { DownloadDialog } from "./DownloadDialog";
 import {
   ChevronLeftIcon,
@@ -23,6 +24,7 @@ import {
   CloseIcon,
   DownloadIcon,
   FullscreenIcon,
+  MailIcon,
   SlideshowIcon,
 } from "./icons";
 import { Picture } from "./Picture";
@@ -43,7 +45,10 @@ export interface PhotoEditor {
 interface PictureViewProps {
   album: ClientAlbumPage;
   index: number;
-  messages: Pick<Translations, "PictureView" | "DownloadDialog" | "Download">;
+  messages: Pick<
+    Translations,
+    "PictureView" | "DownloadDialog" | "Download" | "ContactDialog"
+  >;
   onNavigate: (path: string, mode: "push" | "replace") => void;
   /** Present when the viewer has at least one action available on photos. */
   editor: PhotoEditor | null;
@@ -105,6 +110,8 @@ interface PhotoToolbarProps {
   downloadable: boolean;
   slideshow: boolean;
   onDownload: () => void;
+  /** Absent when nobody credited for the album can be contacted. */
+  onContact: (() => void) | null;
   onToggleSlideshow: () => void;
   onMaximize: () => void;
   editor: PhotoEditor | null;
@@ -118,6 +125,7 @@ function PhotoToolbar({
   downloadable,
   slideshow,
   onDownload,
+  onContact,
   onToggleSlideshow,
   onMaximize,
   editor,
@@ -163,6 +171,16 @@ function PhotoToolbar({
         >
           <DownloadIcon className="PictureView-toolbarIcon" />
           {messages.downloadOriginal}…
+        </button>
+      ) : null}
+      {onContact ? (
+        <button
+          type="button"
+          className="btn btn-link btn-sm"
+          onClick={onContact}
+        >
+          <MailIcon className="PictureView-toolbarIcon" />
+          {messages.contactPhotographer}…
         </button>
       ) : null}
       {editor && editor.thumbnailTargets.length > 0 ? (
@@ -254,6 +272,7 @@ export function PictureView({
   const previous = album.photos[index - 1];
   const next = album.photos[index + 1];
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const [maximized, setMaximized] = useState(false);
   // The URL carries the slideshow flag so that it can be linked to; Next keeps the hook in
   // sync with our own replaceState calls.
@@ -276,7 +295,7 @@ export function PictureView({
 
   useEffect(() => {
     // Keyboard shortcuts belong to the picture, not to an open dialog.
-    if (downloadOpen) return;
+    if (downloadOpen || contactOpen) return;
     const go = (direction: Direction, keepSlideshow = false) => {
       const target =
         direction === "album"
@@ -323,6 +342,7 @@ export function PictureView({
     next,
     onNavigate,
     downloadOpen,
+    contactOpen,
     maximized,
     slideshow,
     toggleSlideshow,
@@ -346,6 +366,7 @@ export function PictureView({
             downloadable={downloadable}
             slideshow={slideshow}
             onDownload={() => setDownloadOpen(true)}
+            onContact={album.contactable ? () => setContactOpen(true) : null}
             onToggleSlideshow={toggleSlideshow}
             onMaximize={() => setMaximized(true)}
             editor={editor}
@@ -389,10 +410,22 @@ export function PictureView({
           photo={photo}
           show={downloadOpen}
           onHide={() => setDownloadOpen(false)}
+          onContactPhotographer={
+            album.contactable ? () => setContactOpen(true) : undefined
+          }
           messages={{
             dialog: messages.DownloadDialog,
             Download: messages.Download,
           }}
+        />
+      ) : null}
+      {album.contactable ? (
+        <ContactDialog
+          album={album}
+          photo={photo}
+          show={contactOpen}
+          onHide={() => setContactOpen(false)}
+          messages={messages.ContactDialog}
         />
       ) : null}
     </>

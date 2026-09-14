@@ -23,6 +23,8 @@ interface DownloadDialogProps {
   photo: PhotoVM | null;
   show: boolean;
   onHide(): void;
+  /** Opens the contact dialog in place of this one; absent when nobody can be contacted. */
+  onContactPhotographer?: () => void;
   messages: {
     dialog: DownloadDialogMessages;
     Download: Translations["Download"];
@@ -55,6 +57,7 @@ export function DownloadDialog({
   photo,
   show,
   onHide,
+  onContactPhotographer,
   messages,
 }: DownloadDialogProps) {
   const t = messages.dialog;
@@ -170,6 +173,18 @@ export function DownloadDialog({
 
         <div className="d-flex w-100 justify-content-between">
           <div>
+            {onContactPhotographer ? (
+              <button
+                type="button"
+                className="btn btn-link link-subtle p-0 me-3"
+                onClick={() => {
+                  close();
+                  onContactPhotographer();
+                }}
+              >
+                {t.contactPhotographer}…
+              </button>
+            ) : null}
             {photographerLinks.length > 0 ? (
               <>
                 <span className="text-muted">{messages.Download.links}: </span>

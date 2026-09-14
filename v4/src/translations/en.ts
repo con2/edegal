@@ -23,6 +23,7 @@ const translations = {
       "In order to use these pictures, you must agree to the following terms and conditions:",
     closeButtonText: "Close",
     downloadButtonText: "Download album",
+    contactPhotographer: "Contact photographer",
     twitterCredit:
       "If you use these pictures in Twitter, please credit the author as follows:",
     instagramCredit:
@@ -46,6 +47,7 @@ const translations = {
       "In order to use this picture, you must agree to the following terms and conditions:",
     closeButtonText: "Close",
     downloadButtonText: "Open original",
+    contactPhotographer: "Contact photographer",
     twitterCredit:
       "If you use this picture in Twitter, please credit the author as follows:",
     instagramCredit:
@@ -62,39 +64,6 @@ const translations = {
     acceptTermsAndConditions: "I accept these terms and conditions",
     defaultTerms:
       "Terms and conditions missing. The photo is covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.",
-  },
-  ContactDialog: {
-    closeButtonText: "Close",
-    dialogTitle: "Contact photographer",
-    sendingContactText: "Sending",
-    sendContactText: "Send",
-    errorText: "We were unable to send your message. Please try again later.",
-    successText: "Your message has been sent.",
-    fields: {
-      subject: {
-        title: "Subject",
-        choices: {
-          takedown: "I am in this photo and I want it removed",
-          permission: "I'd like to ask for permission to use this photo",
-          other: "Other",
-        },
-      },
-      recipient: {
-        title: "Recipient",
-      },
-      email: {
-        title: "Your email address",
-      },
-      album: {
-        title: "Album",
-      },
-      picture: {
-        title: "Picture",
-      },
-      message: {
-        title: "Message",
-      },
-    },
   },
   ErrorBoundary: {
     defaultMessage:
@@ -352,6 +321,29 @@ const translations = {
         "These conditions are used by albums you do not own and cannot be deleted.",
     },
   },
+  ContactDialog: {
+    dialogTitle: "Contact photographer",
+    closeButtonText: "Close",
+    sendText: "Send",
+    sendingText: "Sending",
+    successText: "Your message has been sent.",
+    errorText: "We were unable to send your message. Please try again later.",
+    tooManyText:
+      "You have sent several messages in a short time. Please wait a while before sending another.",
+    fields: {
+      recipient: "Recipient",
+      album: "Album",
+      picture: "Picture",
+      email: "Your email address",
+      subject: "Subject",
+      message: "Message",
+    },
+    subjects: {
+      takedown: "I am in this photo and I want it removed",
+      permission: "I'd like to ask for permission to use this photo",
+      other: "Other",
+    },
+  },
   PictureView: {
     backToAlbum: "Back to Album",
     downloadOriginal: "Download Original",
@@ -359,6 +351,7 @@ const translations = {
     startSlideshow: "Start slideshow",
     stopSlideshow: "Stop slideshow",
     nextPicture: "Next Picture",
+    contactPhotographer: "Contact Photographer",
     previousPicture: "Previous Picture",
   },
 };

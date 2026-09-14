@@ -192,6 +192,7 @@ export async function GalleryPage({
           BreadcrumbBar: t.BreadcrumbBar,
           DownloadDialog: t.DownloadDialog,
           Download: t.Download,
+          ContactDialog: t.ContactDialog,
         }}
         editor={photoEditor}
       />

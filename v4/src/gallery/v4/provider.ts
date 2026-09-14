@@ -169,6 +169,9 @@ export async function loadV4Album(
     layout: album.layout,
     visibility: album.visibility,
     effectiveVisibility,
+    contactable: album.credits.some(
+      (c) => c.isCopyright && c.photographer.email !== "",
+    ),
     ownerId: album.ownerId,
     isOpenForSubalbums: album.isOpenForSubalbums,
     isDownloadable: album.isDownloadable,

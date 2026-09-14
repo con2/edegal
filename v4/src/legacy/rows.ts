@@ -19,6 +19,7 @@ export interface LegacyPhotographerRow {
   facebook_handle: string;
   flickr_handle: string;
   bluesky_handle: string;
+  has_email: boolean;
 }
 
 export interface LegacyAlbumRow {

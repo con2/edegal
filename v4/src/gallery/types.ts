@@ -97,6 +97,8 @@ export interface AlbumPageVM {
   visibility: Visibility;
   /** The least visible of the album and its ancestors; decides access and every global listing. */
   effectiveVisibility: Visibility;
+  /** True when a credited copyright holder has given a contact address for the contact form. */
+  contactable: boolean;
   /** Server-only; stripped before the payload reaches the client. */
   ownerId: string | null;
   /** Server-only. */

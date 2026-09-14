@@ -37,7 +37,8 @@ const photographerJson = (alias: string) =>
   `case when ${alias}.id is null then null else json_build_object(
     'id', ${alias}.id, 'slug', ${alias}.slug, 'display_name', ${alias}.display_name, 'homepage_url', ${alias}.homepage_url,
     'twitter_handle', ${alias}.twitter_handle, 'instagram_handle', ${alias}.instagram_handle, 'threads_handle', ${alias}.threads_handle,
-    'facebook_handle', ${alias}.facebook_handle, 'flickr_handle', ${alias}.flickr_handle, 'bluesky_handle', ${alias}.bluesky_handle) end`;
+    'facebook_handle', ${alias}.facebook_handle, 'flickr_handle', ${alias}.flickr_handle, 'bluesky_handle', ${alias}.bluesky_handle,
+    'has_email', ${alias}.email <> '') end`;
 
 /**
  * Django's nested-set columns make "some ancestor is not public" one subquery. Django itself
@@ -265,4 +266,16 @@ export async function legacyPhotographerAlbums(
     [photographerId],
   );
   return rows;
+}
+
+/** The contact address of the album's photographer, or null when there is none. */
+export async function legacyAlbumPhotographerEmail(
+  albumId: number,
+): Promise<string | null> {
+  const { rows } = await pool.query<{ email: string }>(
+    `select p.email from edegal_album a join edegal_photographer p on p.id = a.photographer_id
+     where a.id = $1 and p.email <> ''`,
+    [albumId],
+  );
+  return rows[0]?.email ?? null;
 }

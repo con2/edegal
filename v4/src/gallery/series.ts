@@ -161,6 +161,7 @@ export async function loadSeriesPageBySlug(
     effectiveVisibility: v4Series
       ? v4Series.visibility
       : legacyVisibility(legacy!.is_public, legacy!.is_visible),
+    contactable: false,
     ownerId: null,
     isOpenForSubalbums: false,
     isDownloadable: false,
