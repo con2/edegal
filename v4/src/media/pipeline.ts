@@ -54,18 +54,20 @@ function decode(original: Buffer): Sharp {
 }
 
 /**
- * Stores the uploaded file as the photo's original under `pictures/`. Orientation is normalised
- * from EXIF and non-JPEG input is re-encoded, so every original is a JPEG.
+ * Stores the uploaded file as the photo's original under `pictures/`. A JPEG is kept byte for
+ * byte, EXIF orientation tag included: photographers want their files untouched, and originals
+ * are only ever downloaded, never shown. Other formats are re-encoded so every original is a JPEG.
  */
 export async function storeOriginal(photoPath: string, original: Buffer): Promise<ProducedMedia> {
-  const image = decode(original);
-  const metadata = await image.metadata();
-  const needsReencode = metadata.format !== "jpeg" || (metadata.orientation ?? 1) !== 1;
-  const buffer = needsReencode ? await image.jpeg({ quality: 95 }).toBuffer() : original;
-  const { width = 0, height = 0 } = needsReencode ? await sharp(buffer).metadata() : metadata;
+  const metadata = await sharp(original, { failOn: "none", limitInputPixels: maxInputPixels }).metadata();
+  const keepBytes = metadata.format === "jpeg";
+  const buffer = keepBytes ? original : await decode(original).jpeg({ quality: 95 }).toBuffer();
+  const { width = 0, height = 0, orientation = 1 } = keepBytes ? metadata : await sharp(buffer).metadata();
+  // Recorded as displayed: a tag of 5 or above rotates the stored pixels by a quarter turn.
+  const displayed = orientation >= 5 ? { width: height, height: width } : { width, height };
   const storageKey = storageKeyFor(photoPath, "original", "jpeg");
   await mediaStorage.put(storageKey, buffer, "image/jpeg");
-  return { role: "original", format: "jpeg", width, height, storageKey, byteSize: buffer.byteLength };
+  return { role: "original", format: "jpeg", ...displayed, storageKey, byteSize: buffer.byteLength };
 }
 
 async function encode(image: Sharp, spec: ScaledMediaSpec): Promise<Buffer> {

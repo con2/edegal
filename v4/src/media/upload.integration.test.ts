@@ -84,9 +84,9 @@ describe("photo upload and processing", () => {
     expect(await claimJob()).toBeNull();
   });
 
-  // In-camera JPEGs store the sensor's landscape pixels plus an EXIF orientation tag; Lightroom
-  // exports bake the rotation in. Both must come out upright.
-  it("bakes an EXIF orientation into the stored original and the scaled variants", async () => {
+  // In-camera JPEGs store the sensor's landscape pixels plus an EXIF orientation tag. The file
+  // itself is kept as uploaded; dimensions and scaled variants follow the tag.
+  it("keeps a tagged original untouched and records its displayed dimensions; variants come out upright", async () => {
     const tagged = await sharp({ create: { width: 90, height: 60, channels: 3, background: "#888" } })
       .jpeg()
       .withMetadata({ orientation: 6 })
@@ -99,8 +99,7 @@ describe("photo upload and processing", () => {
     const photo = await db.orm.public.Photo.where({ id: photoId }).include("media").first();
     const original = photo!.media.find((m) => m.role === "original")!;
     expect([original.width, original.height]).toEqual([60, 90]);
-    const stored = await sharp(await readFile(join(mediaRoot, original.storageKey))).metadata();
-    expect([stored.width, stored.height, stored.orientation]).toEqual([60, 90, undefined]);
+    expect(await readFile(join(mediaRoot, original.storageKey))).toEqual(tagged);
     for (const variant of photo!.media.filter((m) => m.role !== "original")) {
       expect(variant.height).toBeGreaterThan(variant.width);
     }
