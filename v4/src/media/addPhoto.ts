@@ -42,14 +42,14 @@ export async function addPhotoToAlbum(
   // Storage keys are derived from the path at upload time and never move; a renamed-away album
   // may have left files behind under the same key, so fall back to a unique key base.
   const keyTaken = await db.orm.public.Media.where({
-    storageKey: storageKeyFor(photoPath, "original", "jpeg"),
+    storageKey: storageKeyFor(photoPath, "original", info.format),
   })
     .select("id")
     .first();
   const keyBase = keyTaken ? `${photoPath}-${Date.now().toString(36)}` : photoPath;
 
   const takenAt = await takenAtOf(data);
-  const original = await storeOriginal(keyBase, data);
+  const original = await storeOriginal(keyBase, data, info);
 
   const photo = await db.transaction(async (tx) => {
     const created = await tx.orm.public.Photo.create({

@@ -2,7 +2,8 @@ import type { MediaFormat } from "@/gallery/types";
 
 export interface ScaledMediaSpec {
   role: "thumbnail" | "preview";
-  format: MediaFormat;
+  /** Scaled variants are only ever jpeg, webp or avif; png is an upload format. */
+  format: Exclude<MediaFormat, "png">;
   maxWidth: number;
   maxHeight: number;
   quality: number;

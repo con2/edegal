@@ -38,6 +38,7 @@ native_enum MediaFormat {
   jpeg = "jpeg"
   webp = "webp"
   avif = "avif"
+  png  = "png"
 
   @@map("v4_media_format")
 }

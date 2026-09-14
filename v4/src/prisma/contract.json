@@ -1633,7 +1633,8 @@
               "members": [
                 "jpeg",
                 "webp",
-                "avif"
+                "avif",
+                "png"
               ],
               "typeName": "v4_media_format"
             },
@@ -2992,7 +2993,8 @@
               "values": [
                 "jpeg",
                 "webp",
-                "avif"
+                "avif",
+                "png"
               ]
             },
             "MediaJobStatus": {
@@ -3018,7 +3020,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a5530b9d5eeab959b0d06b49d4bda139a14c6c32f2eebc93e4d6a1ffc3988030"
+    "storageHash": "e1a3cbb9c03323dc192deb6c07dc6b46d553e21a4e0faca21a074a747e153efb"
   },
   "execution": {
     "executionHash": "4de61373a8bb18837777d69f3fc78addb7349f6fb48ac3b4e9660aca0d6bd51b",

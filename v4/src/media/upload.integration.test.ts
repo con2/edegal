@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import sharp from "sharp";
+import sharp, { type Sharp } from "sharp";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { mediaRoot } from "@/config";
@@ -102,6 +102,28 @@ describe("photo upload and processing", () => {
     expect(await readFile(join(mediaRoot, original.storageKey))).toEqual(tagged);
     for (const variant of photo!.media.filter((m) => m.role !== "original")) {
       expect(variant.height).toBeGreaterThan(variant.width);
+    }
+  });
+
+  it("stores PNG, WebP and AVIF originals as uploaded and still renders jpeg and avif variants", async () => {
+    const encoders = {
+      png: (image: Sharp) => image.png(),
+      webp: (image: Sharp) => image.webp(),
+      avif: (image: Sharp) => image.avif(),
+    };
+    for (const [format, encode] of Object.entries(encoders)) {
+      const data = await encode(sharp({ create: { width: 30, height: 20, channels: 3, background: "#456" } })).toBuffer();
+      const response = await POST(request(albumId, `shot-${format}.${format}`, data, `image/${format}`), { params: Promise.resolve({ albumId }) });
+      expect(response.status).toBe(201);
+      const { photoId } = (await response.json()) as { photoId: string };
+      await processMediaJob((await claimJob())!);
+      const photo = await db.orm.public.Photo.where({ id: photoId }).include("media").first();
+      const original = photo!.media.find((m) => m.role === "original")!;
+      expect(original).toMatchObject({ format, storageKey: `pictures/uploads/shot-${format}.${format}`, width: 30, height: 20 });
+      expect(await readFile(join(mediaRoot, original.storageKey))).toEqual(data);
+      expect(photo!.media.filter((m) => m.role !== "original").map((m) => `${m.role}/${m.format}`).sort()).toEqual(
+        ["preview/avif", "preview/jpeg", "thumbnail/avif", "thumbnail/jpeg"],
+      );
     }
   });
 

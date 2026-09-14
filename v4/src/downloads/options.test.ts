@@ -52,6 +52,17 @@ describe("downloadOptions", () => {
   });
 });
 
+describe("downloadOptions for other original formats", () => {
+  it("names the file after the original's own format", () => {
+    const png = downloadOptions({
+      ...photo,
+      original: variant("png", 8000, 1000),
+    })[0];
+    expect(png.fileName).toBe("dsc-0001.png");
+    expect(describeVariant(png.variant)).toBe("PNG (8000×5333, 1 KB)");
+  });
+});
+
 describe("labels", () => {
   it("formats sizes in KB below a megabyte and MB above, with a decimal below ten", () => {
     expect(formatBytes(512)).toBe("1 KB");

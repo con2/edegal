@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { PhotoVM } from "@/gallery/types";
+import type { MediaFormat, PhotoVM } from "@/gallery/types";
 
 import { zipEntryName, zipFileName } from "./names";
 
@@ -13,7 +13,7 @@ const variant = (format: PhotoVM["thumbnail"]["fallback"]["format"]) => ({
   byteSize: null,
 });
 
-const photo = (path: string, format: "jpeg" | "avif"): PhotoVM => ({
+const photo = (path: string, format: MediaFormat): PhotoVM => ({
   id: path,
   path,
   title: "",
@@ -27,6 +27,7 @@ const photo = (path: string, format: "jpeg" | "avif"): PhotoVM => ({
 describe("zipEntryName", () => {
   it("uses the slug with jpg for jpeg originals, like the legacy zips", () => {
     expect(zipEntryName(photo("/event/dsc-0001", "jpeg"))).toBe("dsc-0001.jpg");
+    expect(zipEntryName(photo("/event/dsc-0002", "png"))).toBe("dsc-0002.png");
   });
 
   it("keeps other formats' own extension", () => {

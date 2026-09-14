@@ -1,0 +1,53 @@
+[
+  {
+    "id": "addNativeEnumValue.v4_media_format.png",
+    "label": "Add value \"png\" to enum type \"v4_media_format\"",
+    "summary": "Adds value \"png\" to enum type \"v4_media_format\". A newly added enum value cannot be used until the transaction that adds it commits, so a migration that both appends a value and uses it in the same step will fail at apply.",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_format"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure enum type \"v4_media_format\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_type\" AS \"t\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"t\".\"typnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"t\".\"typname\" = $2 AND \"t\".\"typtype\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_media_format",
+          "e"
+        ]
+      },
+      {
+        "description": "ensure value \"png\" is absent from enum type \"v4_media_format\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_enum\" AS \"e\" INNER JOIN \"pg_type\" AS \"t\" ON \"t\".\"oid\" = \"e\".\"enumtypid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"t\".\"typnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"t\".\"typname\" = $2 AND \"e\".\"enumlabel\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_media_format",
+          "png"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add value \"png\" to enum type \"v4_media_format\"",
+        "sql": "ALTER TYPE \"public\".\"v4_media_format\" ADD VALUE 'png'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify value \"png\" exists on enum type \"v4_media_format\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_enum\" AS \"e\" INNER JOIN \"pg_type\" AS \"t\" ON \"t\".\"oid\" = \"e\".\"enumtypid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"t\".\"typnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"t\".\"typname\" = $2 AND \"e\".\"enumlabel\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_media_format",
+          "png"
+        ]
+      }
+    ]
+  }
+]

@@ -263,7 +263,7 @@ const translations = {
   Upload: {
     processingSuffix: "photos are being processed and will appear shortly…",
     title: "Upload photos to this album",
-    help: "JPEG, PNG or WebP, at most 100 MB per file. Previews are generated in the background after upload. Photos are ordered by the time they were taken.",
+    help: "JPEG, PNG, WebP or AVIF, at most 100 MB per file. The file is stored as uploaded. Previews are generated in the background after upload. Photos are ordered by the time they were taken.",
     dropHere: "Drop photos here or",
     selectFiles: "choose files",
     waiting: "Waiting",
@@ -275,7 +275,8 @@ const translations = {
     errors: {
       tooLarge: "Larger than 100 MB",
       tooManyPixels: "More than 100 megapixels",
-      unsupported: "Not a JPEG, PNG or WebP image (HEIC is not supported)",
+      unsupported:
+        "Not a JPEG, PNG, WebP or AVIF image (HEIC is not supported)",
       exists: "A photo with this name already exists in the album",
       forbidden: "Not allowed",
       network: "Network error",

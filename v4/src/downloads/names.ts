@@ -2,6 +2,7 @@ import type { ClientAlbumPage, MediaFormat, PhotoVM } from "@/gallery/types";
 
 export const extensions: Record<MediaFormat, string> = {
   jpeg: "jpg",
+  png: "png",
   webp: "webp",
   avif: "avif",
 };

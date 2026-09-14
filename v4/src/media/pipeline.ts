@@ -15,14 +15,16 @@ export interface ProducedMedia {
 }
 
 export interface UploadInfo {
-  format: "jpeg" | "png" | "webp";
+  format: MediaFormat;
   width: number;
   height: number;
+  /** EXIF orientation, 1 when absent. */
+  orientation: number;
 }
 
 const roleDirectories = { original: "pictures", preview: "previews", thumbnail: "thumbnails" } as const;
 
-/** `pictures/myevent/dsc-0001.jpeg`, `previews/myevent/dsc-0001.avif`, ... */
+/** `pictures/myevent/dsc-0001.png`, `previews/myevent/dsc-0001.avif`, ... */
 export function storageKeyFor(photoPath: string, role: ProducedMedia["role"], format: MediaFormat): string {
   return `${roleDirectories[role]}${photoPath}.${format}`;
 }
@@ -33,17 +35,25 @@ export function storageKeyFor(photoPath: string, role: ProducedMedia["role"], fo
  */
 export const maxInputPixels = 100_000_000;
 
-/** Formats the pipeline can decode. HEIC is not among them: prebuilt sharp has no HEVC decoder. */
+/**
+ * Formats the pipeline can decode. sharp reports AVIF as HEIF with AV1 compression; HEIC (HEVC) is
+ * refused because prebuilt sharp has no HEVC decoder.
+ */
 export async function inspectUpload(data: Buffer): Promise<UploadInfo | null> {
   try {
-    const { format, width, height } = await sharp(data, {
+    const { format, compression, width, height, orientation } = await sharp(data, {
       failOn: "none",
       limitInputPixels: maxInputPixels,
     }).metadata();
-    if ((format === "jpeg" || format === "png" || format === "webp") && width && height) {
-      return { format, width, height };
-    }
-    return null;
+    if (!width || !height) return null;
+    const uploadFormat =
+      format === "jpeg" || format === "png" || format === "webp"
+        ? format
+        : format === "heif" && compression === "av1"
+          ? "avif"
+          : null;
+    if (!uploadFormat) return null;
+    return { format: uploadFormat, width, height, orientation: orientation ?? 1 };
   } catch {
     return null;
   }
@@ -54,20 +64,17 @@ function decode(original: Buffer): Sharp {
 }
 
 /**
- * Stores the uploaded file as the photo's original under `pictures/`. A JPEG is kept byte for
- * byte, EXIF orientation tag included: photographers want their files untouched, and originals
- * are only ever downloaded, never shown. Other formats are re-encoded so every original is a JPEG.
+ * Stores the uploaded file as the photo's original under `pictures/`, byte for byte and in its own
+ * format: photographers want their files untouched, and originals are only ever downloaded, never
+ * shown. `info` is the result of `inspectUpload` for the same bytes.
  */
-export async function storeOriginal(photoPath: string, original: Buffer): Promise<ProducedMedia> {
-  const metadata = await sharp(original, { failOn: "none", limitInputPixels: maxInputPixels }).metadata();
-  const keepBytes = metadata.format === "jpeg";
-  const buffer = keepBytes ? original : await decode(original).jpeg({ quality: 95 }).toBuffer();
-  const { width = 0, height = 0, orientation = 1 } = keepBytes ? metadata : await sharp(buffer).metadata();
-  // Recorded as displayed: a tag of 5 or above rotates the stored pixels by a quarter turn.
-  const displayed = orientation >= 5 ? { width: height, height: width } : { width, height };
-  const storageKey = storageKeyFor(photoPath, "original", "jpeg");
-  await mediaStorage.put(storageKey, buffer, "image/jpeg");
-  return { role: "original", format: "jpeg", ...displayed, storageKey, byteSize: buffer.byteLength };
+export async function storeOriginal(photoPath: string, original: Buffer, info: UploadInfo): Promise<ProducedMedia> {
+  // Recorded as displayed: an orientation tag of 5 or above rotates the stored pixels by a quarter turn.
+  const displayed =
+    info.orientation >= 5 ? { width: info.height, height: info.width } : { width: info.width, height: info.height };
+  const storageKey = storageKeyFor(photoPath, "original", info.format);
+  await mediaStorage.put(storageKey, original, `image/${info.format}`);
+  return { role: "original", format: info.format, ...displayed, storageKey, byteSize: original.byteLength };
 }
 
 async function encode(image: Sharp, spec: ScaledMediaSpec): Promise<Buffer> {
@@ -104,7 +111,9 @@ export async function generateScaledMedia(photoPath: string, original: Buffer): 
 
 /** Original plus all scaled variants in one go; used where there is no background worker (seed). */
 export async function importOriginal(photoPath: string, original: Buffer): Promise<ProducedMedia[]> {
-  const stored = await storeOriginal(photoPath, original);
+  const info = await inspectUpload(original);
+  if (!info) throw new Error(`${photoPath}: not a JPEG, PNG, WebP or AVIF image`);
+  const stored = await storeOriginal(photoPath, original, info);
   return [stored, ...(await generateScaledMedia(photoPath, original))];
 }
 
