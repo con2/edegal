@@ -71,6 +71,16 @@ picture img {
   a:hover {
     text-decoration: underline;
   }
+  /* Dropdown menus are light panels; the bar's link colours must not leak into them. */
+  .dropdown-menu a,
+  .dropdown-menu a:visited {
+    color: var(--bs-dropdown-link-color);
+    line-height: var(--bs-body-line-height);
+  }
+  .dropdown-menu a:hover {
+    color: var(--bs-dropdown-link-hover-color);
+    text-decoration: none;
+  }
   .btn-link {
     font-size: 13px;
     padding: 0;
