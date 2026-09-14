@@ -1,5 +1,4 @@
-import type { AuthOptions } from "next-auth";
-import { getServerSession } from "next-auth/next";
+import NextAuth, { type DefaultSession, type NextAuthConfig } from "next-auth";
 import { encode as defaultEncode } from "next-auth/jwt";
 
 import {
@@ -16,11 +15,9 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      name?: string | null;
-      email?: string | null;
       isPhotographer: boolean;
       isAdmin: boolean;
-    };
+    } & DefaultSession["user"];
   }
 }
 
@@ -39,14 +36,15 @@ interface KompassiProfile {
   groups?: string[];
 }
 
-export const authOptions: AuthOptions = {
+const config: NextAuthConfig = {
   secret: authSecret,
+  // The app is only ever reached through Traefik, which sets the Host header itself.
+  trustHost: true,
   providers: [
     {
       id: "kompassi",
       name: "Kompassi",
-      type: "oauth",
-      idToken: true,
+      type: "oidc",
       // PKCE binds the code to this login, nonce binds the ID token to it; state alone is the default.
       checks: ["pkce", "state", "nonce"],
       authorization: { params: { scope: "openid email profile" } },
@@ -75,10 +73,10 @@ export const authOptions: AuthOptions = {
     },
   },
   logger: {
-    error(code, metadata) {
+    error(error) {
       // Expected once the JWT outlives the Kompassi access token; the user simply signs in again.
-      if (code === "JWT_SESSION_ERROR") return;
-      console.error(code, metadata);
+      if (error.name === "JWTSessionError") return;
+      console.error(error);
     },
   },
   callbacks: {
@@ -122,6 +120,4 @@ export const authOptions: AuthOptions = {
   },
 };
 
-export function auth() {
-  return getServerSession(authOptions);
-}
+export const { handlers, auth } = NextAuth(config);

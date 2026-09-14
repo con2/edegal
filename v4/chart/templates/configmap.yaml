@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "v4.labels" . | nindent 4 }}
 data:
-  NEXTAUTH_URL: {{ printf "https://%s" .Values.hostname | quote }}
+  AUTH_URL: {{ printf "https://%s" .Values.hostname | quote }}
   MEDIA_ROOT: /usr/src/app/media
   MEDIA_BASE_URL: /media
   KOMPASSI_BASE_URL: {{ .Values.kompassi.baseUrl | quote }}

@@ -38,7 +38,7 @@ export const mediaRoot = env("MEDIA_ROOT", "./media");
 /** URL prefix under which media storage keys are served, without trailing slash. */
 export const mediaBaseUrl = env("MEDIA_BASE_URL", "/media").replace(/\/$/, "");
 
-export const publicUrl = env("NEXTAUTH_URL", "http://localhost:3160");
+export const publicUrl = env("AUTH_URL", "http://localhost:3160");
 export const authSecret = secretEnv("AUTH_SECRET", "insecure-dev-secret");
 
 export const kompassiBaseUrl = env(
@@ -46,7 +46,7 @@ export const kompassiBaseUrl = env(
   "https://dev.kompassi.eu",
 );
 export const kompassiOidc = {
-  wellKnown: `${kompassiBaseUrl}/oidc/.well-known/openid-configuration/`,
+  issuer: `${kompassiBaseUrl}/oidc`,
   clientId: secretEnv(
     "KOMPASSI_OIDC_CLIENT_ID",
     "kompassi-dev-client-id-uusi-larppikuvat-fi",
