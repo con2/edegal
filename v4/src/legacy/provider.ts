@@ -10,6 +10,7 @@ import type {
   Visibility,
   CoverVM,
 } from "@/gallery/types";
+import { mostRestrictive } from "@/gallery/access";
 import { lastSegment, pathPrefixes } from "@/gallery/paths";
 import { seriesNeighbours, seriesVersion } from "@/gallery/series";
 import { titleInPhotographerContext } from "@/gallery/titles";
@@ -92,7 +93,14 @@ function sanitizeBody(html: string): string {
   });
 }
 
-function toSubalbum(row: LegacySubalbumRow): SubalbumVM | null {
+/**
+ * Inside its parent a tile carries the album's own visibility; in site-wide listings
+ * (`effective`) it carries the least visible of the album and its ancestors.
+ */
+function toSubalbum(
+  row: LegacySubalbumRow,
+  effective: boolean,
+): SubalbumVM | null {
   const thumbnail = buildLegacyMediaSet(row.cover_media, "thumbnail");
   // Django lists only albums whose cover picture has a thumbnail.
   if (!thumbnail) return null;
@@ -100,15 +108,25 @@ function toSubalbum(row: LegacySubalbumRow): SubalbumVM | null {
     path: row.path,
     title: row.title,
     date: row.date,
-    visibility: legacyVisibility(row.is_public, row.is_visible),
+    visibility: effective
+      ? legacyVisibility(
+          row.is_public && row.ancestors_public,
+          row.is_visible && row.ancestors_visible,
+        )
+      : legacyVisibility(row.is_public, row.is_visible),
     thumbnail,
     externalUrl: row.redirect_url.includes("://") ? row.redirect_url : null,
     ownerId: null,
   };
 }
 
-export function toLegacySubalbums(rows: LegacySubalbumRow[]): SubalbumVM[] {
-  return rows.map(toSubalbum).filter((s): s is SubalbumVM => s !== null);
+export function toLegacySubalbums(
+  rows: LegacySubalbumRow[],
+  effective = false,
+): SubalbumVM[] {
+  return rows
+    .map((row) => toSubalbum(row, effective))
+    .filter((s): s is SubalbumVM => s !== null);
 }
 
 /**
@@ -194,6 +212,10 @@ export async function loadLegacyAlbum(
     date: album.date,
     layout: album.layout === "yearly" ? "yearly" : "simple",
     visibility: legacyVisibility(album.is_public, album.is_visible),
+    effectiveVisibility: mostRestrictive([
+      legacyVisibility(album.is_public, album.is_visible),
+      ...ancestors.map((a) => legacyVisibility(a.is_public, a.is_visible)),
+    ]),
     ownerId: null,
     isOpenForSubalbums: false,
     isDownloadable: album.is_downloadable,
@@ -269,7 +291,7 @@ export async function loadLegacyPhotographerPage(
     (await legacyAncestors([...prefixes])).map((a) => [a.path, a.title]),
   );
 
-  const subalbums = toLegacySubalbums(albums).map((tile) => ({
+  const subalbums = toLegacySubalbums(albums, true).map((tile) => ({
     ...tile,
     title: titleInPhotographerContext(
       pathPrefixes(tile.path)
@@ -293,6 +315,7 @@ export async function loadLegacyPhotographerPage(
     date: null,
     layout: "yearly",
     visibility: "public",
+    effectiveVisibility: "public",
     ownerId: null,
     isOpenForSubalbums: false,
     isDownloadable: false,

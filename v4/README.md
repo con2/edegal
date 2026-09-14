@@ -42,6 +42,16 @@ action accepts only those.
 
 Photographers edit their name, links and reusable conditions of use at `/profile`.
 
+### Visibility inside hidden or private albums
+
+An album's own visibility decides only whether it is listed inside its parent. Everywhere else
+(photographer pages, series, `/random`, search engine indexing, and access for private ancestors)
+the least visible album on the chain to the root counts. A public album under a hidden parent is
+therefore listed inside that parent for people with the link but stays off the rest of the site
+until the parent is public; a public album under a private parent is private. This is how a larp
+embargo works: one hidden parent, public children, released by one visibility change. The same
+rule is applied to legacy albums through their nested-set columns.
+
 ### Redirects
 
 Renaming or moving an album records every old path (the album, its subalbums and photos) in

@@ -10,7 +10,9 @@ export function applyVisibility(
   vm: AlbumPageVM,
   viewer: Viewer,
 ): ClientAlbumPage | null {
-  if (!canView(viewer, vm)) return null;
+  // A private ancestor closes the whole subtree; a hidden one only keeps it out of listings.
+  if (!canView(viewer, { ...vm, visibility: vm.effectiveVisibility }))
+    return null;
   const {
     ownerId: _ownerId,
     parentId: _parentId,

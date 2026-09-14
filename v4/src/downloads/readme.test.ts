@@ -15,6 +15,7 @@ const album: ClientAlbumPage = {
   date: "2026-09-05",
   layout: "simple",
   visibility: "public",
+  effectiveVisibility: "public",
   cover: null,
   isDownloadable: true,
   photosProcessing: 0,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  mostRestrictive,
   canCreateSubalbum,
   canDeleteAlbum,
   canEditAlbum,
@@ -142,5 +143,13 @@ describe("editing", () => {
     ).toBe(false);
     expect(canUpload(owner, { source: "v4", ownerId: "owner" })).toBe(true);
     expect(canUpload(admin, { source: "legacy", ownerId: null })).toBe(false);
+  });
+});
+
+describe("mostRestrictive", () => {
+  it("picks private over hidden over public, public when empty", () => {
+    expect(mostRestrictive([])).toBe("public");
+    expect(mostRestrictive(["public", "hidden", "public"])).toBe("hidden");
+    expect(mostRestrictive(["hidden", "private", "public"])).toBe("private");
   });
 });

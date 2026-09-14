@@ -10,6 +10,7 @@ import { db } from "@/prisma/db";
 import { pathPrefixes } from "./paths";
 import { titleInPhotographerContext } from "./titles";
 import type { AlbumPageVM, CoverVM, SubalbumVM } from "./types";
+import { effectiveVisibilities } from "./v4/effective";
 import { buildMediaSet } from "./v4/provider";
 
 const photographersPath = "/photographers";
@@ -33,14 +34,21 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
     .include("coverPhoto", (p) => p.include("media").include("album"))
     .orderBy((p) => p.displayName.asc())
     .all();
+  const effective = await effectiveVisibilities(
+    photographers.flatMap((p) => [
+      ...p.credits.map((c) => c.album.path),
+      ...(p.coverPhoto ? [p.coverPhoto.album.path] : []),
+    ]),
+  );
+  const isPublic = (path: string) => effective.get(path) === "public";
   return photographers.flatMap((photographer) => {
     const albums = photographer.credits
       .map((c) => c.album)
-      .filter((a) => a.visibility === "public" && a.thumbnailPhoto)
+      .filter((a) => isPublic(a.path) && a.thumbnailPhoto)
       .sort((a, b) => (a.eventDate < b.eventDate ? 1 : -1));
     const newest = albums[0];
     const thumbnail =
-      (photographer.coverPhoto?.album.visibility === "public"
+      (photographer.coverPhoto && isPublic(photographer.coverPhoto.album.path)
         ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
         : null) ??
       (newest?.thumbnailPhoto
@@ -88,6 +96,7 @@ export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
     date: null,
     layout: "simple",
     visibility: "public",
+    effectiveVisibility: "public",
     ownerId: null,
     isOpenForSubalbums: false,
     isDownloadable: false,
@@ -127,9 +136,14 @@ export async function loadV4PhotographerPage(
     )
     .first();
   if (!photographer) return null;
+  const effective = await effectiveVisibilities([
+    ...photographer.credits.map((c) => c.album.path),
+    ...(photographer.coverPhoto ? [photographer.coverPhoto.album.path] : []),
+  ]);
   // The profile page is public, so a photo picked from a non-public album stays off it.
   const coverMedia =
-    photographer.coverPhoto?.album.visibility === "public"
+    photographer.coverPhoto &&
+    effective.get(photographer.coverPhoto.album.path) === "public"
       ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
       : null;
   const cover: CoverVM | null =
@@ -184,7 +198,7 @@ export async function loadV4PhotographerPage(
           photographer.displayName,
         ),
         date: album.eventDate,
-        visibility: album.visibility,
+        visibility: effective.get(album.path) ?? album.visibility,
         thumbnail,
         externalUrl: null,
         ownerId: album.ownerId,
@@ -205,6 +219,7 @@ export async function loadV4PhotographerPage(
     date: null,
     layout: "yearly",
     visibility: "public",
+    effectiveVisibility: "public",
     ownerId: null,
     isOpenForSubalbums: false,
     isDownloadable: false,

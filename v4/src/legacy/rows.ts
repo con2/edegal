@@ -53,6 +53,9 @@ export interface LegacySubalbumRow {
   date: string | null;
   is_public: boolean;
   is_visible: boolean;
+  /** False when some ancestor is not public / not visible. */
+  ancestors_public: boolean;
+  ancestors_visible: boolean;
   redirect_url: string;
   cover_media: LegacyMediaRow[] | null;
 }
@@ -71,6 +74,8 @@ export interface LegacyAncestorRow {
   path: string;
   title: string;
   series_id: number | null;
+  is_public: boolean;
+  is_visible: boolean;
 }
 
 export interface LegacySeriesRow {

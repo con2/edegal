@@ -44,7 +44,7 @@ export function galleryMetadata(
     title: documentTitle(album, photo, t.BreadcrumbBar),
     description: album.description || album.title,
     robots:
-      album.visibility === "public"
+      album.effectiveVisibility === "public"
         ? undefined
         : { index: false, follow: false },
     openGraph: image

@@ -183,9 +183,10 @@ const translations: Translations = {
       visibilityPublicHelp: "Näkyy yläalbuminsa alialbumilistassa.",
       visibilityHidden: "Piilotettu",
       visibilityHiddenHelp:
-        "Ei näy yläalbumissa, mutta kuka tahansa osoitteen tietävä voi katsella albumia.",
+        "Ei näy yläalbumissa, mutta kuka tahansa osoitteen tietävä voi katsella albumia. Myös sen alialbumit pysyvät poissa kuvaajasivuilta, sarjoista ja hakukoneista, vaikka ne itse olisivat julkisia.",
       visibilityPrivate: "Yksityinen",
-      visibilityPrivateHelp: "Vain sinä ja ylläpitäjät näkevät sen.",
+      visibilityPrivateHelp:
+        "Vain sinä ja ylläpitäjät näkevät sen ja kaiken sen sisällä.",
       openForSubalbums: "Avoin muiden kuvaajien alialbumeille",
       openForSubalbumsHelp:
         "Kuka tahansa kuvaaja voi luoda tämän albumin alle omia alialbumeja ja ladata niihin kuvia. Tyypillistä tapahtuman pääalbumille. Jätä pois omista albumeistasi.",

@@ -39,6 +39,17 @@ const photographerJson = (alias: string) =>
     'twitter_handle', ${alias}.twitter_handle, 'instagram_handle', ${alias}.instagram_handle, 'threads_handle', ${alias}.threads_handle,
     'facebook_handle', ${alias}.facebook_handle, 'flickr_handle', ${alias}.flickr_handle, 'bluesky_handle', ${alias}.bluesky_handle) end`;
 
+/**
+ * Django's nested-set columns make "some ancestor is not public" one subquery. Django itself
+ * never checked ancestors, so these are v4's stricter reading of the same data.
+ */
+const ancestorsPublic = (alias: string) =>
+  `not exists (select 1 from edegal_album anc where anc.tree_id = ${alias}.tree_id and anc.lft < ${alias}.lft and anc.rght > ${alias}.rght and not anc.is_public)`;
+const ancestorsVisible = (alias: string) =>
+  `not exists (select 1 from edegal_album anc where anc.tree_id = ${alias}.tree_id and anc.lft < ${alias}.lft and anc.rght > ${alias}.rght and not anc.is_visible)`;
+const effectivelyPublic = (alias: string) =>
+  `${alias}.is_public and ${alias}.is_visible and ${ancestorsPublic(alias)} and ${ancestorsVisible(alias)}`;
+
 const albumSelect = `
   select a.id, a.path, a.title, a.description, a.body, a.is_public, a.is_visible, a.is_downloadable,
     a.redirect_url, a.layout, a.date::text as date, a.parent_id, a.series_id,
@@ -82,7 +93,7 @@ export async function legacyAncestors(
 ): Promise<LegacyAncestorRow[]> {
   if (paths.length === 0) return [];
   const { rows } = await pool.query<LegacyAncestorRow>(
-    `select path, title, series_id from edegal_album where path = any($1::text[]) order by length(path)`,
+    `select path, title, series_id, is_public, is_visible from edegal_album where path = any($1::text[]) order by length(path)`,
     [paths],
   );
   return rows;
@@ -90,6 +101,7 @@ export async function legacyAncestors(
 
 const subalbumSelect = `
   select a.path, a.title, a.date::text as date, a.is_public, a.is_visible, a.redirect_url,
+    ${ancestorsPublic("a")} as ancestors_public, ${ancestorsVisible("a")} as ancestors_visible,
     (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = a.cover_picture_id) as cover_media
   from edegal_album a
 `;
@@ -176,7 +188,7 @@ export async function legacyRandomPublicPicturePath(): Promise<string | null> {
     `select p.path
      from edegal_picture p
      join edegal_album a on a.id = p.album_id
-     where p.is_public and a.is_public and a.is_visible and a.redirect_url = ''
+     where p.is_public and ${effectivelyPublic("a")} and a.redirect_url = ''
        and p.id >= (select floor(random() * coalesce(max(id), 0))::int from edegal_picture)
      order by p.id
      limit 1`,
@@ -214,7 +226,7 @@ export async function legacyPhotographerTiles(): Promise<
      from edegal_photographer p
      join edegal_picture cp on cp.id = p.cover_picture_id
      join edegal_album ca on ca.id = cp.album_id
-     where cp.is_public and ca.is_public and ca.is_visible
+     where cp.is_public and ${effectivelyPublic("ca")}
      order by p.display_name`,
   );
   return rows.filter((r) => r.cover_media && r.cover_media.length > 0);
@@ -225,7 +237,7 @@ export async function legacyPhotographerById(
 ): Promise<LegacyPhotographerPageRow | null> {
   const { rows } = await pool.query<LegacyPhotographerPageRow>(
     `select ${photographerColumns}, p.email, p.body,
-       case when cp.is_public and ca.is_public and ca.is_visible
+       case when cp.is_public and ${effectivelyPublic("ca")}
          then (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.cover_picture_id)
        end as cover_media,
        cp.path as cover_path, cph.display_name as cover_credit_name, cph.slug as cover_credit_slug
@@ -245,6 +257,7 @@ export async function legacyPhotographerAlbums(
 ): Promise<LegacyPhotographerAlbumRow[]> {
   const { rows } = await pool.query<LegacyPhotographerAlbumRow>(
     `select a.id, a.path, a.title, a.date::text as date, a.is_public, a.is_visible, a.redirect_url,
+       ${ancestorsPublic("a")} as ancestors_public, ${ancestorsVisible("a")} as ancestors_visible,
        (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = a.cover_picture_id) as cover_media
      from edegal_album a
      where a.photographer_id = $1

@@ -8,6 +8,7 @@ import { legacySeriesAlbums, legacySeriesBySlug } from "@/legacy/sql";
 import { db } from "@/prisma/db";
 
 import type { AlbumPageVM, Crumb, SubalbumVM, Visibility } from "./types";
+import { effectiveVisibilities } from "./v4/effective";
 import { buildMediaSet } from "./v4/provider";
 
 /** Newest first, unknown dates last; ties keep their input order. */
@@ -69,11 +70,13 @@ async function seriesMembersBySlug(slug: string): Promise<SeriesMembers> {
       : Promise.resolve([]),
     legacy ? legacySeriesAlbums(legacy.id) : Promise.resolve([]),
   ]);
+  // A series is a site-wide listing, so members show their effective visibility.
+  const effective = await effectiveVisibilities(v4Albums.map((a) => a.path));
   const v4Tiles: SubalbumVM[] = v4Albums.map((album) => ({
     path: album.path,
     title: album.title,
     date: album.eventDate,
-    visibility: album.visibility,
+    visibility: effective.get(album.path) ?? album.visibility,
     thumbnail: album.thumbnailPhoto
       ? buildMediaSet(album.thumbnailPhoto.media, "thumbnail")
       : null,
@@ -94,10 +97,16 @@ async function seriesMembersBySlug(slug: string): Promise<SeriesMembers> {
         path: r.path,
         title: r.title,
         date: r.date,
-        visibility: legacyVisibility(r.is_public, r.is_visible),
+        visibility: legacyVisibility(
+          r.is_public && r.ancestors_public,
+          r.is_visible && r.ancestors_visible,
+        ),
       })),
     ]),
-    tiles: orderSeriesMembers([...v4Tiles, ...toLegacySubalbums(legacyOnly)]),
+    tiles: orderSeriesMembers([
+      ...v4Tiles,
+      ...toLegacySubalbums(legacyOnly, true),
+    ]),
   };
 }
 
@@ -147,6 +156,9 @@ export async function loadSeriesPageBySlug(
     date: null,
     layout: "simple",
     visibility: v4Series
+      ? v4Series.visibility
+      : legacyVisibility(legacy!.is_public, legacy!.is_visible),
+    effectiveVisibility: v4Series
       ? v4Series.visibility
       : legacyVisibility(legacy!.is_public, legacy!.is_visible),
     ownerId: null,

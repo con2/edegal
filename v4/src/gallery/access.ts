@@ -7,6 +7,24 @@ interface Guarded {
   ownerId: string | null;
 }
 
+const restrictiveness: Record<Visibility, number> = {
+  public: 0,
+  hidden: 1,
+  private: 2,
+};
+
+/**
+ * An album is as visible to the rest of the site as its least visible ancestor: a public album
+ * inside a hidden one is hidden from photographer pages, series, random and search engines, and
+ * one inside a private album is private.
+ */
+export function mostRestrictive(visibilities: Visibility[]): Visibility {
+  return visibilities.reduce(
+    (worst, v) => (restrictiveness[v] > restrictiveness[worst] ? v : worst),
+    "public",
+  );
+}
+
 /** Django gave both the editor and the admin group `is_staff`, which sees everything. */
 export function isStaff(viewer: Viewer): boolean {
   return viewer.kind === "user" && (viewer.isAdmin || viewer.isPhotographer);

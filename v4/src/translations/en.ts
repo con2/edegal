@@ -185,9 +185,10 @@ const translations = {
       visibilityPublicHelp: "Listed and reachable by everyone.",
       visibilityHidden: "Hidden",
       visibilityHiddenHelp:
-        "Not listed, but anyone with the address can view it.",
+        "Not listed, but anyone with the address can view it. Its subalbums stay off photographer pages, series and search engines too, even when they are public themselves.",
       visibilityPrivate: "Private",
-      visibilityPrivateHelp: "Only you and admins can view it.",
+      visibilityPrivateHelp:
+        "Only you and admins can view it, including everything inside it.",
       openForSubalbums: "Open for subalbums by other photographers",
       openForSubalbumsHelp:
         "Any photographer may create their own subalbums under this album and upload photos to them. Typical for the main album of an event. Leave off for your personal albums.",

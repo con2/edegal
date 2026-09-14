@@ -93,7 +93,10 @@ export interface AlbumPageVM {
   cover: CoverVM | null;
   date: string | null;
   layout: "simple" | "yearly";
+  /** The album's own setting, which decides its listing inside the parent. */
   visibility: Visibility;
+  /** The least visible of the album and its ancestors; decides access and every global listing. */
+  effectiveVisibility: Visibility;
   /** Server-only; stripped before the payload reaches the client. */
   ownerId: string | null;
   /** Server-only. */

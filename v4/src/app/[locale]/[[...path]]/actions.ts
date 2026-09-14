@@ -38,7 +38,7 @@ import {
 import { invalidateAlbum } from "@/gallery/cache";
 import { isAncestorOrSelf, parentPathOf } from "@/gallery/paths";
 import { clearRedirect, recordMove } from "@/gallery/redirects";
-import { touchAlbum, touchSeries } from "@/gallery/v4/touch";
+import { touchAlbum, touchSeries, touchSubtree } from "@/gallery/v4/touch";
 import { getViewer, type Viewer } from "@/gallery/viewer";
 import { albumJobCounts, pickAutoThumbnail } from "@/media/jobs";
 import { db } from "@/prisma/db";
@@ -221,6 +221,9 @@ export async function updateAlbum(
   await replaceCredits(album.id, form.credits);
   await moveAlbumPath(album.id, album.path, path);
   if (!isRoot) await touchSeriesMembership(album.seriesId, form.seriesId);
+  // Descendants inherit this album's visibility and, after a move, the new parent's.
+  if (album.visibility !== form.visibility || newParent)
+    await touchSubtree(path);
   if (newParent) {
     await db.orm.public.Album.where({ id: album.id }).update({
       parentId: newParent.id,

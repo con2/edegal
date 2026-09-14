@@ -7,6 +7,7 @@ import type {
   PhotoVM,
   SubalbumVM,
 } from "@/gallery/types";
+import { mostRestrictive } from "@/gallery/access";
 import { lastSegment, pathPrefixes } from "@/gallery/paths";
 import { seriesNeighbours } from "@/gallery/series";
 import { formatPreference } from "@/media/specs";
@@ -14,6 +15,8 @@ import { mediaUrl } from "@/media/url";
 import { pgTimestampToIso } from "@/lib/time";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
+
+import { v4AncestorsPublicSql } from "./effective";
 
 interface MediaRow {
   role: "original" | "preview" | "thumbnail";
@@ -81,9 +84,13 @@ export async function loadV4Album(
   const ancestors = await db.orm.public.Album.where((a) =>
     a.path.in(pathPrefixes(album.path)),
   )
-    .select("path", "title", "termsId", "seriesId")
+    .select("path", "title", "termsId", "seriesId", "visibility")
     .all();
   ancestors.sort((a, b) => a.path.length - b.path.length);
+  const effectiveVisibility = mostRestrictive([
+    album.visibility,
+    ...ancestors.map((a) => a.visibility),
+  ]);
 
   // The album's own series, else the nearest ancestor's, as Django does.
   const seriesId =
@@ -161,6 +168,7 @@ export async function loadV4Album(
     date: album.eventDate,
     layout: album.layout,
     visibility: album.visibility,
+    effectiveVisibility,
     ownerId: album.ownerId,
     isOpenForSubalbums: album.isOpenForSubalbums,
     isDownloadable: album.isDownloadable,
@@ -189,10 +197,11 @@ export async function loadV4Album(
   };
 }
 
-/** Photos in public albums; hidden and private albums are not sampled for /random. */
+/** Photos in effectively public albums; anything under a hidden or private album is not sampled. */
 export async function v4PublicPhotoCount(): Promise<number> {
   const { rows } = await pool.query<{ n: string }>(
-    `select count(*) as n from v4_photo p join v4_album a on a.id = p.album_id where a.visibility = 'public'`,
+    `select count(*) as n from v4_photo p join v4_album a on a.id = p.album_id
+     where a.visibility = 'public' and ${v4AncestorsPublicSql("a")}`,
   );
   return Number(rows[0]?.n ?? 0);
 }
@@ -202,7 +211,8 @@ export async function v4RandomPublicPhotoPath(): Promise<string | null> {
   if (count === 0) return null;
   const { rows } = await pool.query<{ path: string }>(
     `select p.path from v4_photo p join v4_album a on a.id = p.album_id
-     where a.visibility = 'public' order by p.id offset $1 limit 1`,
+     where a.visibility = 'public' and ${v4AncestorsPublicSql("a")}
+     order by p.id offset $1 limit 1`,
     [Math.floor(Math.random() * count)],
   );
   return rows[0]?.path ?? null;
