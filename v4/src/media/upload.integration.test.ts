@@ -1,6 +1,10 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { mediaRoot } from "@/config";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
@@ -80,6 +84,28 @@ describe("photo upload and processing", () => {
     expect(await claimJob()).toBeNull();
   });
 
+  // In-camera JPEGs store the sensor's landscape pixels plus an EXIF orientation tag; Lightroom
+  // exports bake the rotation in. Both must come out upright.
+  it("bakes an EXIF orientation into the stored original and the scaled variants", async () => {
+    const tagged = await sharp({ create: { width: 90, height: 60, channels: 3, background: "#888" } })
+      .jpeg()
+      .withMetadata({ orientation: 6 })
+      .toBuffer();
+    const response = await POST(request(albumId, "IMG_0003.JPG", tagged), { params: Promise.resolve({ albumId }) });
+    expect(response.status).toBe(201);
+    const { photoId } = (await response.json()) as { photoId: string };
+    await processMediaJob((await claimJob())!);
+
+    const photo = await db.orm.public.Photo.where({ id: photoId }).include("media").first();
+    const original = photo!.media.find((m) => m.role === "original")!;
+    expect([original.width, original.height]).toEqual([60, 90]);
+    const stored = await sharp(await readFile(join(mediaRoot, original.storageKey))).metadata();
+    expect([stored.width, stored.height, stored.orientation]).toEqual([60, 90, undefined]);
+    for (const variant of photo!.media.filter((m) => m.role !== "original")) {
+      expect(variant.height).toBeGreaterThan(variant.width);
+    }
+  });
+
   // Without Content-Length the size is only known while reading, so the cap must apply mid-stream.
   it("rejects a chunked body that grows past the limit", async () => {
     const chunk = new Uint8Array(1024 * 1024);
@@ -140,7 +166,8 @@ describe("photo upload and processing", () => {
     await pool.query(`update v4_media_job set finished_at = now() - interval '8 days' where status = 'done'`);
     const photo = await db.orm.public.Photo.where({ albumId }).first();
     await db.orm.public.MediaJob.create({ photoId: photo!.id, status: "failed", finishedAt: new Date().toISOString(), error: "boom" });
-    expect(await cleanupFinishedJobs()).toBe(2);
+    const done = await db.orm.public.MediaJob.where({ status: "done" }).aggregate((j) => ({ n: j.count() }));
+    expect(await cleanupFinishedJobs()).toBe(done.n);
     const remaining = await db.orm.public.MediaJob.select("status").all();
     expect(remaining.map((j) => j.status)).toEqual(["failed"]);
   });
