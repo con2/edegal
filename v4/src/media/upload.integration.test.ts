@@ -62,7 +62,7 @@ describe("photo upload and processing", () => {
 
     const processed = await db.orm.public.Photo.where({ id: photoId }).include("media").first();
     expect(processed?.media.map((m) => `${m.role}/${m.format}`).sort()).toEqual(
-      ["original/jpeg", "preview/avif", "preview/jpeg", "thumbnail/jpeg", "thumbnail/webp"].sort(),
+      ["original/jpeg", "preview/avif", "preview/jpeg", "thumbnail/avif", "thumbnail/jpeg"].sort(),
     );
     const album = await db.orm.public.Album.where({ id: albumId }).first();
     expect(album?.thumbnailPhotoId).toBe(photoId);
