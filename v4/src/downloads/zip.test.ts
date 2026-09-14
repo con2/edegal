@@ -10,6 +10,7 @@ const variant = (format: PhotoVM["thumbnail"]["fallback"]["format"]) => ({
   width: 1,
   height: 1,
   format,
+  byteSize: null,
 });
 
 const photo = (path: string, format: "jpeg" | "avif"): PhotoVM => ({

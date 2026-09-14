@@ -24,6 +24,7 @@ interface MediaRow {
   width: number;
   height: number;
   storageKey: string;
+  byteSize: number | null;
 }
 
 function toVariant(m: MediaRow): MediaVariant {
@@ -33,6 +34,7 @@ function toVariant(m: MediaRow): MediaVariant {
     width: m.width,
     height: m.height,
     format: m.format,
+    byteSize: m.byteSize,
   };
 }
 
@@ -48,8 +50,7 @@ export function buildMediaSet(
     .sort(
       (a, b) =>
         formatPreference.indexOf(a.format) - formatPreference.indexOf(b.format),
-    )
-    .map(({ src, format }) => ({ src, format }));
+    );
   return { fallback, alternates };
 }
 

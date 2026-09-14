@@ -14,6 +14,7 @@ function toVariant(row: LegacyMediaRow): MediaVariant | null {
     width: row.width,
     height: row.height,
     format: row.format as MediaFormat,
+    byteSize: null,
   };
 }
 
@@ -39,8 +40,7 @@ export function buildLegacyMediaSet(
     .sort(
       (a, b) =>
         formatPreference.indexOf(a.format) - formatPreference.indexOf(b.format),
-    )
-    .map(({ src, format }) => ({ src, format }));
+    );
   return { fallback, alternates };
 }
 

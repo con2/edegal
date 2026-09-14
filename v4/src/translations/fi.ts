@@ -25,6 +25,8 @@ const translations: Translations = {
       "Käyttääksesi näitä kuvia sinun tulee hyväksyä seuraavat ehdot:",
     closeButtonText: "Sulje",
     downloadButtonText: "Lataa albumi",
+    original: "Alkuperäinen",
+    preview: "Esikatselukuva",
     contactPhotographer: "Ota yhteyttä valokuvaajaan",
     twitterCredit:
       "Jos käytät näitä kuvia Twitterissä, ilmoita tekijä seuraavasti:",
@@ -44,11 +46,13 @@ const translations: Translations = {
       "Albumin käyttöehdot puuttuvat. Kuva on tästä huolimatta tekijänoikeuden suojaama. Ellet ole varma, että kuvaaja hyväksyy aiotun käytön, ota yhteyttä kuvaajaan ja kysy lupaa kuvien käyttöön.",
   },
   DownloadDialog: {
-    dialogTitle: "Lataa alkuperäinen kuva",
+    dialogTitle: "Lataa kuva",
     termsAndConditions:
       "Käyttääksesi tätä kuvaa sinun tulee hyväksyä seuraavat ehdot:",
     closeButtonText: "Sulje",
-    downloadButtonText: "Avaa alkuperäinen kuva",
+    downloadButtonText: "Lataa",
+    original: "Alkuperäinen",
+    preview: "Esikatselukuva",
     contactPhotographer: "Ota yhteyttä valokuvaajaan",
     twitterCredit:
       "Jos käytät tätä kuvaa Twitterissä, ilmoita tekijä seuraavasti:",
@@ -344,7 +348,7 @@ const translations: Translations = {
   },
   PictureView: {
     backToAlbum: "Takaisin albumiin",
-    downloadOriginal: "Lataa alkuperäinen kuva",
+    downloadPicture: "Lataa kuva",
     maximize: "Suurenna",
     startSlideshow: "Aloita diaesitys",
     stopSlideshow: "Lopeta diaesitys",

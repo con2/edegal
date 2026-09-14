@@ -1,6 +1,6 @@
 import type { ClientAlbumPage, MediaFormat, PhotoVM } from "@/gallery/types";
 
-const extensions: Record<MediaFormat, string> = {
+export const extensions: Record<MediaFormat, string> = {
   jpeg: "jpg",
   webp: "webp",
   avif: "avif",

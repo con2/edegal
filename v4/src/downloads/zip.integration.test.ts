@@ -55,6 +55,7 @@ function photo(slug: string, key: string): PhotoVM {
     width: 10,
     height: 10,
     format: "jpeg" as const,
+    byteSize: null,
   };
   return {
     id: slug,

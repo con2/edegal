@@ -104,7 +104,7 @@ production reports the form as unavailable.
 
 ## Downloads
 
-`GET /api/zip/<album path>` streams the album's originals as a zip after the same visibility checks as the album page. Single originals are served straight from `/media`. The download dialog shows the album's terms (`v4_terms`, inherited from ancestors) and credit instructions before either.
+`GET /api/zip/<album path>` streams the album's originals as a zip after the same visibility checks as the album page. A single photo's download menu offers the original and every preview rendition with its dimensions and size, all served straight from `/media`. The download dialog shows the album's terms (`v4_terms`, inherited from ancestors) and credit instructions before either.
 
 ## Schema changes
 

@@ -23,6 +23,8 @@ const translations = {
       "In order to use these pictures, you must agree to the following terms and conditions:",
     closeButtonText: "Close",
     downloadButtonText: "Download album",
+    original: "Original",
+    preview: "Preview",
     contactPhotographer: "Contact photographer",
     twitterCredit:
       "If you use these pictures in Twitter, please credit the author as follows:",
@@ -42,11 +44,13 @@ const translations = {
       "Terms and conditions missing. These pictures are covered by standard copyright protections, and unless you are certain the photographer will not object to your intended use, you should contact them and ask for permission.",
   },
   DownloadDialog: {
-    dialogTitle: "Download original photo",
+    dialogTitle: "Download photo",
     termsAndConditions:
       "In order to use this picture, you must agree to the following terms and conditions:",
     closeButtonText: "Close",
-    downloadButtonText: "Open original",
+    downloadButtonText: "Download",
+    original: "Original",
+    preview: "Preview",
     contactPhotographer: "Contact photographer",
     twitterCredit:
       "If you use this picture in Twitter, please credit the author as follows:",
@@ -346,7 +350,7 @@ const translations = {
   },
   PictureView: {
     backToAlbum: "Back to Album",
-    downloadOriginal: "Download Original",
+    downloadPicture: "Download Picture",
     maximize: "Maximize",
     startSlideshow: "Start slideshow",
     stopSlideshow: "Stop slideshow",

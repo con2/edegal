@@ -2,6 +2,7 @@
 
 import { Markdown } from "@con2/components";
 import { useState } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
 import Modal from "react-bootstrap/Modal";
 
 import {
@@ -9,7 +10,8 @@ import {
   type Platform,
   platformsWithHandles,
 } from "@/downloads/credits";
-import { zipEntryName, zipFileName } from "@/downloads/names";
+import { zipFileName } from "@/downloads/names";
+import { describeVariant, downloadOptions } from "@/downloads/options";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
@@ -72,12 +74,10 @@ export function DownloadDialog({
     onHide();
   };
 
-  const accept = () => {
-    if (photo?.original) {
-      saveFile(photo.original.src, zipEntryName(photo));
-    } else {
-      saveFile(`/api/zip${album.path}`, zipFileName(album));
-    }
+  const options = photo ? downloadOptions(photo) : [];
+
+  const save = (href: string, fileName: string) => {
+    saveFile(href, fileName);
     close();
   };
 
@@ -161,14 +161,34 @@ export function DownloadDialog({
             />{" "}
             {t.acceptTermsAndConditions}
           </label>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={!accepted}
-            onClick={accept}
-          >
-            {t.downloadButtonText}
-          </button>
+          {photo ? (
+            <Dropdown align="end" data-bs-theme="light">
+              <Dropdown.Toggle variant="primary" disabled={!accepted}>
+                {t.downloadButtonText}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {options.map((option) => (
+                  <Dropdown.Item
+                    key={option.variant.src}
+                    as="button"
+                    onClick={() => save(option.variant.src, option.fileName)}
+                  >
+                    {option.kind === "original" ? t.original : t.preview}{" "}
+                    {describeVariant(option.variant)}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!accepted}
+              onClick={() => save(`/api/zip${album.path}`, zipFileName(album))}
+            >
+              {t.downloadButtonText}
+            </button>
+          )}
         </div>
 
         <div className="d-flex w-100 justify-content-between">

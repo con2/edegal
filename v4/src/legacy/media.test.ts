@@ -50,9 +50,17 @@ describe("buildLegacyMediaSet", () => {
       width: 360,
       height: 240,
       format: "jpeg",
+      byteSize: null,
     });
     expect(set?.alternates).toEqual([
-      { src: "/media/previews/a/b.thumbnail.webp", format: "webp" },
+      {
+        src: "/media/previews/a/b.thumbnail.webp",
+        storageKey: "previews/a/b.thumbnail.webp",
+        width: 360,
+        height: 240,
+        format: "webp",
+        byteSize: null,
+      },
     ]);
   });
 

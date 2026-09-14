@@ -170,7 +170,7 @@ function PhotoToolbar({
           onClick={onDownload}
         >
           <DownloadIcon className="PictureView-toolbarIcon" />
-          {messages.downloadOriginal}…
+          {messages.downloadPicture}…
         </button>
       ) : null}
       {onContact ? (
@@ -277,7 +277,8 @@ export function PictureView({
   // The URL carries the slideshow flag so that it can be linked to; Next keeps the hook in
   // sync with our own replaceState calls.
   const slideshow = useSearchParams().has("slideshow");
-  const downloadable = canDownload(album) && photo.original !== null;
+  const downloadable =
+    canDownload(album) && (photo.original !== null || photo.preview !== null);
 
   const toggleSlideshow = useCallback(
     () =>

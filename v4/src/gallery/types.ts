@@ -14,12 +14,14 @@ export interface MediaVariant {
   width: number;
   height: number;
   format: MediaFormat;
+  /** File size, when the pipeline recorded one; legacy media never did. */
+  byteSize: number | null;
 }
 
 /** One rendered `<picture>`: the jpeg fallback plus alternate formats in preference order. */
 export interface MediaSet {
   fallback: MediaVariant;
-  alternates: Pick<MediaVariant, "src" | "format">[];
+  alternates: MediaVariant[];
 }
 
 export interface Crumb {

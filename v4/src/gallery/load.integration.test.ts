@@ -251,7 +251,11 @@ describe("loadGalleryPage", () => {
     expect(result.photo?.thumbnail.alternates).toEqual([
       {
         src: "/media/previews/legacy-event/pic-1.thumbnail.webp",
+        storageKey: "previews/legacy-event/pic-1.thumbnail.webp",
+        width: 360,
+        height: 240,
         format: "webp",
+        byteSize: null,
       },
     ]);
     expect(result.photo?.original?.src).toBe(
@@ -279,7 +283,10 @@ describe("loadGalleryPage", () => {
       "/media/previews/shared/img-1.jpeg",
     );
     expect(result.photo?.preview?.alternates).toEqual([
-      { src: "/media/previews/shared/img-1.avif", format: "avif" },
+      expect.objectContaining({
+        src: "/media/previews/shared/img-1.avif",
+        format: "avif",
+      }),
     ]);
     expect(result.album.breadcrumb).toEqual([{ path: "/", title: "V4 root" }]);
   });
