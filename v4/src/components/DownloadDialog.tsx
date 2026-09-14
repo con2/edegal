@@ -152,8 +152,8 @@ export function DownloadDialog({
       </div>
 
       <div className="modal-footer">
-        <div className="d-flex w-100 justify-content-between">
-          <label className="mt-2 d-block">
+        <div className="d-flex w-100 justify-content-between align-items-center flex-wrap gap-2">
+          <label className="d-block m-0">
             <input
               type="checkbox"
               checked={accepted}
@@ -161,38 +161,45 @@ export function DownloadDialog({
             />{" "}
             {t.acceptTermsAndConditions}
           </label>
-          {photo ? (
-            <Dropdown align="end" data-bs-theme="light">
-              <Dropdown.Toggle variant="primary" disabled={!accepted}>
+          <div className="d-flex gap-2">
+            {photo ? (
+              <Dropdown align="end" data-bs-theme="light">
+                <Dropdown.Toggle variant="primary" disabled={!accepted}>
+                  {t.downloadButtonText}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {options.map((option) => (
+                    <Dropdown.Item
+                      key={option.variant.src}
+                      as="button"
+                      onClick={() => save(option.variant.src, option.fileName)}
+                    >
+                      {option.kind === "original" ? t.original : t.preview}{" "}
+                      {describeVariant(option.variant)}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!accepted}
+                onClick={() =>
+                  save(`/api/zip${album.path}`, zipFileName(album))
+                }
+              >
                 {t.downloadButtonText}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                {options.map((option) => (
-                  <Dropdown.Item
-                    key={option.variant.src}
-                    as="button"
-                    onClick={() => save(option.variant.src, option.fileName)}
-                  >
-                    {option.kind === "original" ? t.original : t.preview}{" "}
-                    {describeVariant(option.variant)}
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!accepted}
-              onClick={() => save(`/api/zip${album.path}`, zipFileName(album))}
-            >
-              {t.downloadButtonText}
+              </button>
+            )}
+            <button type="button" className="btn btn-secondary" onClick={close}>
+              {t.closeButtonText}
             </button>
-          )}
+          </div>
         </div>
 
-        <div className="d-flex w-100 justify-content-between">
-          <div>
+        {onContactPhotographer || photographerLinks.length > 0 ? (
+          <div className="w-100">
             {onContactPhotographer ? (
               <button
                 type="button"
@@ -224,10 +231,7 @@ export function DownloadDialog({
               </>
             ) : null}
           </div>
-          <button type="button" className="btn btn-secondary" onClick={close}>
-            {t.closeButtonText}
-          </button>
-        </div>
+        ) : null}
       </div>
     </Modal>
   );
