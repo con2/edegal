@@ -41,9 +41,7 @@ class Series(AlbumMixin, models.Model):
     # automatic
     created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL
-    )
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
 
     redirect_url = ""
 
@@ -81,9 +79,7 @@ class Series(AlbumMixin, models.Model):
             breadcrumb=[
                 Album.objects.get(path="/")._make_breadcrumb(),
             ],
-            subalbums=[
-                album.make_subalbum() for album in self.get_albums(**child_criteria)
-            ],
+            subalbums=[album.make_subalbum() for album in self.get_albums(**child_criteria)],
             pictures=[],
             terms_and_conditions=None,
             credits={},

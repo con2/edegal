@@ -14,7 +14,7 @@ validate_path = RegexValidator(
 )
 
 
-class CommonFields(object):
+class CommonFields:
     path = dict(
         max_length=1023,
         validators=[validate_path],

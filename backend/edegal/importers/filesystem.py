@@ -1,15 +1,13 @@
 import logging
 from os.path import basename, splitext
 
-from django.conf import settings
-
 from ..models import Album, Media, Picture
-from ..utils import slugify, log_get_or_create
+from ..utils import log_get_or_create, slugify
 
 logger = logging.getLogger(__name__)
 
 
-class FilesystemImporter(object):
+class FilesystemImporter:
     def __init__(self, path, input_filenames, mode="inplace"):
         self.path = path
         self.input_filenames = input_filenames
@@ -40,12 +38,7 @@ class FilesystemImporter(object):
     def run(self):
         album = Album.objects.get(path=self.path)
 
-        logger.info(
-            "Importing {num_files} files into {path}".format(
-                num_files=len(self.input_filenames),
-                path=self.path,
-            )
-        )
+        logger.info(f"Importing {len(self.input_filenames)} files into {self.path}")
 
         for index, input_filename in enumerate(self.input_filenames):
             picture, unused = self.get_or_create_picture(album, input_filename)

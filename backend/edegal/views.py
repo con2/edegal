@@ -41,9 +41,7 @@ class ApiV3View(View):
         try:
             album = Album.get_album_by_path(path, **extra_criteria)
         except Album.DoesNotExist:
-            if redirect_dict := Album.resolve_upstream_redirects(
-                path, **extra_criteria
-            ):
+            if redirect_dict := Album.resolve_upstream_redirects(path, **extra_criteria):
                 return JsonResponse(redirect_dict)
             else:
                 return JsonResponse(
@@ -85,9 +83,7 @@ class PhotographersApiV3View(View):
                 body=pseudoalbum.body if pseudoalbum else "",
                 subalbums=[
                     photog.make_subalbum()
-                    for photog in Photographer.objects.filter(
-                        cover_picture__media__isnull=False
-                    ).distinct()
+                    for photog in Photographer.objects.filter(cover_picture__media__isnull=False).distinct()
                 ],
                 pictures=[],
                 breadcrumb=[

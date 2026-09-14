@@ -1,7 +1,5 @@
 from django.db import models
 
-from .common import validate_path
-
 
 def get_root_album():
     from .album import Album

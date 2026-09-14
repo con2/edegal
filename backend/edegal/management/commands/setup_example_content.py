@@ -6,10 +6,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import BaseCommand
 
-from ...models import Album, TermsAndConditions, Photographer, Picture, Series
 from ...importers.filesystem import FilesystemImporter
+from ...models import Album, Photographer, Picture, Series, TermsAndConditions
 from ...utils import log_get_or_create
-
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +16,11 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
-            '-f', '--force',
+            "-f",
+            "--force",
             default=False,
-            action='store_true',
-            help='Create example content even if there is content already',
+            action="store_true",
+            help="Create example content even if there is content already",
         )
 
     def handle(self, *args, **options):
@@ -29,92 +29,92 @@ class Command(BaseCommand):
         User = get_user_model()
 
         user, created = User.objects.get_or_create(
-            username='mahti',
-            first_name='Markku',
-            last_name='Mahtinen',
+            username="mahti",
+            first_name="Markku",
+            last_name="Mahtinen",
             is_staff=True,
             is_superuser=True,
         )
 
         if created:
-            user.set_password('mahti')
+            user.set_password("mahti")
             user.save()
 
         log_get_or_create(logger, user, created)
 
-        if Album.objects.exists() and not options['force']:
-            logger.info('There is already content in the database – skipping creating example content')
+        if Album.objects.exists() and not options["force"]:
+            logger.info("There is already content in the database – skipping creating example content")
             return
 
-        logger.info('Creating example content')
+        logger.info("Creating example content")
 
         tac, unused = TermsAndConditions.get_or_create(
-            text='For personal use only. All rights reserved.',
+            text="For personal use only. All rights reserved.",
         )
         log_get_or_create(logger, tac, created)
 
         photographer, created = Photographer.objects.get_or_create(
             user=User.objects.first(),
             defaults=dict(
-                display_name='Example Photographer',
-                email='example@example.com',
-                twitter_handle='example',
-                instagram_handle='example',
+                display_name="Example Photographer",
+                email="example@example.com",
+                twitter_handle="example",
+                instagram_handle="example",
             ),
         )
         log_get_or_create(logger, photographer, created)
 
         root, created = Album.objects.get_or_create(
-            path='/',
+            path="/",
             defaults=dict(
-                title='My Swell Picture Gallery',
-                layout='yearly',
+                title="My Swell Picture Gallery",
+                layout="yearly",
             ),
         )
         log_get_or_create(logger, root, created)
 
         series, created = Series.objects.get_or_create(
-            slug='test-series',
+            slug="test-series",
             defaults=dict(
-                title='Test series',
-            )
+                title="Test series",
+            ),
         )
         log_get_or_create(logger, series, created)
 
         album1, created = Album.objects.get_or_create(
-            path='/album-1',
+            path="/album-1",
             defaults=dict(
-                title='Album, the First of his Name',
-                slug='album-1',
+                title="Album, the First of his Name",
+                slug="album-1",
                 parent=root,
                 series=series,
                 date=date(2019, 1, 1),
                 photographer=photographer,
                 terms_and_conditions=tac,
                 is_downloadable=False,
-            )
+            ),
         )
         log_get_or_create(logger, album1, created)
 
         album2, created = Album.objects.get_or_create(
-            path='/album-2',
+            path="/album-2",
             defaults=dict(
-                title='Album, the Second of his Name',
-                slug='album-2',
+                title="Album, the Second of his Name",
+                slug="album-2",
                 parent=root,
                 series=series,
                 date=date(2019, 1, 2),
                 photographer=photographer,
                 terms_and_conditions=tac,
-            )
+            ),
         )
         log_get_or_create(logger, album2, created)
 
         for album in [album1, album2]:
             FilesystemImporter(
                 path=album.path,
-                input_filenames=glob('example_content/*.jpg'),
-                mode='copy',
+                input_filenames=glob("example_content/*.jpg"),
+                mode="copy",
             ).run()
 
         some_photo = Picture.objects.filter(album__photographer__isnull=False).first()

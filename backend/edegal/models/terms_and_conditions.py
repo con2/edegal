@@ -1,5 +1,5 @@
-from hashlib import sha256 as hash_function
 import logging
+from hashlib import sha256 as hash_function
 
 from django.conf import settings
 from django.db import models
@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 
 from ..utils import pick_attrs
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -16,7 +15,7 @@ def compute_hash(text):
     return hash_function(text.encode("UTF-8")).hexdigest()
 
 
-class DedupMixin(object):
+class DedupMixin:
     @classmethod
     def get_or_create(cls, text, **defaults):
         the_hash = compute_hash(text)

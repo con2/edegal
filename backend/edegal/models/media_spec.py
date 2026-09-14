@@ -1,6 +1,5 @@
 from django.db import models
 
-
 FORMAT_CHOICES = [
     ("avif", "AVIF"),
     ("webp", "WebP"),
@@ -38,9 +37,4 @@ class MediaSpec(models.Model):
         return self.max_width, self.max_height
 
     def __str__(self):
-        return "{width}x{height}q{quality}.{format}".format(
-            width=self.max_width,
-            height=self.max_height,
-            quality=self.quality,
-            format=self.format,
-        )
+        return f"{self.max_width}x{self.max_height}q{self.quality}.{self.format}"

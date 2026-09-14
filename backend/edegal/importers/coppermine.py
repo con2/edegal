@@ -6,9 +6,7 @@ from collections import namedtuple
 from django.db import connections
 
 from ..models import Album, Media, MediaSpec, Picture, TermsAndConditions
-
-from ..utils import slugify, log_get_or_create
-
+from ..utils import log_get_or_create, slugify
 
 logger = logging.getLogger(__name__)
 
@@ -38,15 +36,15 @@ ORDER BY position
 
 # These will be stripped from filenames when making up titles
 STRIP_SUFFIXES = [
-    '.jpg',
-    '.jpeg',
+    ".jpg",
+    ".jpeg",
 ]
 
 
-class CoppermineAttributes(object):
+class CoppermineAttributes:
     @property
     def title(self):
-        return html.unescape(self.title_html).replace(' - ', ' – ')  # en dash
+        return html.unescape(self.title_html).replace(" - ", " – ")  # en dash
 
     @property
     def description(self):
@@ -57,7 +55,7 @@ class CoppermineAttributes(object):
         return slugify(self.title)
 
 
-BaseCoppermineAlbum = namedtuple('CoppermineAlbum', 'id title_html description_html pos')
+BaseCoppermineAlbum = namedtuple("CoppermineAlbum", "id title_html description_html pos")
 
 
 class CoppermineAlbum(BaseCoppermineAlbum, CoppermineAttributes):
@@ -76,7 +74,7 @@ class CoppermineAlbum(BaseCoppermineAlbum, CoppermineAttributes):
                 defaults=dict(
                     title=self.title,
                     terms_and_conditions=tac,
-                )
+                ),
             )
 
         else:
@@ -86,7 +84,7 @@ class CoppermineAlbum(BaseCoppermineAlbum, CoppermineAttributes):
                 defaults=dict(
                     title=self.title,
                     description=self.description,
-                )
+                ),
             )
 
         log_get_or_create(logger, album, created)
@@ -94,14 +92,17 @@ class CoppermineAlbum(BaseCoppermineAlbum, CoppermineAttributes):
         return album, created
 
 
-BaseCopperminePicture = namedtuple('CopperminePicture', [
-    'id',
-    'filename',
-    'filepath',
-    'title_html',
-    'description_html',
-    'position',
-])
+BaseCopperminePicture = namedtuple(
+    "CopperminePicture",
+    [
+        "id",
+        "filename",
+        "filepath",
+        "title_html",
+        "description_html",
+        "position",
+    ],
+)
 
 
 class CopperminePicture(BaseCopperminePicture, CoppermineAttributes):
@@ -119,7 +120,7 @@ class CopperminePicture(BaseCopperminePicture, CoppermineAttributes):
                 title=title,
                 description=self.description,
                 order=self.position,
-            )
+            ),
         )
 
         log_get_or_create(logger, picture, created)
@@ -130,28 +131,30 @@ class CopperminePicture(BaseCopperminePicture, CoppermineAttributes):
     def title_from_filename(self):
         for suffix in STRIP_SUFFIXES:
             if self.filename.lower().endswith(suffix):
-                return self.filename[:-len(suffix)]
+                return self.filename[: -len(suffix)]
 
         return self.filename
 
 
-class CoppermineImporter(object):
+class CoppermineImporter:
     def __init__(
         self,
-        path='/',
-        connection_name='coppermine',
+        path="/",
+        connection_name="coppermine",
         root_category_id=0,
-        mode='inplace',
+        mode="inplace",
         create_previews=True,
-        media_root='',
+        media_root="",
         description_is_terms_and_conditions=False,
-        exclude_category_ids=[],
+        exclude_category_ids=(),
     ):
         self.path = path
         self.connection = connections[connection_name]
         self.root_category = CoppermineAlbum(root_category_id, None, None, None)
         self.mode = mode
-        self.media_specs = MediaSpec.objects.filter(active=True) if create_previews else MediaSpec.objects.none()
+        self.media_specs = (
+            MediaSpec.objects.filter(active=True) if create_previews else MediaSpec.objects.none()
+        )
         self.media_root = media_root
         self.description_is_terms_and_conditions = description_is_terms_and_conditions
         self.exclude_category_ids = set(exclude_category_ids)
@@ -186,7 +189,7 @@ class CoppermineImporter(object):
 
     def import_category(self, coppermine_category, parent_album):
         if coppermine_category.id in self.exclude_category_ids:
-            logger.debug('Skipping category %d', coppermine_category.id)
+            logger.debug("Skipping category %d", coppermine_category.id)
             return
 
         album, created = coppermine_category.get_or_create(parent_album)
@@ -195,7 +198,8 @@ class CoppermineImporter(object):
         self.import_albums(coppermine_category, album)
 
     def import_album(self, coppermine_album, parent_album):
-        album, created = coppermine_album.get_or_create(parent_album,
+        album, created = coppermine_album.get_or_create(
+            parent_album,
             description_is_terms_and_conditions=self.description_is_terms_and_conditions,
         )
 
@@ -206,6 +210,7 @@ class CoppermineImporter(object):
 
     def import_picture(self, coppermine_picture, parent_album):
         picture, created = coppermine_picture.get_or_create(parent_album)
-        absolute_filename = os.path.join(self.media_root, coppermine_picture.filepath, coppermine_picture.filename)
+        absolute_filename = os.path.join(
+            self.media_root, coppermine_picture.filepath, coppermine_picture.filename
+        )
         Media.import_local_media(picture, absolute_filename, mode=self.mode, media_specs=self.media_specs)
-

@@ -41,9 +41,7 @@ EXIF_DATETIME_FORMAT = "%Y:%m:%d %H:%M:%S"
 
 
 class Media(models.Model):
-    picture = models.ForeignKey(
-        "edegal.Picture", on_delete=models.CASCADE, related_name="media"
-    )
+    picture = models.ForeignKey("edegal.Picture", on_delete=models.CASCADE, related_name="media")
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     src = models.FileField(
@@ -65,7 +63,7 @@ class Media(models.Model):
         default="jpeg",
     )
 
-    def as_dict(self, additional_formats: list[str] = []):
+    def as_dict(self, additional_formats: list[str] | None = None):
         """
         :param additional_formats: the caller has determined what formats of the current
         """
@@ -74,7 +72,7 @@ class Media(models.Model):
             "width",
             "height",
             src=self.src.url,
-            additional_formats=additional_formats,
+            additional_formats=additional_formats or [],
         )
 
     @property
@@ -93,9 +91,7 @@ class Media(models.Model):
         with self.as_image() as image:
             try:
                 exif = image._getexif()  # type: ignore
-                dt = datetime.strptime(
-                    exif[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT
-                )
+                dt = datetime.strptime(exif[EXIF_DATETIME_ORIGINAL], EXIF_DATETIME_FORMAT)
                 return make_aware(dt)
             except Exception:
                 logger.debug(
@@ -161,9 +157,7 @@ class Media(models.Model):
             from ..tasks import import_local_media
 
             media_specs_ids = list(media_specs.values_list(flat=True))
-            import_local_media.delay(
-                picture.id, input_filename, media_specs_ids, refresh_album
-            )  # type: ignore
+            import_local_media.delay(picture.id, input_filename, media_specs_ids, refresh_album)  # type: ignore
         else:
             cls._import_local_media(picture, input_filename, media_specs, refresh_album)
 
@@ -175,9 +169,7 @@ class Media(models.Model):
         media_specs: models.QuerySet[MediaSpec],
         refresh_album: bool,
     ):
-        original_media, unused = cls.get_or_create_original_media(
-            picture, input_filename
-        )
+        original_media, unused = cls.get_or_create_original_media(picture, input_filename)
 
         for spec in media_specs:
             cls.get_or_create_scaled_media(original_media, spec)
@@ -211,9 +203,7 @@ class Media(models.Model):
         original_path = abspath(original_path)
 
         if not original_path.startswith(settings.MEDIA_ROOT):
-            raise ValueError(
-                f"Original path {original_path} is not under MEDIA_ROOT {settings.MEDIA_ROOT}"
-            )
+            raise ValueError(f"Original path {original_path} is not under MEDIA_ROOT {settings.MEDIA_ROOT}")
 
         # make path relative to /media/
         original_path = original_path.removeprefix(settings.MEDIA_ROOT)

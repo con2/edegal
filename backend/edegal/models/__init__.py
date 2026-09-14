@@ -8,7 +8,6 @@ from .picture import Picture
 from .series import Series
 from .terms_and_conditions import TermsAndConditions
 
-
 __all__ = [
     "Album",
     "ImportItem",

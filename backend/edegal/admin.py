@@ -1,12 +1,10 @@
 import datetime
 from os.path import splitext
-from typing import Optional
 
 from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.db.models import Count
-from django.http.request import HttpRequest
 from multiupload.admin import MultiUploadAdmin
 
 from .models import (
@@ -176,9 +174,7 @@ class AlbumAdmin(MultiUploadAdmin):
 
         Media.import_open_file(picture, uploaded.file, refresh_album=True)
 
-        return dict(
-            url="", thumbnail_url="", id=picture.id, name=picture.title
-        )  # FIXME  # FIXME
+        return dict(url="", thumbnail_url="", id=picture.id, name=picture.title)  # FIXME  # FIXME
 
     def get_changeform_initial_data(self, request):
         try:

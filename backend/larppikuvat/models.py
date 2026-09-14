@@ -1,4 +1,5 @@
 from django.db import models
+
 from edegal.models.common import make_body_field
 from edegal.utils import pick_attrs
 

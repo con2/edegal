@@ -90,9 +90,7 @@ class AlbumTestCase(TestCase):
         picture1 = Picture.objects.get(path="/album-2/picture-1")
 
         original = picture1.original
-        self.assertEqual(
-            original.get_canonical_path(prefix=""), "pictures/album-2/picture-1.jpeg"
-        )
+        self.assertEqual(original.get_canonical_path(prefix=""), "pictures/album-2/picture-1.jpeg")
 
         derived = picture1.media.get(spec__max_width=640, spec__max_height=480)
         self.assertEqual(
