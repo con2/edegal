@@ -76,7 +76,9 @@ picture img {
     padding: 0;
     margin: 0;
   }
-  .btn-link + .btn-link {
+  .btn-link + .btn-link,
+  .btn-link + .dropdown,
+  .dropdown + .btn-link {
     margin: 0 0 0 16px;
   }
   .BreadcrumbBar-icon {

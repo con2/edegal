@@ -144,6 +144,12 @@ const translations: Translations = {
   },
   Editor: {
     newSubalbum: "Uusi albumi",
+    importAlbum: "Tuo albumi",
+    importFlickr: "Flickr-albumi",
+    importFlickrTitle: "Tuo Flickr-albumi",
+    importFlickrHelp:
+      "Luo tähän albumin, joka avaa Flickr-albumin. Otsikko, kuvaus ja kansikuva haetaan Flickristä.",
+    importFlickrSubmit: "Tuo albumi",
     newAlbumTitle: "Uusi albumi",
     editAlbumTitle: "Muokkaa albumia",
     uploadPhotos: "Lähetä kuvia",
@@ -228,6 +234,11 @@ const translations: Translations = {
       description: "Lyhyt kuvaus",
       descriptionHelp: "Yksi virke hakukoneille ja linkkien esikatseluihin.",
       redirectUrl: "Uudelleenohjaus",
+      flickrUrl: "Flickr-albumin osoite",
+      flickrUrlHelp:
+        "Esimerkiksi https://www.flickr.com/photos/kayttaja/albums/72177720312345678",
+      importTitleHelp:
+        "Tyhjäksi jätettynä käytetään Flickrin otsikkoa. Otsikossa oleva päivämäärä poimitaan tapahtuman päiväksi.",
       redirectUrlHelp:
         "Albumin avaava vierailija ohjataan tänne. Verkko-osoite (https://…) näytetään yläalbumissa linkkiruutuna; gallerian polku (/joku-albumi) ohjaa siihen albumiin. Jätä tyhjäksi tavalliselle albumille.",
     },
@@ -256,9 +267,16 @@ const translations: Translations = {
         "Albumissa on toisten kuvaajien omistamia albumeita. Heidän täytyy poistaa omansa ensin, tai pyydä adminia.",
       forbidden: "Sinulla ei ole oikeutta tähän.",
       invalid: "Tarkista lomake.",
+      flickrUnreachable:
+        "Flickr-sivua ei saatu haettua. Tarkista osoite ja yritä uudelleen.",
+      flickrNotAlbum:
+        "Sivulta ei löytynyt albumin tietoja. Anna Flickr-albumin osoite.",
     },
     success: {
       albumSaved: "Albumi tallennettu.",
+      albumImported: "Albumi tuotu. Kansikuva ilmestyy, kun se on käsitelty.",
+      albumImportedNoCover:
+        "Albumi tuotu. Kansikuvaa ei saatu haettua; lähetä albumiin kuva, jotta se saa kansikuvan.",
       photosSorted: "Kuvat järjestetty.",
       thumbnailSet: "Albumin kansikuva vaihdettu.",
       photoDeleted: "Kuva poistettu.",

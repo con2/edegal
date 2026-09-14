@@ -69,6 +69,7 @@ export async function GalleryPage({
     upload: isAlbum && rights.canEdit,
     delete: rights.canDelete,
     newSeries: rights.canCreateSeries,
+    importFlickr: rights.canCreate,
   };
   const mode =
     requestedMode && modeAllowed[requestedMode] ? requestedMode : null;

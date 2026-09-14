@@ -24,16 +24,19 @@ import {
   createSeries,
   deleteAlbum,
   deleteSeries,
+  importFlickrAlbum,
   updateAlbum,
   updateSeries,
 } from "@/app/[locale]/[[...path]]/actions";
 
 import { AlbumForm } from "./AlbumForm";
 import { DeleteAlbumConfirm } from "./DeleteAlbumConfirm";
+import { FlickrImportForm } from "./FlickrImportForm";
 import { SeriesForm } from "./SeriesForm";
 import { UploadPanel } from "./UploadPanel";
 
-export type EditorMode = "new" | "edit" | "upload" | "delete" | "newSeries";
+export type EditorMode =
+  "new" | "edit" | "upload" | "delete" | "newSeries" | "importFlickr";
 
 export function editorMode(
   searchParams: Record<string, string | string[] | undefined>,
@@ -44,6 +47,7 @@ export function editorMode(
     "upload",
     "delete",
     "newSeries",
+    "importFlickr",
   ] as const) {
     if (searchParams[mode] !== undefined) return mode;
   }
@@ -119,6 +123,18 @@ export async function EditorPanel({
           null,
         )}
         isRoot={false}
+        parent={{ path: album.path, title: album.title }}
+        messages={messages.Editor}
+      />
+    );
+  }
+
+  if (mode === "importFlickr") {
+    if (!canCreateSubalbum(viewer, guard)) return null;
+    return (
+      <FlickrImportForm
+        action={importFlickrAlbum.bind(null, locale, album.id)}
+        cancelHref={album.path}
         parent={{ path: album.path, title: album.title }}
         messages={messages.Editor}
       />

@@ -22,9 +22,11 @@ import {
   usableTermsId,
 } from "@/editor/albums";
 import { ensurePhotographer } from "@/editor/photographers";
+import { importFlickrAlbum as runFlickrImport } from "@/editor/importFlickr";
 import {
   AlbumFormSchema,
   DeleteAlbumSchema,
+  FlickrImportSchema,
   SeriesFormSchema,
 } from "@/editor/schemas";
 import {
@@ -153,6 +155,43 @@ export async function createAlbum(
   invalidateAlbum("v4", album.id, parent.id);
   revalidatePath(`/${locale}${parent.path}`);
   return void redirect(withMessage(path, "success", "albumSaved"));
+}
+
+/** Creates a subalbum that links to a Flickr album; lands back on the parent, since the new album redirects. */
+export async function importFlickrAlbum(
+  locale: string,
+  parentId: string,
+  formData: FormData,
+) {
+  const viewer = await requireUser();
+  const parent = await requireAlbum(parentId);
+  if (
+    !canCreateSubalbum(viewer, {
+      source: "v4",
+      ownerId: parent.ownerId,
+      isOpenForSubalbums: parent.isOpenForSubalbums,
+    })
+  ) {
+    throw new Error("not allowed to create a subalbum here");
+  }
+  const back = (code: string) =>
+    redirect(withMessage(parent.path, "error", code) + "&importFlickr=1");
+  const form = FlickrImportSchema.safeParse(normalizeFormData(formData));
+  if (!form.success) return void back("invalid");
+  const result = await runFlickrImport(
+    viewer,
+    { id: parent.id, path: parent.path },
+    form.data,
+  );
+  if (!result.ok) return void back(result.error);
+  revalidatePath(`/${locale}${parent.path}`);
+  return void redirect(
+    withMessage(
+      parent.path,
+      "success",
+      result.coverImported ? "albumImported" : "albumImportedNoCover",
+    ),
+  );
 }
 
 export async function updateAlbum(

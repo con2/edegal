@@ -1,6 +1,8 @@
 import { decodeBoolean } from "@con2/components/helpers";
 import { z } from "zod";
 
+import { isFlickrUrl } from "@/importers/flickr";
+
 /** Unchecked checkboxes send nothing; anything else goes through decodeBoolean. */
 const checkbox = z.preprocess(
   (value) => decodeBoolean(String(value ?? "")),
@@ -102,6 +104,12 @@ export const SeriesFormSchema = z.object({
   body: z.string().max(100_000).default(""),
 });
 export type SeriesForm = z.infer<typeof SeriesFormSchema>;
+
+export const FlickrImportSchema = z.object({
+  flickrUrl: z.string().trim().max(1023).refine(isFlickrUrl, "flickrUrl"),
+  title: z.string().trim().max(1023).default(""),
+  visibility: z.enum(["public", "hidden", "private"]),
+});
 
 export const LinksSchema = z.array(
   z.object({

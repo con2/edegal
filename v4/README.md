@@ -61,6 +61,15 @@ turns the album into an external link tile and forwards visitors, a gallery path
 album, and either applies to everything below the album. Root slugs that routing claims (`/admin`,
 `/api`, `/media`, `/photographers`, ...) cannot be used for albums.
 
+### Importing Flickr albums
+
+"Import album » Flickr album" in the album toolbar creates a subalbum that redirects to a Flickr
+album, for photographers who publish on Flickr but want to be listed here. The title, description
+and cover picture are read from the Flickr page's Open Graph tags; a `(LARP)` tag is dropped from
+the title and a date written in it becomes the event date. The cover is stored as the album's only
+photo so the worker gives it a thumbnail. Nothing else is fetched from Flickr, and the import goes
+through without a cover when Flickr does not hand one over.
+
 ### Series
 
 A series groups albums chronologically (the runs of a campaign, the years of an event) and has its

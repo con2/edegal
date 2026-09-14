@@ -21,7 +21,7 @@ export function SortPhotosMenu({
 }: SortPhotosMenuProps) {
   const [busy, startTransition] = useTransition();
   return (
-    <Dropdown className="d-inline-block ms-3" data-bs-theme="light">
+    <Dropdown className="d-inline-block" data-bs-theme="light">
       <Dropdown.Toggle
         variant="link"
         size="sm"

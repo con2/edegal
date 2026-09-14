@@ -3,6 +3,7 @@ import Link from "next/link";
 import { sortPhotos } from "@/app/[locale]/[[...path]]/actions";
 import type { Translations } from "@/translations";
 
+import { ImportAlbumMenu } from "./ImportAlbumMenu";
 import { SortPhotosMenu } from "./SortPhotosMenu";
 
 export interface EditorRights {
@@ -40,9 +41,12 @@ export function EditorToolbar({
   return (
     <>
       {rights.canCreate ? (
-        <Link className="btn btn-link btn-sm" href={href("new")}>
-          {messages.newSubalbum}…
-        </Link>
+        <>
+          <Link className="btn btn-link btn-sm" href={href("new")}>
+            {messages.newSubalbum}…
+          </Link>
+          <ImportAlbumMenu albumPath={albumPath} messages={messages} />
+        </>
       ) : null}
       {rights.canCreateSeries ? (
         <Link className="btn btn-link btn-sm" href={href("newSeries")}>

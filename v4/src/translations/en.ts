@@ -146,6 +146,12 @@ const translations = {
   },
   Editor: {
     newSubalbum: "New album",
+    importAlbum: "Import album",
+    importFlickr: "Flickr album",
+    importFlickrTitle: "Import a Flickr album",
+    importFlickrHelp:
+      "Creates an album here that opens the Flickr album when clicked. Its title, description and cover picture come from Flickr, and the cover becomes the thumbnail.",
+    importFlickrSubmit: "Import album",
     newAlbumTitle: "New album",
     editAlbumTitle: "Edit album",
     uploadPhotos: "Upload photos",
@@ -229,6 +235,11 @@ const translations = {
       description: "Short description",
       descriptionHelp: "One sentence for search engines and link previews.",
       redirectUrl: "Redirect",
+      flickrUrl: "Flickr album address",
+      flickrUrlHelp:
+        "For example https://www.flickr.com/photos/username/albums/72177720312345678",
+      importTitleHelp:
+        "Left empty, the Flickr title is used. A date in it becomes the event date.",
       redirectUrlHelp:
         "Visitors opening this album are sent here instead. A web address (https://…) is shown as a link tile in the parent album; a gallery path (/some-album) forwards to that album. Leave empty for a normal album.",
     },
@@ -257,9 +268,17 @@ const translations = {
         "This album contains albums owned by other photographers. They must delete theirs first, or ask an admin.",
       forbidden: "You do not have permission to do this.",
       invalid: "Please check the form.",
+      flickrUnreachable:
+        "The Flickr page could not be fetched. Check the address and try again.",
+      flickrNotAlbum:
+        "The page carries no album information. Give the address of a Flickr album.",
     },
     success: {
       albumSaved: "Album saved.",
+      albumImported:
+        "Album imported. Its thumbnail appears once the cover picture has been processed.",
+      albumImportedNoCover:
+        "Album imported. The cover picture could not be fetched; upload a photo to give the album a thumbnail.",
       photosSorted: "Photos sorted.",
       thumbnailSet: "Album thumbnail changed.",
       photoDeleted: "Photo deleted.",
