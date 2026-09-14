@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { type CSSProperties, useEffect, useState, useTransition } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 
 import { canDownload } from "@/gallery/access";
@@ -15,7 +16,6 @@ import {
   ChevronRightIcon,
   CloseIcon,
   DownloadIcon,
-  MoreIcon,
 } from "./icons";
 import { Picture } from "./Picture";
 
@@ -91,6 +91,127 @@ function navLink(
   );
 }
 
+interface PhotoToolbarProps {
+  album: ClientAlbumPage;
+  photo: PhotoVM;
+  downloadable: boolean;
+  onDownload: () => void;
+  editor: PhotoEditor | null;
+  messages: Translations["PictureView"];
+  onNavigate: PictureViewProps["onNavigate"];
+}
+
+function PhotoToolbar({
+  album,
+  photo,
+  downloadable,
+  onDownload,
+  editor,
+  messages,
+  onNavigate,
+}: PhotoToolbarProps) {
+  const router = useRouter();
+  const [busy, startTransition] = useTransition();
+  return (
+    <nav className="PictureView-toolbar">
+      <a
+        href={album.path}
+        className="btn btn-link btn-sm"
+        onClick={(event) => {
+          event.preventDefault();
+          onNavigate(album.path, "push");
+        }}
+      >
+        <CloseIcon className="PictureView-toolbarIcon" />
+        {messages.backToAlbum}
+      </a>
+      {downloadable ? (
+        <button
+          type="button"
+          className="btn btn-link btn-sm"
+          onClick={onDownload}
+        >
+          <DownloadIcon className="PictureView-toolbarIcon" />
+          {messages.downloadOriginal}…
+        </button>
+      ) : null}
+      {editor && editor.thumbnailTargets.length > 0 ? (
+        <Dropdown className="d-inline-block" data-bs-theme="light">
+          <Dropdown.Toggle variant="link" size="sm" disabled={busy}>
+            {editor.messages.useAsThumbnail}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            {editor.thumbnailTargets.map((target) => (
+              <Dropdown.Item
+                key={target.albumId}
+                as="button"
+                onClick={() =>
+                  startTransition(async () => {
+                    await editor.setThumbnail(target.albumId, photo.id);
+                    router.refresh();
+                  })
+                }
+              >
+                {target.isOwnAlbum ? editor.messages.thisAlbum : target.title}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
+      ) : null}
+      {editor?.setProfilePhoto ? (
+        <button
+          type="button"
+          className="btn btn-link btn-sm"
+          disabled={busy}
+          onClick={() => {
+            const setProfilePhoto = editor.setProfilePhoto;
+            if (!setProfilePhoto) return;
+            startTransition(() => setProfilePhoto(photo.id));
+          }}
+        >
+          {editor.messages.setAsProfilePhoto}
+        </button>
+      ) : null}
+      {editor?.manage ? (
+        <button
+          type="button"
+          className="btn btn-link btn-sm text-danger"
+          disabled={busy}
+          onClick={() => {
+            const manage = editor.manage;
+            if (!manage) return;
+            if (!window.confirm(editor.messages.confirmDeletePhoto)) return;
+            startTransition(() => manage.deletePhoto(photo.id));
+          }}
+        >
+          {editor.messages.deletePhoto}…
+        </button>
+      ) : null}
+    </nav>
+  );
+}
+
+function Credit({ album, photo }: { album: ClientAlbumPage; photo: PhotoVM }) {
+  const holders = album.credits.filter((c) => c.isCopyright);
+  if (holders.length === 0) return <footer className="PictureView-credit" />;
+  const year = (photo.takenAt ?? album.date ?? "").slice(0, 4);
+  return (
+    <footer className="PictureView-credit">
+      &copy; {year}{" "}
+      {holders.map((holder, index) => (
+        <span key={holder.displayName}>
+          {index > 0 ? ", " : null}
+          {holder.path ? (
+            <Link href={holder.path}>{holder.displayName}</Link>
+          ) : (
+            holder.displayName
+          )}
+        </span>
+      ))}
+    </footer>
+  );
+}
+
 export function PictureView({
   album,
   index,
@@ -98,12 +219,11 @@ export function PictureView({
   onNavigate,
   editor,
 }: PictureViewProps) {
-  const router = useRouter();
-  const [busy, startTransition] = useTransition();
   const photo = album.photos[index];
   const previous = album.photos[index - 1];
   const next = album.photos[index + 1];
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [maximized, setMaximized] = useState(false);
   const downloadable = canDownload(album) && photo.original !== null;
 
   useEffect(() => {
@@ -143,6 +263,10 @@ export function PictureView({
         onNavigate(`${photo.path}?slideshow`, "replace");
         return;
       }
+      if (event.code === "Escape" && maximized) {
+        setMaximized(false);
+        return;
+      }
       const direction = keyMap[event.code];
       if (direction) go(direction);
     };
@@ -155,135 +279,90 @@ export function PictureView({
       document.removeEventListener("keydown", onKeyDown);
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
-  }, [album.path, photo.path, previous, next, onNavigate, downloadOpen]);
+  }, [
+    album.path,
+    photo.path,
+    previous,
+    next,
+    onNavigate,
+    downloadOpen,
+    maximized,
+  ]);
 
   const preview = photo.preview ?? photo.thumbnail;
+  const photoStyle = {
+    "--PictureView-ratio": `${preview.fallback.width} / ${preview.fallback.height}`,
+  } as CSSProperties;
 
   return (
-    <div className="PictureView">
-      <Picture
-        media={preview}
-        alt={photo.title}
-        className="PictureView-img"
-        loading="eager"
-      />
-
-      {navLink(
-        previous,
-        "PictureView-nav PictureView-nav-previous",
-        messages.PictureView.previousPicture,
-        onNavigate,
-        <ChevronLeftIcon className="PictureView-icon" />,
-      )}
-      {navLink(
-        next,
-        "PictureView-nav PictureView-nav-next",
-        messages.PictureView.nextPicture,
-        onNavigate,
-        <ChevronRightIcon className="PictureView-icon" />,
-      )}
-
-      <a
-        href={album.path}
-        className="PictureView-action PictureView-action-exit"
-        title={messages.PictureView.backToAlbum}
-        onClick={(event) => {
-          event.preventDefault();
-          onNavigate(album.path, "push");
-        }}
+    <>
+      <div
+        className={`PictureView${maximized ? " PictureView-maximized" : ""}`}
+        onClick={maximized ? () => setMaximized(false) : undefined}
       >
-        <CloseIcon className="PictureView-icon" />
-      </a>
-
-      {editor ? (
-        <Dropdown
-          className="PictureView-action PictureView-action-menu"
-          align="end"
-        >
-          <Dropdown.Toggle
-            variant="link"
-            className="p-0 border-0 text-reset"
-            title={editor.messages.photoActions}
-            disabled={busy}
-          >
-            <MoreIcon className="PictureView-icon" />
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            {editor.thumbnailTargets.map((target) => (
-              <Dropdown.Item
-                key={target.albumId}
-                as="button"
-                onClick={() =>
-                  startTransition(async () => {
-                    await editor.setThumbnail(target.albumId, photo.id);
-                    router.refresh();
-                  })
-                }
-              >
-                {target.isOwnAlbum
-                  ? editor.messages.setAsThumbnail
-                  : editor.messages.setAsThumbnailOf.replace(
-                      "{album}",
-                      target.title,
-                    )}
-              </Dropdown.Item>
-            ))}
-            {editor.setProfilePhoto ? (
-              <Dropdown.Item
-                as="button"
-                onClick={() => {
-                  const setProfilePhoto = editor.setProfilePhoto;
-                  if (!setProfilePhoto) return;
-                  startTransition(() => setProfilePhoto(photo.id));
-                }}
-              >
-                {editor.messages.setAsProfilePhoto}
-              </Dropdown.Item>
-            ) : null}
-            {editor.manage ? (
-              <>
-                <Dropdown.Divider />
-                <Dropdown.Item
-                  as="button"
-                  className="text-danger"
-                  onClick={() => {
-                    const manage = editor.manage;
-                    if (!manage) return;
-                    if (!window.confirm(editor.messages.confirmDeletePhoto))
-                      return;
-                    startTransition(() => manage.deletePhoto(photo.id));
-                  }}
-                >
-                  {editor.messages.deletePhoto}
-                </Dropdown.Item>
-              </>
-            ) : null}
-          </Dropdown.Menu>
-        </Dropdown>
-      ) : null}
-
-      {downloadable ? (
-        <>
-          <button
-            type="button"
-            className="PictureView-action PictureView-action-download btn p-0 border-0 bg-transparent"
-            title={messages.PictureView.downloadOriginal}
-            onClick={() => setDownloadOpen(true)}
-          >
-            <DownloadIcon className="PictureView-icon" />
-          </button>
-          <DownloadDialog
+        {maximized ? null : (
+          <PhotoToolbar
             album={album}
             photo={photo}
-            show={downloadOpen}
-            onHide={() => setDownloadOpen(false)}
-            messages={{
-              dialog: messages.DownloadDialog,
-              Download: messages.Download,
-            }}
+            downloadable={downloadable}
+            onDownload={() => setDownloadOpen(true)}
+            editor={editor}
+            messages={messages.PictureView}
+            onNavigate={onNavigate}
           />
-        </>
+        )}
+
+        {maximized
+          ? null
+          : navLink(
+              previous,
+              "PictureView-nav PictureView-nav-previous",
+              messages.PictureView.previousPicture,
+              onNavigate,
+              <ChevronLeftIcon className="PictureView-icon" />,
+            )}
+
+        <div className="PictureView-stage">
+          <button
+            type="button"
+            className="PictureView-photo"
+            style={photoStyle}
+            title={
+              maximized
+                ? messages.PictureView.exitMaximized
+                : messages.PictureView.maximize
+            }
+            onClick={() => setMaximized((current) => !current)}
+          >
+            <Picture media={preview} alt={photo.title} loading="eager" />
+          </button>
+        </div>
+
+        {maximized
+          ? null
+          : navLink(
+              next,
+              "PictureView-nav PictureView-nav-next",
+              messages.PictureView.nextPicture,
+              onNavigate,
+              <ChevronRightIcon className="PictureView-icon" />,
+            )}
+
+        {maximized ? null : <Credit album={album} photo={photo} />}
+      </div>
+
+      {downloadable ? (
+        <DownloadDialog
+          album={album}
+          photo={photo}
+          show={downloadOpen}
+          onHide={() => setDownloadOpen(false)}
+          messages={{
+            dialog: messages.DownloadDialog,
+            Download: messages.Download,
+          }}
+        />
       ) : null}
-    </div>
+    </>
   );
 }
