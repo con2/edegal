@@ -1,6 +1,9 @@
 import logging
+import shutil
 from datetime import date
 from glob import glob
+from os import makedirs
+from os.path import basename, join
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -110,12 +113,16 @@ class Command(BaseCommand):
         )
         log_get_or_create(logger, album2, created)
 
+        # The importer uses files where they lie, so the examples are first copied under MEDIA_ROOT.
         for album in [album1, album2]:
-            FilesystemImporter(
-                path=album.path,
-                input_filenames=glob("example_content/*.jpg"),
-                mode="copy",
-            ).run()
+            pictures_dir = join(settings.MEDIA_ROOT, "pictures", album.path.strip("/"))
+            makedirs(pictures_dir, exist_ok=True)
+            input_filenames = []
+            for example in sorted(glob("example_content/*.jpg")):
+                target = join(pictures_dir, basename(example))
+                shutil.copyfile(example, target)
+                input_filenames.append(target)
+            FilesystemImporter(path=album.path, input_filenames=input_filenames).run()
 
         some_photo = Picture.objects.filter(album__photographer__isnull=False).first()
         photographer.cover_picture = some_photo

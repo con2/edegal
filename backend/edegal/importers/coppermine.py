@@ -142,7 +142,6 @@ class CoppermineImporter:
         path="/",
         connection_name="coppermine",
         root_category_id=0,
-        mode="inplace",
         create_previews=True,
         media_root="",
         description_is_terms_and_conditions=False,
@@ -151,7 +150,6 @@ class CoppermineImporter:
         self.path = path
         self.connection = connections[connection_name]
         self.root_category = CoppermineAlbum(root_category_id, None, None, None)
-        self.mode = mode
         self.media_specs = (
             MediaSpec.objects.filter(active=True) if create_previews else MediaSpec.objects.none()
         )
@@ -213,4 +211,4 @@ class CoppermineImporter:
         absolute_filename = os.path.join(
             self.media_root, coppermine_picture.filepath, coppermine_picture.filename
         )
-        Media.import_local_media(picture, absolute_filename, mode=self.mode, media_specs=self.media_specs)
+        Media.import_local_media(picture, absolute_filename, media_specs=self.media_specs)

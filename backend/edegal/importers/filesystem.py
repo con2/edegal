@@ -8,10 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class FilesystemImporter:
-    def __init__(self, path, input_filenames, mode="inplace"):
+    """Imports files that already lie under MEDIA_ROOT; they are used where they are, not copied."""
+
+    def __init__(self, path, input_filenames):
         self.path = path
         self.input_filenames = input_filenames
-        self.mode = mode
         self.counter = 0
 
     def get_ordering_number(self):
@@ -45,6 +46,5 @@ class FilesystemImporter:
             Media.import_local_media(
                 picture,
                 input_filename,
-                mode=self.mode,
                 refresh_album=(index == 0),
             )
