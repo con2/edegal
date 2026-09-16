@@ -6,6 +6,7 @@ import {
   type CSSProperties,
   useCallback,
   useEffect,
+  useRef,
   useState,
   useTransition,
 } from "react";
@@ -14,6 +15,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import { canDownload } from "@/gallery/access";
 import type { ThumbnailTarget } from "@/editor/albums";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
+import { type Point, swipeDirection } from "@/lib/swipe";
 import type { Translations } from "@/translations";
 
 import { ContactDialog } from "./ContactDialog";
@@ -286,6 +288,54 @@ export function PictureView({
     [slideshow, photo.path, onNavigate],
   );
 
+  const go = useCallback(
+    (direction: Direction, keepSlideshow = false) => {
+      const target =
+        direction === "album"
+          ? album.path
+          : direction === "next"
+            ? next?.path
+            : previous?.path;
+      if (!target) return;
+      const suffix = keepSlideshow ? "?slideshow" : "";
+      onNavigate(target + suffix, direction === "album" ? "push" : "replace");
+    },
+    [album.path, next, previous, onNavigate],
+  );
+
+  const touchStart = useRef<Point | null>(null);
+  const dialogOpen = downloadOpen || contactOpen;
+
+  const onTouchStart = useCallback((event: React.TouchEvent) => {
+    if (event.touches.length !== 1) {
+      touchStart.current = null;
+      return;
+    }
+    const { clientX, clientY } = event.touches[0];
+    touchStart.current = { x: clientX, y: clientY };
+  }, []);
+
+  const onTouchMove = useCallback((event: React.TouchEvent) => {
+    // A second finger joining mid-gesture (e.g. pinch zoom) cancels the swipe.
+    if (event.touches.length > 1) touchStart.current = null;
+  }, []);
+
+  const onTouchEnd = useCallback(
+    (event: React.TouchEvent) => {
+      const start = touchStart.current;
+      touchStart.current = null;
+      if (!start || dialogOpen) return;
+      const { clientX, clientY } = event.changedTouches[0];
+      const direction = swipeDirection(start, { x: clientX, y: clientY });
+      if (direction) go(direction);
+    },
+    [dialogOpen, go],
+  );
+
+  const onTouchCancel = useCallback(() => {
+    touchStart.current = null;
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       preload(previous);
@@ -296,18 +346,7 @@ export function PictureView({
 
   useEffect(() => {
     // Keyboard shortcuts belong to the picture, not to an open dialog.
-    if (downloadOpen || contactOpen) return;
-    const go = (direction: Direction, keepSlideshow = false) => {
-      const target =
-        direction === "album"
-          ? album.path
-          : direction === "next"
-            ? next?.path
-            : previous?.path;
-      if (!target) return;
-      const suffix = keepSlideshow ? "?slideshow" : "";
-      onNavigate(target + suffix, direction === "album" ? "push" : "replace");
-    };
+    if (dialogOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.key === "r" || event.key === "R") {
@@ -336,18 +375,7 @@ export function PictureView({
       document.removeEventListener("keydown", onKeyDown);
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
-  }, [
-    album.path,
-    photo.path,
-    previous,
-    next,
-    onNavigate,
-    downloadOpen,
-    contactOpen,
-    maximized,
-    slideshow,
-    toggleSlideshow,
-  ]);
+  }, [dialogOpen, maximized, next, slideshow, go, toggleSlideshow]);
 
   const preview = photo.preview ?? photo.thumbnail;
   const photoStyle = {
@@ -359,6 +387,10 @@ export function PictureView({
       <div
         className={`PictureView${maximized ? " PictureView-maximized" : ""}`}
         onClick={maximized ? () => setMaximized(false) : undefined}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchCancel}
       >
         {maximized ? null : (
           <PhotoToolbar

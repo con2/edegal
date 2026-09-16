@@ -221,6 +221,9 @@ picture img {
   background-color: #333;
   color: #c9c9c9;
   z-index: 1040;
+  // Leaves vertical scroll/zoom to the browser but reserves horizontal panning for our
+  // own swipe recognition instead of letting the browser start a native scroll.
+  touch-action: pan-y pinch-zoom;
 }
 @media (max-width: 575.98px) {
   .PictureView {
