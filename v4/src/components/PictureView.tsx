@@ -15,7 +15,6 @@ import Dropdown from "react-bootstrap/Dropdown";
 import { canDownload } from "@/gallery/access";
 import type { ThumbnailTarget } from "@/editor/albums";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
-import { type Point, swipeDirection } from "@/lib/swipe";
 import type { Translations } from "@/translations";
 
 import { ContactDialog } from "./ContactDialog";
@@ -30,6 +29,7 @@ import {
   SlideshowIcon,
 } from "./icons";
 import { Picture } from "./Picture";
+import { usePictureDrag } from "./usePictureDrag";
 
 export interface PhotoEditor {
   /** Albums whose thumbnail this photo may become; one menu item each. */
@@ -68,19 +68,29 @@ const keyMap: Record<string, Direction> = {
 
 const slideshowMilliseconds = 3000;
 
-/** Warms the browser cache for a neighbouring preview without attaching anything to the DOM. */
-function preload(photo: PhotoVM | undefined) {
-  if (!photo?.preview) return;
-  const picture = document.createElement("picture");
-  for (const alternate of photo.preview.alternates) {
-    const source = document.createElement("source");
-    source.type = `image/${alternate.format}`;
-    source.srcset = alternate.src;
-    picture.appendChild(source);
-  }
-  const img = document.createElement("img");
-  picture.appendChild(img);
-  img.src = photo.preview.fallback.src;
+type Slot = "previous" | "current" | "next";
+
+function slide(photo: PhotoVM | undefined, slot: Slot) {
+  if (!photo) return null;
+  const preview = photo.preview ?? photo.thumbnail;
+  const style = {
+    "--PictureView-ratio": `${preview.fallback.width} / ${preview.fallback.height}`,
+  } as CSSProperties;
+  return (
+    <div
+      key={photo.path}
+      className={`PictureView-slide PictureView-slide-${slot}`}
+    >
+      <div className="PictureView-photo" style={style}>
+        <Picture
+          media={preview}
+          alt={photo.title}
+          loading="eager"
+          fetchPriority={slot === "current" ? "high" : "low"}
+        />
+      </div>
+    </div>
+  );
 }
 
 function navLink(
@@ -303,46 +313,25 @@ export function PictureView({
     [album.path, next, previous, onNavigate],
   );
 
-  const touchStart = useRef<Point | null>(null);
   const dialogOpen = downloadOpen || contactOpen;
 
-  const onTouchStart = useCallback((event: React.TouchEvent) => {
-    if (event.touches.length !== 1) {
-      touchStart.current = null;
-      return;
-    }
-    const { clientX, clientY } = event.touches[0];
-    touchStart.current = { x: clientX, y: clientY };
-  }, []);
-
-  const onTouchMove = useCallback((event: React.TouchEvent) => {
-    // A second finger joining mid-gesture (e.g. pinch zoom) cancels the swipe.
-    if (event.touches.length > 1) touchStart.current = null;
-  }, []);
-
-  const onTouchEnd = useCallback(
-    (event: React.TouchEvent) => {
-      const start = touchStart.current;
-      touchStart.current = null;
-      if (!start || dialogOpen) return;
-      const { clientX, clientY } = event.changedTouches[0];
-      const direction = swipeDirection(start, { x: clientX, y: clientY });
-      if (direction) go(direction);
-    },
-    [dialogOpen, go],
-  );
-
-  const onTouchCancel = useCallback(() => {
-    touchStart.current = null;
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      preload(previous);
-      preload(next);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [previous, next]);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const {
+    onTouchStart,
+    onTouchMove,
+    onTouchEnd,
+    onTouchCancel,
+    onTransitionEnd,
+  } = usePictureDrag({
+    stageRef,
+    trackRef,
+    hasPrevious: Boolean(previous),
+    hasNext: Boolean(next),
+    enabled: !dialogOpen,
+    index,
+    onCommit: go,
+  });
 
   useEffect(() => {
     // Keyboard shortcuts belong to the picture, not to an open dialog.
@@ -376,11 +365,6 @@ export function PictureView({
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
   }, [dialogOpen, maximized, next, slideshow, go, toggleSlideshow]);
-
-  const preview = photo.preview ?? photo.thumbnail;
-  const photoStyle = {
-    "--PictureView-ratio": `${preview.fallback.width} / ${preview.fallback.height}`,
-  } as CSSProperties;
 
   return (
     <>
@@ -418,9 +402,15 @@ export function PictureView({
               <ChevronLeftIcon className="PictureView-icon" />,
             )}
 
-        <div className="PictureView-stage">
-          <div className="PictureView-photo" style={photoStyle}>
-            <Picture media={preview} alt={photo.title} loading="eager" />
+        <div className="PictureView-stage" ref={stageRef}>
+          <div
+            className="PictureView-track"
+            ref={trackRef}
+            onTransitionEnd={onTransitionEnd}
+          >
+            {slide(previous, "previous")}
+            {slide(photo, "current")}
+            {slide(next, "next")}
           </div>
         </div>
 

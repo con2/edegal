@@ -9,6 +9,7 @@ interface PictureProps {
   /** Rendered `<img>` dimensions; defaults to the fallback media's intrinsic size. */
   width?: number;
   height?: number;
+  fetchPriority?: "high" | "low" | "auto";
 }
 
 /** `<picture>` with one `<source>` per alternate format and the jpeg as `<img>` fallback. */
@@ -19,6 +20,7 @@ export function Picture({
   loading,
   width,
   height,
+  fetchPriority,
 }: PictureProps) {
   return (
     <picture className={className}>
@@ -35,6 +37,7 @@ export function Picture({
         loading={loading}
         width={width ?? media.fallback.width}
         height={height ?? media.fallback.height}
+        fetchPriority={fetchPriority}
       />
     </picture>
   );

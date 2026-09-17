@@ -221,9 +221,11 @@ picture img {
   background-color: #333;
   color: #c9c9c9;
   z-index: 1040;
-  // Leaves vertical scroll/zoom to the browser but reserves horizontal panning for our
-  // own swipe recognition instead of letting the browser start a native scroll.
-  touch-action: pan-y pinch-zoom;
+  // The photo always fits the viewport, so there is nothing to pan vertically; allowing pan-y
+  // let the browser hand a diagonal touch to the document scroller instead of our swipe handling,
+  // which both stole touchmove events mid-gesture and caused visible rubber-banding.
+  touch-action: pinch-zoom;
+  user-select: none;
 }
 @media (max-width: 575.98px) {
   .PictureView {
@@ -302,14 +304,33 @@ picture img {
   height: 48px;
   fill: currentColor;
 }
-/* Size containment lets the photo button measure the stage in cq units. */
+/* Size containment lets the photo button measure the stage in cq units. Clipped (not scrollable)
+   so the previous/next slides sit ready just outside the viewport during a drag. */
 .PictureView-stage {
   grid-row: 2;
   grid-column: 2;
   container-type: size;
+  position: relative;
+  overflow: clip;
+}
+/* The draggable strip of three slides; PictureView.tsx writes its transform directly. */
+.PictureView-track {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.PictureView-slide {
+  position: absolute;
+  inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.PictureView-slide-previous {
+  transform: translateX(-100%);
+}
+.PictureView-slide-next {
+  transform: translateX(100%);
 }
 /* Exactly the photo's box: as wide as the stage or as tall, whichever fits. */
 .PictureView-photo {
