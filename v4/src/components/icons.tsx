@@ -37,12 +37,8 @@ export const WarningIcon = icon(
 export const PersonIcon = icon(
   "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
 );
-export const FullscreenIcon = icon(
-  "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z",
-);
-export const SlideshowIcon = icon(
-  "M10 8v8l5-4-5-4zm9-5H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z",
-);
+export const PlayIcon = icon("M8 5v14l11-7z");
+export const PauseIcon = icon("M6 19h4V5H6v14zm8-14v14h4V5h-4z");
 export const MailIcon = icon(
   "M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z",
 );

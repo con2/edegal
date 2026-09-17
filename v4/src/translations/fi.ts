@@ -348,12 +348,10 @@ const translations: Translations = {
   },
   PictureView: {
     backToAlbum: "Takaisin albumiin",
-    downloadPicture: "Lataa kuva",
-    maximize: "Suurenna",
-    startSlideshow: "Aloita diaesitys",
-    stopSlideshow: "Lopeta diaesitys",
+    downloadPicture: "Lataa",
+    slideshow: "Diaesitys",
     nextPicture: "Seuraava kuva",
-    contactPhotographer: "Ota yhteyttä valokuvaajaan",
+    contactPhotographer: "Ota yhteyttä",
     previousPicture: "Edellinen kuva",
   },
 };

@@ -351,12 +351,10 @@ const translations = {
   },
   PictureView: {
     backToAlbum: "Back to Album",
-    downloadPicture: "Download Picture",
-    maximize: "Maximize",
-    startSlideshow: "Start slideshow",
-    stopSlideshow: "Stop slideshow",
+    downloadPicture: "Download",
+    slideshow: "Slide show",
     nextPicture: "Next Picture",
-    contactPhotographer: "Contact Photographer",
+    contactPhotographer: "Contact",
     previousPicture: "Previous Picture",
   },
 };

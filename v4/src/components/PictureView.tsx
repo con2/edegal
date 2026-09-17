@@ -24,9 +24,9 @@ import {
   ChevronRightIcon,
   CloseIcon,
   DownloadIcon,
-  FullscreenIcon,
   MailIcon,
-  SlideshowIcon,
+  PauseIcon,
+  PlayIcon,
 } from "./icons";
 import { Picture } from "./Picture";
 import { usePictureDrag } from "./usePictureDrag";
@@ -125,7 +125,6 @@ interface PhotoToolbarProps {
   /** Absent when nobody credited for the album can be contacted. */
   onContact: (() => void) | null;
   onToggleSlideshow: () => void;
-  onMaximize: () => void;
   editor: PhotoEditor | null;
   messages: Translations["PictureView"];
   onNavigate: PictureViewProps["onNavigate"];
@@ -139,7 +138,6 @@ function PhotoToolbar({
   onDownload,
   onContact,
   onToggleSlideshow,
-  onMaximize,
   editor,
   messages,
   onNavigate,
@@ -162,18 +160,14 @@ function PhotoToolbar({
       <button
         type="button"
         className="btn btn-link btn-sm"
-        onClick={onMaximize}
-      >
-        <FullscreenIcon className="PictureView-toolbarIcon" />
-        {messages.maximize}
-      </button>
-      <button
-        type="button"
-        className="btn btn-link btn-sm"
         onClick={onToggleSlideshow}
       >
-        <SlideshowIcon className="PictureView-toolbarIcon" />
-        {slideshow ? messages.stopSlideshow : messages.startSlideshow}
+        {slideshow ? (
+          <PauseIcon className="PictureView-toolbarIcon" />
+        ) : (
+          <PlayIcon className="PictureView-toolbarIcon" />
+        )}
+        {messages.slideshow}
       </button>
       {downloadable ? (
         <button
@@ -385,7 +379,6 @@ export function PictureView({
             onDownload={() => setDownloadOpen(true)}
             onContact={album.contactable ? () => setContactOpen(true) : null}
             onToggleSlideshow={toggleSlideshow}
-            onMaximize={() => setMaximized(true)}
             editor={editor}
             messages={messages.PictureView}
             onNavigate={onNavigate}
@@ -402,7 +395,11 @@ export function PictureView({
               <ChevronLeftIcon className="PictureView-icon" />,
             )}
 
-        <div className="PictureView-stage" ref={stageRef}>
+        <div
+          className="PictureView-stage"
+          ref={stageRef}
+          onClick={maximized ? undefined : () => setMaximized(true)}
+        >
           <div
             className="PictureView-track"
             ref={trackRef}

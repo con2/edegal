@@ -312,6 +312,7 @@ picture img {
   container-type: size;
   position: relative;
   overflow: clip;
+  cursor: zoom-in;
 }
 /* The draggable strip of three slides; PictureView.tsx writes its transform directly. */
 .PictureView-track {
@@ -354,6 +355,7 @@ picture img {
   .PictureView-stage {
     grid-row: 1;
     grid-column: 1;
+    cursor: zoom-out;
   }
   .PictureView-photo {
     box-shadow: none;
