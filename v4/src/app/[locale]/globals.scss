@@ -320,12 +320,16 @@ picture img {
   inset: 0;
   will-change: transform;
 }
+/* Clipped on its own box, not just the stage's: a neighbour slide sits on its own composited
+   layer (it's the transformed element), and a taller photo's shadow can otherwise paint past the
+   stage's clip onto the surrounding background instead of stopping at this slide's own edges. */
 .PictureView-slide {
   position: absolute;
   inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: clip;
 }
 .PictureView-slide-previous {
   transform: translateX(-100%);
