@@ -309,8 +309,36 @@ export function PictureView({
 
   const dialogOpen = downloadOpen || contactOpen;
 
+  const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+
+  const enterFullscreen = useCallback(() => {
+    setFullscreen(true);
+    rootRef.current?.requestFullscreen().catch(() => {});
+  }, []);
+
+  const exitFullscreen = useCallback(() => {
+    setFullscreen(false);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    // The browser can leave fullscreen on its own (Escape, F11, swipe down on
+    // mobile), bypassing exitFullscreen, so this is the state's real source of truth.
+    const root = rootRef.current;
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) setFullscreen(false);
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      if (document.fullscreenElement === root) {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+  }, []);
+
   const {
     onTouchStart,
     onTouchMove,
@@ -343,7 +371,7 @@ export function PictureView({
         return;
       }
       if (event.code === "Escape" && fullscreen) {
-        setFullscreen(false);
+        exitFullscreen();
         return;
       }
       const direction = keyMap[event.code];
@@ -358,13 +386,14 @@ export function PictureView({
       document.removeEventListener("keydown", onKeyDown);
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
-  }, [dialogOpen, fullscreen, next, slideshow, go, toggleSlideshow]);
+  }, [dialogOpen, fullscreen, next, slideshow, go, toggleSlideshow, exitFullscreen]);
 
   return (
     <>
       <div
         className={`PictureView${fullscreen ? " PictureView-fullscreen" : ""}`}
-        onClick={fullscreen ? () => setFullscreen(false) : undefined}
+        ref={rootRef}
+        onClick={fullscreen ? exitFullscreen : undefined}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -398,7 +427,7 @@ export function PictureView({
         <div
           className="PictureView-stage"
           ref={stageRef}
-          onClick={fullscreen ? undefined : () => setFullscreen(true)}
+          onClick={fullscreen ? undefined : enterFullscreen}
         >
           <div
             className="PictureView-track"
