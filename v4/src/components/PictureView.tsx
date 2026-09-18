@@ -386,7 +386,15 @@ export function PictureView({
       document.removeEventListener("keydown", onKeyDown);
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
-  }, [dialogOpen, fullscreen, next, slideshow, go, toggleSlideshow, exitFullscreen]);
+  }, [
+    dialogOpen,
+    fullscreen,
+    next,
+    slideshow,
+    go,
+    toggleSlideshow,
+    exitFullscreen,
+  ]);
 
   return (
     <>
