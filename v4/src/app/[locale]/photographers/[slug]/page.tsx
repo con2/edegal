@@ -4,10 +4,9 @@ import { cache } from "react";
 
 import { GalleryPage } from "@/components/GalleryPage";
 import { loadGalleryPage, presentAlbumPage } from "@/gallery/load";
+import { galleryMetadata } from "@/gallery/metadata";
 import { loadPhotographerPageBySlug } from "@/gallery/photographers";
 import { getViewer } from "@/gallery/viewer";
-
-import { galleryMetadata } from "../../[[...path]]/page";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;

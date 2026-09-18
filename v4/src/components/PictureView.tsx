@@ -14,6 +14,7 @@ import {
 import Dropdown from "react-bootstrap/Dropdown";
 
 import { canDownload } from "@/gallery/access";
+import { copyrightOf } from "@/gallery/credit";
 import type { ThumbnailTarget } from "@/editor/albums";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
 import type { Translations } from "@/translations";
@@ -248,9 +249,8 @@ function PhotoToolbar({
 }
 
 function Credit({ album, photo }: { album: ClientAlbumPage; photo: PhotoVM }) {
-  const holders = album.credits.filter((c) => c.isCopyright);
+  const { year, holders } = copyrightOf(photo, album);
   if (holders.length === 0) return <footer className="PictureView-credit" />;
-  const year = (photo.takenAt ?? album.date ?? "").slice(0, 4);
   return (
     <footer className="PictureView-credit">
       &copy; {year}{" "}
