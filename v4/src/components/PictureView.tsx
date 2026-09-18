@@ -279,7 +279,7 @@ export function PictureView({
   const next = album.photos[index + 1];
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
-  const [maximized, setMaximized] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   // The URL carries the slideshow flag so that it can be linked to; Next keeps the hook in
   // sync with our own replaceState calls.
   const slideshow = useSearchParams().has("slideshow");
@@ -342,8 +342,8 @@ export function PictureView({
         toggleSlideshow();
         return;
       }
-      if (event.code === "Escape" && maximized) {
-        setMaximized(false);
+      if (event.code === "Escape" && fullscreen) {
+        setFullscreen(false);
         return;
       }
       const direction = keyMap[event.code];
@@ -358,19 +358,19 @@ export function PictureView({
       document.removeEventListener("keydown", onKeyDown);
       if (slideshowTimer) clearTimeout(slideshowTimer);
     };
-  }, [dialogOpen, maximized, next, slideshow, go, toggleSlideshow]);
+  }, [dialogOpen, fullscreen, next, slideshow, go, toggleSlideshow]);
 
   return (
     <>
       <div
-        className={`PictureView${maximized ? " PictureView-maximized" : ""}`}
-        onClick={maximized ? () => setMaximized(false) : undefined}
+        className={`PictureView${fullscreen ? " PictureView-fullscreen" : ""}`}
+        onClick={fullscreen ? () => setFullscreen(false) : undefined}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onTouchCancel={onTouchCancel}
       >
-        {maximized ? null : (
+        {fullscreen ? null : (
           <PhotoToolbar
             album={album}
             photo={photo}
@@ -385,7 +385,7 @@ export function PictureView({
           />
         )}
 
-        {maximized
+        {fullscreen
           ? null
           : navLink(
               previous,
@@ -398,7 +398,7 @@ export function PictureView({
         <div
           className="PictureView-stage"
           ref={stageRef}
-          onClick={maximized ? undefined : () => setMaximized(true)}
+          onClick={fullscreen ? undefined : () => setFullscreen(true)}
         >
           <div
             className="PictureView-track"
@@ -411,7 +411,7 @@ export function PictureView({
           </div>
         </div>
 
-        {maximized
+        {fullscreen
           ? null
           : navLink(
               next,
@@ -421,7 +421,7 @@ export function PictureView({
               <ChevronRightIcon className="PictureView-icon" />,
             )}
 
-        {maximized ? null : <Credit album={album} photo={photo} />}
+        {fullscreen ? null : <Credit album={album} photo={photo} />}
       </div>
 
       {downloadable ? (

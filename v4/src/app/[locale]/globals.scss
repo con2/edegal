@@ -350,7 +350,7 @@ picture img {
     height: 100%;
   }
 }
-.PictureView-maximized {
+.PictureView-fullscreen {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   background-color: black;
