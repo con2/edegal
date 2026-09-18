@@ -71,6 +71,13 @@ export interface LegacyPictureRow {
   media: LegacyMediaRow[] | null;
 }
 
+export interface LegacyTimelinePictureRow extends LegacyPictureRow {
+  /** The containing album's own effective public/visible flags, i.e. against its whole ancestor
+   *  chain, not just relative to the timeline's requested root. */
+  album_public: boolean;
+  album_visible: boolean;
+}
+
 export interface LegacyAncestorRow {
   path: string;
   title: string;

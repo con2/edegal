@@ -6,6 +6,7 @@ import type {
   MediaVariant,
   PhotoVM,
   SubalbumVM,
+  Visibility,
 } from "@/gallery/types";
 import { mostRestrictive } from "@/gallery/access";
 import { lastSegment, pathPrefixes } from "@/gallery/paths";
@@ -16,7 +17,7 @@ import { pgTimestampToIso } from "@/lib/time";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
-import { v4AncestorsPublicSql } from "./effective";
+import { effectiveVisibilities, v4AncestorsPublicSql } from "./effective";
 
 interface MediaRow {
   role: "original" | "preview" | "thumbnail";
@@ -52,6 +53,39 @@ export function buildMediaSet(
         formatPreference.indexOf(a.format) - formatPreference.indexOf(b.format),
     );
   return { fallback, alternates };
+}
+
+/**
+ * Maps one v4 photo row (with its media already loaded) to a `PhotoVM`, or null when it has no
+ * thumbnail yet (still processing). `ownerId` is left undefined for a photo shown on its own
+ * album's page, where the page's own owner already governs it; the timeline loader passes the
+ * containing album's owner explicitly, since it flattens photos from several albums.
+ */
+export function v4PhotoVM(
+  photo: {
+    id: string;
+    path: string;
+    title: string;
+    takenAt: string | null;
+    media: MediaRow[];
+  },
+  visibility: Visibility,
+  ownerId?: string | null,
+): PhotoVM | null {
+  const thumbnail = buildMediaSet(photo.media, "thumbnail");
+  if (!thumbnail) return null;
+  const original = photo.media.find((m) => m.role === "original");
+  return {
+    id: photo.id,
+    path: photo.path,
+    title: photo.title,
+    visibility,
+    takenAt: photo.takenAt ? pgTimestampToIso(photo.takenAt) : null,
+    thumbnail,
+    preview: buildMediaSet(photo.media, "preview"),
+    original: original ? toVariant(original) : null,
+    ownerId,
+  };
 }
 
 export async function loadV4Album(
@@ -136,24 +170,10 @@ export async function loadV4Album(
 
   let photosProcessing = 0;
   const photos = album.photos.flatMap((photo): PhotoVM[] => {
-    const thumbnail = buildMediaSet(photo.media, "thumbnail");
-    if (!thumbnail) {
-      if (photo.media.some((m) => m.role === "original")) photosProcessing++;
-      return [];
-    }
-    const original = photo.media.find((m) => m.role === "original");
-    return [
-      {
-        id: photo.id,
-        path: photo.path,
-        title: photo.title,
-        visibility: "public",
-        takenAt: photo.takenAt ? pgTimestampToIso(photo.takenAt) : null,
-        thumbnail,
-        preview: buildMediaSet(photo.media, "preview"),
-        original: original ? toVariant(original) : null,
-      },
-    ];
+    const vm = v4PhotoVM(photo, "public");
+    if (vm) return [vm];
+    if (photo.media.some((m) => m.role === "original")) photosProcessing++;
+    return [];
   });
 
   return {
@@ -199,6 +219,46 @@ export async function loadV4Album(
     redirectUrl: album.redirectUrl || null,
     legacyAdminUrl: null,
   };
+}
+
+/**
+ * Every photo in a v4 album's subtree (the album itself and all descendants, any depth),
+ * chronologically ordered. Each photo carries the effective visibility and owner of the album
+ * that actually contains it, since a timeline can flatten in photos governed by a descendant
+ * that is hidden or private even though the requested album itself is public.
+ */
+export async function v4TimelinePhotos(album: {
+  id: string;
+  path: string;
+  ownerId: string | null;
+}): Promise<PhotoVM[]> {
+  const descendants = await db.orm.public.Album.where((a) =>
+    a.path.like(`${album.path}/%`),
+  )
+    .select("id", "path", "ownerId")
+    .all();
+  const subtree = [
+    { id: album.id, path: album.path, ownerId: album.ownerId },
+    ...descendants,
+  ];
+  const albumById = new Map(subtree.map((a) => [a.id, a]));
+  const effective = await effectiveVisibilities(subtree.map((a) => a.path));
+
+  const photos = await db.orm.public.Photo.where((p) =>
+    p.albumId.in(subtree.map((a) => a.id)),
+  )
+    .where((p) => p.takenAt.isNotNull())
+    .include("media")
+    .orderBy([(p) => p.takenAt.asc(), (p) => p.path.asc()])
+    .all();
+
+  return photos.flatMap((photo): PhotoVM[] => {
+    const owningAlbum = albumById.get(photo.albumId);
+    if (!owningAlbum) return [];
+    const visibility = effective.get(owningAlbum.path) ?? "private";
+    const vm = v4PhotoVM(photo, visibility, owningAlbum.ownerId);
+    return vm ? [vm] : [];
+  });
 }
 
 /** Photos in effectively public albums; anything under a hidden or private album is not sampled. */

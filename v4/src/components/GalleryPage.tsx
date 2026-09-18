@@ -141,7 +141,11 @@ export async function GalleryPage({
             viewer.isPhotographer
           }
           canDownload={
-            canDownload(album) && album.photos.some((p) => p.original !== null)
+            // The zip route only ever bundles one album's own photos, so it must not be offered
+            // on a timeline, whose `photos` are flattened in from a whole subtree.
+            isAlbum &&
+            canDownload(album) &&
+            album.photos.some((p) => p.original !== null)
           }
           editor={
             rights.canCreate || rights.canEdit || rights.canCreateSeries ? (

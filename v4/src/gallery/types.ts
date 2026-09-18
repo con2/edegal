@@ -39,6 +39,12 @@ export interface PhotoVM {
   thumbnail: MediaSet;
   preview: MediaSet | null;
   original: MediaVariant | null;
+  /**
+   * Server-only; stripped before the payload reaches the client. Owner of the photo's containing
+   * album, when it differs from the page's own album (a timeline flattens photos from several
+   * albums, so `applyVisibility` cannot assume the page's `ownerId` governs every photo in it).
+   */
+  ownerId?: string | null;
 }
 
 export interface SubalbumVM {
@@ -78,7 +84,8 @@ export interface TermsVM {
   url: string;
 }
 
-export type PageKind = "album" | "series" | "photographers" | "photographer";
+export type PageKind =
+  "album" | "series" | "photographers" | "photographer" | "timeline";
 
 export interface AlbumPageVM {
   source: ContentSource;

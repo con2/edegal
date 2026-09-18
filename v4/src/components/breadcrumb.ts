@@ -15,6 +15,9 @@ export function fullBreadcrumb(
 ): Crumb[] {
   const crumbs = album.breadcrumb.slice(startAt);
   crumbs.push({ path: album.path, title: album.title });
+  // The timeline crumb's title is resolved from messages by crumbTitle, like /photographers.
+  if (album.kind === "timeline")
+    crumbs.push({ path: `${album.path}?timeline`, title: "" });
   if (photo) crumbs.push({ path: photo.path, title: photo.title });
   return crumbs;
 }
@@ -24,6 +27,7 @@ export function crumbTitle(
   messages: Translations["BreadcrumbBar"],
 ): string {
   if (crumb.path === "/photographers") return messages.photographers;
+  if (crumb.path.endsWith("?timeline")) return messages.timeline;
   return crumb.title;
 }
 

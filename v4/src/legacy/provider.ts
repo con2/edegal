@@ -20,6 +20,7 @@ import type {
   LegacyAncestorRow,
   LegacyPhotographerPageRow,
   LegacyPhotographerRow,
+  LegacyPictureRow,
   LegacySubalbumRow,
 } from "./rows";
 import {
@@ -31,6 +32,7 @@ import {
   legacyPictures,
   legacySeriesById,
   legacySubalbums,
+  legacyTimelinePictures,
 } from "./sql";
 
 export function legacyVisibility(
@@ -142,6 +144,25 @@ function buildBreadcrumb(
   return crumbs;
 }
 
+/** Maps one legacy picture row (with its media) to a `PhotoVM`, or null when it has no thumbnail. */
+function toLegacyPhoto(
+  p: LegacyPictureRow,
+  visibility: Visibility,
+): PhotoVM | null {
+  const thumbnail = buildLegacyMediaSet(p.media, "thumbnail");
+  if (!thumbnail) return null;
+  return {
+    id: String(p.id),
+    path: p.path,
+    title: p.title,
+    visibility,
+    takenAt: p.taken_at,
+    thumbnail,
+    preview: buildLegacyMediaSet(p.media, "preview"),
+    original: legacyOriginal(p.media),
+  };
+}
+
 export async function loadLegacyAlbum(
   albumId: number,
 ): Promise<AlbumPageVM | null> {
@@ -179,20 +200,8 @@ export async function loadLegacyAlbum(
         };
 
   const photos = pictures.flatMap((p): PhotoVM[] => {
-    const thumbnail = buildLegacyMediaSet(p.media, "thumbnail");
-    if (!thumbnail) return [];
-    return [
-      {
-        id: String(p.id),
-        path: p.path,
-        title: p.title,
-        visibility: p.is_public ? "public" : "private",
-        takenAt: p.taken_at,
-        thumbnail,
-        preview: buildLegacyMediaSet(p.media, "preview"),
-        original: legacyOriginal(p.media),
-      },
-    ];
+    const vm = toLegacyPhoto(p, p.is_public ? "public" : "private");
+    return vm ? [vm] : [];
   });
 
   const credits: CreditVM[] = [];
@@ -234,6 +243,25 @@ export async function loadLegacyAlbum(
     redirectUrl: album.redirect_url || null,
     legacyAdminUrl: `${legacyAdminUrl}edegal/album/${album.id}/change/`,
   };
+}
+
+/**
+ * Every picture in a legacy album's subtree, chronologically ordered. Legacy pictures carry their
+ * own `is_public` independent of their album, unlike v4 photos, so each one's visibility is the
+ * more restrictive of its own flag and its containing album's effective visibility.
+ */
+export async function legacyTimelinePhotos(
+  albumId: number,
+): Promise<PhotoVM[]> {
+  const rows = await legacyTimelinePictures(albumId);
+  return rows.flatMap((row): PhotoVM[] => {
+    const visibility = mostRestrictive([
+      row.is_public ? "public" : "private",
+      legacyVisibility(row.album_public, row.album_visible),
+    ]);
+    const vm = toLegacyPhoto(row, visibility);
+    return vm ? [vm] : [];
+  });
 }
 
 /** Tiles for the /photographers index: legacy photographers with a cover picture. */

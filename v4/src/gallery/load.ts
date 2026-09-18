@@ -18,7 +18,7 @@ import { loadV4Album, v4AlbumVersion } from "./v4/provider";
 import type { Viewer } from "./viewer";
 import { applyVisibility } from "./visibility";
 
-async function loadResolved(
+export async function loadResolved(
   resolution: Resolution,
 ): Promise<AlbumPageVM | null> {
   if (resolution.kind === "series") {
@@ -88,6 +88,20 @@ export async function loadGalleryPage(
   }
 
   const loaded = await loadResolved(resolution);
+  return finishGalleryPage(resolution, loaded, viewer, path);
+}
+
+/**
+ * The tail shared by the normal and timeline loaders once each has its own (possibly null)
+ * `AlbumPageVM`: the not-found/redirect checks, the legacy-root subalbum merge, and applying the
+ * viewer's visibility.
+ */
+export async function finishGalleryPage(
+  resolution: Resolution,
+  loaded: AlbumPageVM | null,
+  viewer: Viewer,
+  path: string,
+): Promise<GalleryPageResult> {
   if (!loaded) return { kind: "not-found" };
   if (resolution.kind === "album" && loaded.redirectUrl) {
     // A redirect reveals the album exists and where it went; private albums keep that to staff.

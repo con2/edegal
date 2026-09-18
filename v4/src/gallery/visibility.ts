@@ -32,6 +32,14 @@ export function applyVisibility(
         }),
       )
       .map(({ ownerId: _o, ...s }) => s),
-    photos: photos.filter((p) => canSeePhoto(viewer, vm, p.visibility)),
+    photos: photos
+      .filter((p) =>
+        canSeePhoto(
+          viewer,
+          { source: vm.source, ownerId: p.ownerId ?? vm.ownerId },
+          p.visibility,
+        ),
+      )
+      .map(({ ownerId: _o, ...p }) => p),
   };
 }

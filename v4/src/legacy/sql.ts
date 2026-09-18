@@ -16,6 +16,7 @@ import type {
   LegacyRedirectRow,
   LegacySeriesRow,
   LegacySubalbumRow,
+  LegacyTimelinePictureRow,
 } from "./rows";
 
 const mediaJson = (alias: string) =>
@@ -137,6 +138,31 @@ export async function legacyPictures(
      from edegal_picture p
      where p.album_id = $1
      order by p."order", p.taken_at, p.slug`,
+    [albumId],
+  );
+  return rows;
+}
+
+/**
+ * Every picture in an album's subtree (the album itself and all descendants, any depth, via
+ * Django's nested-set columns), chronologically ordered. Pictures with no `taken_at` are
+ * excluded, since there is nothing to sort them by (parity with the legacy backend's own
+ * timeline endpoint).
+ */
+export async function legacyTimelinePictures(
+  albumId: number,
+): Promise<LegacyTimelinePictureRow[]> {
+  const { rows } = await pool.query<LegacyTimelinePictureRow>(
+    `select p.id, p.path, p.title, p.is_public, to_json(p.taken_at) #>> '{}' as taken_at,
+       (a.is_public and ${ancestorsPublic("a")}) as album_public,
+       (a.is_visible and ${ancestorsVisible("a")}) as album_visible,
+       (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.id) as media
+     from edegal_picture p
+     join edegal_album a on a.id = p.album_id
+     join edegal_album root on root.id = $1
+     where a.tree_id = root.tree_id and a.lft >= root.lft and a.rght <= root.rght
+       and p.taken_at is not null
+     order by p.taken_at, p.path`,
     [albumId],
   );
   return rows;
