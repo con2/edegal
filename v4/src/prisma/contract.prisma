@@ -190,17 +190,21 @@ model AlbumCredit {
 }
 
 model Photo {
-  id          Uuid               @id @default(uuid(7))
-  albumId     Uuid               @map("album_id")
-  album       Album              @relation("AlbumPhotos", fields:[albumId], references:[id], onDelete: Cascade)
-  slug        String
-  path        String             @unique
-  title       String             @default("")
-  ordering    Int                @default(0)
-  takenAt     TimestamptzString? @map("taken_at")
-  createdById Uuid?              @map("created_by_id")
-  createdBy   User?              @relation(fields:[createdById], references:[id], onDelete: SetNull)
-  createdAt   TimestamptzString  @default(now()) @map("created_at")
+  id           Uuid               @id @default(uuid(7))
+  albumId      Uuid               @map("album_id")
+  album        Album              @relation("AlbumPhotos", fields:[albumId], references:[id], onDelete: Cascade)
+  slug         String
+  path         String             @unique
+  title        String             @default("")
+  ordering     Int                @default(0)
+  takenAt      TimestamptzString? @map("taken_at")
+  createdById  Uuid?              @map("created_by_id")
+  createdBy    User?              @relation(fields:[createdById], references:[id], onDelete: SetNull)
+  createdAt    TimestamptzString  @default(now()) @map("created_at")
+  // Storage keys are derived from this, not from `path`, and never move once set. Empty for a
+  // photo from before this column existed, meaning "use `path`" - every new or replaced photo
+  // sets it explicitly, so the fallback only ever applies to pre-existing rows.
+  mediaKeyBase String             @default("") @map("media_key_base")
 
   media       Media[]
   jobs        MediaJob[]

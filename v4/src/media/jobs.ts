@@ -66,7 +66,12 @@ export async function processMediaJob(job: ClaimedJob): Promise<void> {
     const original = photo.media.find((m) => m.role === "original");
     if (!original) throw new Error(`photo ${job.photoId} has no original`);
 
-    const produced = await generateScaledMedia(photo.path, await readAll(original.storageKey));
+    // The same base the original was actually stored under, not `photo.path`: they can differ
+    // when upload time found the path-derived key already taken by an orphaned file (left behind
+    // by a renamed-away album) and picked a disambiguated base instead. Using `photo.path` here
+    // would put this photo's own derivatives at that unrelated file's key.
+    const keyBase = photo.mediaKeyBase || photo.path;
+    const produced = await generateScaledMedia(keyBase, await readAll(original.storageKey));
     const existing = new Set(photo.media.map((m) => `${m.role}/${m.format}`));
     const fresh = produced.filter((m) => !existing.has(`${m.role}/${m.format}`));
     if (fresh.length > 0) {

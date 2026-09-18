@@ -5,6 +5,8 @@ import sharp, { type Sharp } from "sharp";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { mediaRoot } from "@/config";
+import { moveAlbumPath } from "@/editor/albums";
+import { clearRedirect } from "@/gallery/redirects";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
@@ -34,7 +36,7 @@ function request(albumId: string, name: string, body: Buffer, type = "image/jpeg
 let albumId: string;
 
 beforeAll(async () => {
-  await pool.query("truncate v4_media_job, v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade");
+  await pool.query("truncate v4_redirect, v4_media_job, v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade");
   const user = await db.orm.public.User.create({ sub: "test:1", displayName: "Tester" });
   process.env.TEST_USER_ID = user.id;
   const root = await db.orm.public.Album.create({ slug: "", path: "/", title: "Root" });
@@ -155,8 +157,7 @@ describe("photo upload and processing", () => {
     expect(await db.orm.public.Photo.where({ path: "/uploads/shadow" }).first()).toBeNull();
   });
 
-  it("rejects duplicates, unsupported files and oversized declarations", async () => {
-    expect((await POST(request(albumId, "img_0001.jpg", await jpeg(10, 10)), { params: Promise.resolve({ albumId }) })).status).toBe(409);
+  it("rejects unsupported files and oversized declarations", async () => {
     expect((await POST(request(albumId, "notes.txt", Buffer.from("hello"), "text/plain"), { params: Promise.resolve({ albumId }) })).status).toBe(415);
     const big = new Request(`http://test/api/albums/${albumId}/photos`, {
       method: "POST",
@@ -164,6 +165,84 @@ describe("photo upload and processing", () => {
       body: new Uint8Array(Buffer.from("x")),
     });
     expect((await POST(big, { params: Promise.resolve({ albumId }) })).status).toBe(413);
+  });
+
+  it("replaces a photo with the same name (case-insensitive) instead of rejecting it", async () => {
+    const before = await db.orm.public.Photo.where({ path: "/uploads/img-0001" }).include("media").first();
+    expect(before?.media.length).toBeGreaterThan(0);
+    const beforeStorageKeys = before!.media.map((m) => m.storageKey);
+    const reuploader = await db.orm.public.User.create({ sub: "test:reuploader", displayName: "Reuploader" });
+    const originalUserId = process.env.TEST_USER_ID;
+    process.env.TEST_USER_ID = reuploader.id;
+    try {
+      // A re-edited/cropped version of the same photo: same name, different pixels.
+      const response = await POST(request(albumId, "img_0001.jpg", await jpeg(20, 30)), { params: Promise.resolve({ albumId }) });
+      expect(response.status).toBe(201);
+      const { photoId, path } = (await response.json()) as { photoId: string; path: string };
+      expect(photoId).toBe(before!.id);
+      expect(path).toBe("/uploads/img-0001");
+    } finally {
+      process.env.TEST_USER_ID = originalUserId;
+    }
+
+    const after = await db.orm.public.Photo.where({ id: before!.id }).include("media").first();
+    expect(after?.createdById).toBe(reuploader.id);
+    expect(after?.media.map((m) => m.role)).toEqual(["original"]);
+    // The old rendered files are gone from storage, not just superseded in the database - the
+    // original's own key is reused (same base, same format), so only the others must be gone.
+    for (const key of beforeStorageKeys) {
+      if (key === after!.media[0].storageKey) continue;
+      expect(await mediaStorage.stat(key)).toBeNull();
+    }
+
+    // The worker regenerates every variant fresh from the new original.
+    await processMediaJob((await claimJob())!);
+    const processed = await db.orm.public.Photo.where({ id: before!.id }).include("media").first();
+    expect(processed?.media.map((m) => `${m.role}/${m.format}`).sort()).toEqual(
+      ["original/jpeg", "preview/avif", "preview/jpeg", "thumbnail/avif", "thumbnail/jpeg"].sort(),
+    );
+  });
+
+  it("does not let a new photo's job overwrite an unrelated photo's files after an album is renamed away and its old path reused", async () => {
+    const root = await db.orm.public.Album.where({ path: "/" }).first();
+    const orig = await db.orm.public.Album.create({ parentId: root!.id, slug: "orig", path: "/orig", title: "Orig" });
+    const first = await POST(request(orig.id, "pic.jpg", await jpeg(40, 30)), { params: Promise.resolve({ albumId: orig.id }) });
+    expect(first.status).toBe(201);
+    const { photoId: firstId } = (await first.json()) as { photoId: string };
+    await processMediaJob((await claimJob())!);
+    const beforeMove = await db.orm.public.Photo.where({ id: firstId }).include("media").first();
+    const originalContent = await readFile(join(mediaRoot, beforeMove!.media.find((m) => m.role === "original")!.storageKey));
+
+    // The album moves away (a rename also changes its own slug, as the edit form always does,
+    // to free up the (parentId, slug) pair for the reused path below); its photo's path changes,
+    // but its files stay at their original keys.
+    await db.orm.public.Album.where({ id: orig.id }).update({ slug: "moved" });
+    await moveAlbumPath(orig.id, "/orig", "/moved");
+
+    // A new album is created at the freed-up path, with a same-named photo. Clearing the
+    // redirect that the move recorded mirrors what the createAlbum action itself does.
+    await clearRedirect("/orig");
+    const reborn = await db.orm.public.Album.create({ parentId: root!.id, slug: "orig", path: "/orig", title: "Orig again" });
+    const second = await POST(request(reborn.id, "pic.jpg", await jpeg(40, 30)), { params: Promise.resolve({ albumId: reborn.id }) });
+    expect(second.status).toBe(201);
+    const { photoId: secondId, path: secondPath } = (await second.json()) as { photoId: string; path: string };
+    expect(secondPath).toBe("/orig/pic");
+    expect(secondId).not.toBe(firstId);
+
+    const secondJob = await claimJob();
+    await processMediaJob(secondJob!);
+    // The job must succeed, not collide with the moved photo's still-live media rows.
+    expect((await db.orm.public.MediaJob.where({ id: secondJob!.id }).first())?.status).toBe("done");
+
+    const secondPhoto = await db.orm.public.Photo.where({ id: secondId }).include("media").first();
+    const movedPhoto = await db.orm.public.Photo.where({ id: firstId }).include("media").first();
+    const overlap = secondPhoto!.media.filter((m) =>
+      movedPhoto!.media.some((old) => old.storageKey === m.storageKey),
+    );
+    expect(overlap).toEqual([]);
+    // The moved photo's own files were never touched by the new photo's processing.
+    const stillOriginal = movedPhoto!.media.find((m) => m.role === "original")!;
+    expect(await readFile(join(mediaRoot, stillOriginal.storageKey))).toEqual(originalContent);
   });
 
   it("returns stranded running jobs to the queue and fails ones out of attempts", async () => {

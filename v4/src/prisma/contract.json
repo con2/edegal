@@ -756,6 +756,13 @@
                   "kind": "scalar"
                 }
               },
+              "mediaKeyBase": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "ordering": {
                 "nullable": false,
                 "type": {
@@ -897,6 +904,9 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "mediaKeyBase": {
+                  "column": "media_key_base"
                 },
                 "ordering": {
                   "column": "ordering"
@@ -2347,6 +2357,15 @@
                   "nativeType": "uuid",
                   "nullable": false
                 },
+                "media_key_base": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
                 "ordering": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -3020,7 +3039,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e1a3cbb9c03323dc192deb6c07dc6b46d553e21a4e0faca21a074a747e153efb"
+    "storageHash": "46f1da740c379ddf5cca6eae67ab0939a7c559d26ccc9c3d8dea9a6c5e47811a"
   },
   "execution": {
     "executionHash": "4de61373a8bb18837777d69f3fc78addb7349f6fb48ac3b4e9660aca0d6bd51b",

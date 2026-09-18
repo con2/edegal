@@ -1,0 +1,44 @@
+[
+  {
+    "id": "column.public.v4_photo.media_key_base",
+    "label": "Add column \"media_key_base\" to \"v4_photo\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "media_key_base",
+        "table": "v4_photo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"media_key_base\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_photo",
+          "media_key_base"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"media_key_base\"",
+        "sql": "ALTER TABLE \"public\".\"v4_photo\" ADD COLUMN \"media_key_base\" text DEFAULT '' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"media_key_base\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_photo",
+          "media_key_base"
+        ]
+      }
+    ]
+  }
+]
