@@ -76,6 +76,7 @@ async function insertV4Fixtures() {
     path: "/event",
     title: "Event",
     ownerId: userA.id,
+    isDownloadable: true,
   });
   const dayOne = await db.orm.public.Album.create({
     parentId: event.id,
@@ -83,6 +84,30 @@ async function insertV4Fixtures() {
     path: "/event/day-1",
     title: "Day 1",
     ownerId: userA.id,
+    isDownloadable: false,
+  });
+  const photographerA = await db.orm.public.Photographer.create({
+    userId: userA.id,
+    slug: "photographer-a",
+    displayName: "Photographer A",
+    email: "a@example.com",
+  });
+  const photographerB = await db.orm.public.Photographer.create({
+    userId: userB.id,
+    slug: "photographer-b",
+    displayName: "Photographer B",
+  });
+  await db.orm.public.AlbumCredit.create({
+    albumId: event.id,
+    photographerId: photographerA.id,
+    isCopyright: true,
+    description: "",
+  });
+  await db.orm.public.AlbumCredit.create({
+    albumId: dayOne.id,
+    photographerId: photographerB.id,
+    isCopyright: true,
+    description: "",
   });
   const stage = await db.orm.public.Album.create({
     parentId: dayOne.id,
@@ -240,7 +265,7 @@ afterAll(async () => {
 
 describe("loadTimelinePage (v4)", () => {
   it("flattens every descendant, sorted by capture time, dropping photos with no capture time or no thumbnail", async () => {
-    const result = await loadTimelinePage("/event", anonymous);
+    const result = await loadTimelinePage("/event", anonymous, "");
     if (result.kind !== "ok") throw new Error("expected ok");
     expect(result.album.kind).toBe("timeline");
     expect(result.album.subalbums).toEqual([]);
@@ -253,9 +278,9 @@ describe("loadTimelinePage (v4)", () => {
 
   it("recomputes visibility per descendant instead of inheriting the root album's owner", async () => {
     const [asOwnerA, asOwnerB, asAdmin] = await Promise.all([
-      loadTimelinePage("/event", ownerA),
-      loadTimelinePage("/event", ownerB),
-      loadTimelinePage("/event", admin),
+      loadTimelinePage("/event", ownerA, ""),
+      loadTimelinePage("/event", ownerB, ""),
+      loadTimelinePage("/event", admin, ""),
     ]);
     if (
       asOwnerA.kind !== "ok" ||
@@ -289,7 +314,7 @@ describe("loadTimelinePage (v4)", () => {
   it("scopes the timeline to the requested photo's own album and selects it there", async () => {
     // /event/day-1 has a deeper descendant (/event/day-1/stage) of its own, so this proves the
     // timeline is rooted at the photo's containing album, not at whatever album /event/p0 lives in.
-    const result = await loadTimelinePage("/event/day-1/p1", anonymous);
+    const result = await loadTimelinePage("/event/day-1/p1", anonymous, "");
     if (result.kind !== "ok") throw new Error("expected ok");
     expect(result.photo?.path).toBe("/event/day-1/p1");
     expect(result.album.photos.map((p) => p.path)).toEqual([
@@ -299,22 +324,71 @@ describe("loadTimelinePage (v4)", () => {
   });
 
   it("falls back to the normal album page for a photo the timeline dropped", async () => {
-    const result = await loadTimelinePage("/event/p-null", anonymous);
+    const result = await loadTimelinePage("/event/p-null", anonymous, "");
     if (result.kind !== "ok") throw new Error("expected ok");
     expect(result.album.kind).toBe("album");
     expect(result.photo?.path).toBe("/event/p-null");
   });
 
   it("never runs a timeline at the site root", async () => {
-    expect(await loadTimelinePage("/", anonymous)).toEqual(
+    expect(await loadTimelinePage("/", anonymous, "")).toEqual(
       await loadGalleryPage("/", anonymous),
+    );
+  });
+
+  it("shows a hidden album's own timeline its own direct photos even to anonymous visitors", async () => {
+    // /event/hidden is hidden, not private: its own page is reachable, and (like the normal
+    // album page) its own photos are shown once you're on it - only its *listing* is gated.
+    const result = await loadTimelinePage("/event/hidden", anonymous, "");
+    if (result.kind !== "ok") throw new Error("expected ok");
+    expect(result.album.photos.map((p) => p.path)).toEqual([
+      "/event/hidden/p-hidden",
+    ]);
+  });
+
+  it("carries each photo's own containing album's credits, contact and download settings", async () => {
+    const result = await loadTimelinePage("/event", anonymous, "");
+    if (result.kind !== "ok") throw new Error("expected ok");
+    const p0 = result.album.photos.find((p) => p.path === "/event/p0");
+    const p1 = result.album.photos.find((p) => p.path === "/event/day-1/p1");
+    expect(p0?.credits?.map((c) => c.displayName)).toEqual(["Photographer A"]);
+    expect(p0?.contactable).toBe(true);
+    expect(p0?.isDownloadable).toBe(true);
+    expect(p1?.credits?.map((c) => c.displayName)).toEqual(["Photographer B"]);
+    expect(p1?.contactable).toBe(false);
+    expect(p1?.isDownloadable).toBe(false);
+  });
+
+  it("reconstructs an ancestor's timeline from a deeper photo via an explicit ?timeline=<root>", async () => {
+    const result = await loadTimelinePage(
+      "/event/day-1/stage/p2",
+      anonymous,
+      "/event",
+    );
+    if (result.kind !== "ok") throw new Error("expected ok");
+    expect(result.album.path).toBe("/event");
+    expect(result.photo?.path).toBe("/event/day-1/stage/p2");
+    expect(result.album.photos.map((p) => p.path)).toContain("/event/p0");
+  });
+
+  it("never runs a timeline at the site root even when named explicitly", async () => {
+    const path = "/event/day-1/stage/p2";
+    expect(await loadTimelinePage(path, anonymous, "/")).toEqual(
+      await loadGalleryPage(path, anonymous),
+    );
+  });
+
+  it("falls back to the normal page when ?timeline names a root that does not contain the path", async () => {
+    const path = "/event/day-1/p1";
+    expect(await loadTimelinePage(path, anonymous, "/event/private")).toEqual(
+      await loadGalleryPage(path, anonymous),
     );
   });
 });
 
 describe("loadTimelinePage (legacy)", () => {
   it("flattens a legacy subtree via its nested-set columns, dropping a null-taken_at and a thumbnail-less picture", async () => {
-    const result = await loadTimelinePage("/legacy-event", staff);
+    const result = await loadTimelinePage("/legacy-event", staff, "");
     if (result.kind !== "ok") throw new Error("expected ok");
     expect(result.album.photos.map((p) => p.path)).not.toContain(
       "/legacy-event/pic-null",
@@ -325,8 +399,8 @@ describe("loadTimelinePage (legacy)", () => {
   });
 
   it("hides a public picture inside a hidden descendant album from visitors but shows it to staff", async () => {
-    const anon = await loadTimelinePage("/legacy-event", anonymous);
-    const asStaff = await loadTimelinePage("/legacy-event", staff);
+    const anon = await loadTimelinePage("/legacy-event", anonymous, "");
+    const asStaff = await loadTimelinePage("/legacy-event", staff, "");
     if (anon.kind !== "ok" || asStaff.kind !== "ok")
       throw new Error("expected ok");
     expect(anon.album.photos.map((p) => p.path)).toEqual([
@@ -340,6 +414,18 @@ describe("loadTimelinePage (legacy)", () => {
       "/legacy-event/hidden/pic-hidden",
       "/legacy-event/day-1/pic-2",
       "/legacy-event/day-1/stage/pic-3",
+    ]);
+  });
+
+  it("shows a hidden legacy album's own timeline its own direct pictures even to anonymous visitors", async () => {
+    const result = await loadTimelinePage(
+      "/legacy-event/hidden",
+      anonymous,
+      "",
+    );
+    if (result.kind !== "ok") throw new Error("expected ok");
+    expect(result.album.photos.map((p) => p.path)).toEqual([
+      "/legacy-event/hidden/pic-hidden",
     ]);
   });
 });

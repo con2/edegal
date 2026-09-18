@@ -72,10 +72,14 @@ export interface LegacyPictureRow {
 }
 
 export interface LegacyTimelinePictureRow extends LegacyPictureRow {
+  album_id: number;
   /** The containing album's own effective public/visible flags, i.e. against its whole ancestor
    *  chain, not just relative to the timeline's requested root. */
   album_public: boolean;
   album_visible: boolean;
+  is_downloadable: boolean;
+  photographer: LegacyPhotographerRow | null;
+  director: LegacyPhotographerRow | null;
 }
 
 export interface LegacyAncestorRow {

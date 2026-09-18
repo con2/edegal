@@ -1,5 +1,6 @@
 import type {
   AlbumPageVM,
+  CreditVM,
   Crumb,
   MediaFormat,
   MediaSet,
@@ -86,6 +87,35 @@ export function v4PhotoVM(
     original: original ? toVariant(original) : null,
     ownerId,
   };
+}
+
+interface CreditRow {
+  isCopyright: boolean;
+  description: string;
+  photographer: {
+    displayName: string;
+    slug: string;
+    email: string;
+    links: { href: string; title: string; ordering: number }[];
+  };
+}
+
+function v4CreditVM(credit: CreditRow): CreditVM {
+  return {
+    displayName: credit.photographer.displayName,
+    path: `/photographers/${credit.photographer.slug}`,
+    isCopyright: credit.isCopyright,
+    description: credit.description,
+    links: credit.photographer.links
+      .slice()
+      .sort((a, b) => a.ordering - b.ordering)
+      .map(({ href, title }) => ({ href, title })),
+  };
+}
+
+/** A copyright holder with a contact address makes the album (or photo) contactable. */
+function v4Contactable(credits: CreditRow[]): boolean {
+  return credits.some((c) => c.isCopyright && c.photographer.email !== "");
 }
 
 export async function loadV4Album(
@@ -190,9 +220,7 @@ export async function loadV4Album(
     layout: album.layout,
     visibility: album.visibility,
     effectiveVisibility,
-    contactable: album.credits.some(
-      (c) => c.isCopyright && c.photographer.email !== "",
-    ),
+    contactable: v4Contactable(album.credits),
     ownerId: album.ownerId,
     isOpenForSubalbums: album.isOpenForSubalbums,
     isDownloadable: album.isDownloadable,
@@ -201,16 +229,7 @@ export async function loadV4Album(
     breadcrumb,
     subalbums,
     photos,
-    credits: album.credits.map((credit) => ({
-      displayName: credit.photographer.displayName,
-      path: `/photographers/${credit.photographer.slug}`,
-      isCopyright: credit.isCopyright,
-      description: credit.description,
-      links: credit.photographer.links
-        .slice()
-        .sort((a, b) => a.ordering - b.ordering)
-        .map(({ href, title }) => ({ href, title })),
-    })),
+    credits: album.credits.map(v4CreditVM),
     terms: terms
       ? { kind: "markdown", text: terms.text, url: terms.url }
       : null,
@@ -223,26 +242,50 @@ export async function loadV4Album(
 
 /**
  * Every photo in a v4 album's subtree (the album itself and all descendants, any depth),
- * chronologically ordered. Each photo carries the effective visibility and owner of the album
- * that actually contains it, since a timeline can flatten in photos governed by a descendant
- * that is hidden or private even though the requested album itself is public.
+ * chronologically ordered. Each photo carries the effective visibility, owner, and
+ * credits/contact/download settings of the album that actually contains it, since a timeline
+ * flattens in photos from several albums that need not share any of those.
+ *
+ * The requested album's own direct photos are always treated as visible, matching how its normal
+ * page already works (an album's own effective visibility gates whether the *page* is reachable
+ * at all, not its own photos once you're on it) - only *descendants* pulled into the listing are
+ * gated by their own effective visibility, the same way a subalbum tile is.
  */
 export async function v4TimelinePhotos(album: {
   id: string;
   path: string;
   ownerId: string | null;
+  isDownloadable: boolean;
 }): Promise<PhotoVM[]> {
   const descendants = await db.orm.public.Album.where((a) =>
     a.path.like(`${album.path}/%`),
   )
-    .select("id", "path", "ownerId")
+    .select("id", "path", "ownerId", "isDownloadable")
     .all();
   const subtree = [
-    { id: album.id, path: album.path, ownerId: album.ownerId },
+    {
+      id: album.id,
+      path: album.path,
+      ownerId: album.ownerId,
+      isDownloadable: album.isDownloadable,
+    },
     ...descendants,
   ];
   const albumById = new Map(subtree.map((a) => [a.id, a]));
   const effective = await effectiveVisibilities(subtree.map((a) => a.path));
+
+  const creditRows = await db.orm.public.AlbumCredit.where((c) =>
+    c.albumId.in(subtree.map((a) => a.id)),
+  )
+    .include("photographer", (p) => p.include("links"))
+    .orderBy((c) => c.ordering.asc())
+    .all();
+  const creditsByAlbum = new Map<string, CreditRow[]>();
+  for (const credit of creditRows) {
+    const list = creditsByAlbum.get(credit.albumId) ?? [];
+    list.push(credit);
+    creditsByAlbum.set(credit.albumId, list);
+  }
 
   const photos = await db.orm.public.Photo.where((p) =>
     p.albumId.in(subtree.map((a) => a.id)),
@@ -255,9 +298,21 @@ export async function v4TimelinePhotos(album: {
   return photos.flatMap((photo): PhotoVM[] => {
     const owningAlbum = albumById.get(photo.albumId);
     if (!owningAlbum) return [];
-    const visibility = effective.get(owningAlbum.path) ?? "private";
+    const visibility =
+      owningAlbum.path === album.path
+        ? "public"
+        : (effective.get(owningAlbum.path) ?? "private");
     const vm = v4PhotoVM(photo, visibility, owningAlbum.ownerId);
-    return vm ? [vm] : [];
+    if (!vm) return [];
+    const credits = creditsByAlbum.get(owningAlbum.id) ?? [];
+    return [
+      {
+        ...vm,
+        credits: credits.map(v4CreditVM),
+        contactable: v4Contactable(credits),
+        isDownloadable: owningAlbum.isDownloadable,
+      },
+    ];
   });
 }
 

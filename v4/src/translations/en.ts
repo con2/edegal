@@ -236,6 +236,8 @@ const translations = {
     errors: {
       pathTaken: "An album, series or photo with this address already exists.",
       invalidParent: "The chosen parent album is not available.",
+      redirectLoop:
+        "This redirect points back to this album, directly or through another album's redirect.",
       confirmMismatch: "The slug you typed does not match the album.",
       foreignSubalbums:
         "This album contains albums owned by other photographers. They must delete theirs first, or ask an admin.",
@@ -277,7 +279,7 @@ const translations = {
       tooManyPixels: "More than 100 megapixels",
       unsupported:
         "Not a JPEG, PNG, WebP or AVIF image (HEIC is not supported)",
-      exists: "A photo with this name already exists in the album",
+      exists: "Something other than a photo already uses this name here",
       forbidden: "Not allowed",
       network: "Network error",
     },

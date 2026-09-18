@@ -10,6 +10,7 @@ import {
   deleteAlbumSubtree,
   moveAlbumPath,
   sortPhotos,
+  wouldCreateRedirectLoop,
 } from "./albums";
 
 let eventId: string;
@@ -24,6 +25,10 @@ beforeAll(async () => {
   );
   await pool.query(`insert into edegal_album (id, slug, path, title, description, body, is_public, is_visible, is_downloadable, redirect_url, layout, lft, rght, tree_id, level)
     values (1, 'legacy', '/legacy', 'Legacy', '', '', true, true, true, '', 'simple', 1, 2, 1, 0)`);
+  await pool.query(`
+    insert into edegal_series (id, title, slug, description, body, is_public, is_visible, path)
+    values (1, 'Legacy series', 'legacy-series', '', '', true, true, '/legacy-series')
+  `);
   const root = await db.orm.public.Album.create({
     slug: "",
     path: "/",
@@ -98,6 +103,35 @@ describe("album helpers", () => {
     );
     await expect(assertPathFree("/event/day", dayId)).resolves.toBeUndefined();
     await expect(assertPathFree("/brand-new")).resolves.toBeUndefined();
+  });
+
+  it("refuses a legacy series' path unless continuing it is explicitly allowed", async () => {
+    await expect(assertPathFree("/legacy-series")).rejects.toBeInstanceOf(
+      PathTakenError,
+    );
+    await expect(
+      assertPathFree("/legacy-series", undefined, true),
+    ).resolves.toBeUndefined();
+    // Still refuses ordinary album/photo/legacy-album collisions even when allowed.
+    await expect(
+      assertPathFree("/legacy", undefined, true),
+    ).rejects.toBeInstanceOf(PathTakenError);
+  });
+
+  it("detects a redirect that would point back to the album itself, directly or via a chain", async () => {
+    expect(await wouldCreateRedirectLoop("/event", "")).toBe(false);
+    expect(await wouldCreateRedirectLoop("/event", "https://x.example/")).toBe(
+      false,
+    );
+    expect(await wouldCreateRedirectLoop("/event", "/event")).toBe(true);
+    // /event/day has no redirect of its own, so pointing at it is fine...
+    expect(await wouldCreateRedirectLoop("/event", "/event/day")).toBe(false);
+    // ...until /event/day itself redirects back to /event.
+    await db.orm.public.Album.where({ id: dayId }).update({
+      redirectUrl: "/event",
+    });
+    expect(await wouldCreateRedirectLoop("/event", "/event/day")).toBe(true);
+    await db.orm.public.Album.where({ id: dayId }).update({ redirectUrl: "" });
   });
 
   it("sorts by filename number numerically and restores capture-time order", async () => {

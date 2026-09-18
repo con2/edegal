@@ -6,6 +6,7 @@ import {
   type CSSProperties,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useTransition,
@@ -283,8 +284,21 @@ export function PictureView({
   // The URL carries the slideshow flag so that it can be linked to; Next keeps the hook in
   // sync with our own replaceState calls.
   const slideshow = useSearchParams().has("slideshow");
+  // A timeline flattens in photos from several albums, each with its own credits, contact and
+  // download settings; a photo carries its own containing album's when they differ from the page
+  // album's (a normal album page's photos never do, so this is a no-op there).
+  const photoAlbum = useMemo(
+    () => ({
+      ...album,
+      credits: photo.credits ?? album.credits,
+      contactable: photo.contactable ?? album.contactable,
+      isDownloadable: photo.isDownloadable ?? album.isDownloadable,
+    }),
+    [album, photo],
+  );
   const downloadable =
-    canDownload(album) && (photo.original !== null || photo.preview !== null);
+    canDownload(photoAlbum) &&
+    (photo.original !== null || photo.preview !== null);
 
   const toggleSlideshow = useCallback(
     () =>
@@ -315,7 +329,11 @@ export function PictureView({
 
   const enterFullscreen = useCallback(() => {
     setFullscreen(true);
-    rootRef.current?.requestFullscreen().catch(() => {});
+    // iOS Safari has no element-level Fullscreen API at all: requestFullscreen is undefined
+    // there, and calling it throws synchronously, before any .catch() could attach.
+    if (typeof rootRef.current?.requestFullscreen === "function") {
+      rootRef.current.requestFullscreen().catch(() => {});
+    }
   }, []);
 
   const exitFullscreen = useCallback(() => {
@@ -409,12 +427,14 @@ export function PictureView({
       >
         {fullscreen ? null : (
           <PhotoToolbar
-            album={album}
+            album={photoAlbum}
             photo={photo}
             downloadable={downloadable}
             slideshow={slideshow}
             onDownload={() => setDownloadOpen(true)}
-            onContact={album.contactable ? () => setContactOpen(true) : null}
+            onContact={
+              photoAlbum.contactable ? () => setContactOpen(true) : null
+            }
             onToggleSlideshow={toggleSlideshow}
             editor={editor}
             messages={messages.PictureView}
@@ -458,17 +478,17 @@ export function PictureView({
               <ChevronRightIcon className="PictureView-icon" />,
             )}
 
-        {fullscreen ? null : <Credit album={album} photo={photo} />}
+        {fullscreen ? null : <Credit album={photoAlbum} photo={photo} />}
       </div>
 
       {downloadable ? (
         <DownloadDialog
-          album={album}
+          album={photoAlbum}
           photo={photo}
           show={downloadOpen}
           onHide={() => setDownloadOpen(false)}
           onContactPhotographer={
-            album.contactable ? () => setContactOpen(true) : undefined
+            photoAlbum.contactable ? () => setContactOpen(true) : undefined
           }
           messages={{
             dialog: messages.DownloadDialog,
@@ -476,9 +496,9 @@ export function PictureView({
           }}
         />
       ) : null}
-      {album.contactable ? (
+      {photoAlbum.contactable ? (
         <ContactDialog
-          album={album}
+          album={photoAlbum}
           photo={photo}
           show={contactOpen}
           onHide={() => setContactOpen(false)}

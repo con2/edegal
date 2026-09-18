@@ -22,13 +22,16 @@ export async function loadResolved(
   resolution: Resolution,
 ): Promise<AlbumPageVM | null> {
   if (resolution.kind === "series") {
-    // One page per slug whichever table matched; a v4 row's updated_at versions it.
+    // One page per slug whichever table matched. A v4 row's updated_at versions it like any v4
+    // album; a legacy-only series has no version signal, so it gets the short legacy TTL instead
+    // of being treated as "still current" for an hour just because null equals null.
     const slug = lastSegment(resolution.path);
+    const version = await seriesVersion(slug);
     return cachedAlbum(
-      "v4",
+      version !== null ? "v4" : "legacy",
       `series:${slug}`,
       () => loadSeriesPageBySlug(slug),
-      await seriesVersion(slug),
+      version,
     );
   }
   const { source, albumId } = resolution;

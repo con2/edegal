@@ -38,4 +38,23 @@ describe("walkRedirects", () => {
     ).toBeNull();
     expect(walkRedirects("/a", [])).toBeNull();
   });
+
+  // Bad legacy data without a leading slash must not become a relative Location: the browser
+  // would resolve it against the current path and keep re-triggering the same redirect forever.
+  it("ignores a local target with no leading slash", () => {
+    expect(
+      walkRedirects("/old-name/sat/dsc-1", [
+        { path: "/old-name", target: "new-name" },
+      ]),
+    ).toBeNull();
+  });
+
+  it("falls through to a shallower ancestor when a deeper one has a malformed target", () => {
+    expect(
+      walkRedirects("/a/b/c", [
+        { path: "/a", target: "/x" },
+        { path: "/a/b", target: "malformed" },
+      ]),
+    ).toBe("/x/b/c");
+  });
 });

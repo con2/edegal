@@ -43,8 +43,17 @@ export interface PhotoVM {
    * Server-only; stripped before the payload reaches the client. Owner of the photo's containing
    * album, when it differs from the page's own album (a timeline flattens photos from several
    * albums, so `applyVisibility` cannot assume the page's `ownerId` governs every photo in it).
+   * `null` means that album has no owner, distinct from `undefined` ("use the page's own").
    */
   ownerId?: string | null;
+  /**
+   * The containing album's own credits/contact/download settings, present only when they differ
+   * from the page album's (a timeline mixes photos from several albums with possibly different
+   * photographers and download policy) - reaches the client, unlike `ownerId`.
+   */
+  credits?: CreditVM[];
+  contactable?: boolean;
+  isDownloadable?: boolean;
 }
 
 export interface SubalbumVM {

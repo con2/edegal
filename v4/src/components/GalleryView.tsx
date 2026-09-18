@@ -48,26 +48,36 @@ export function GalleryView({
 
   const navigate = useCallback(
     (path: string, mode: "push" | "replace") => {
+      const [pathname, query] = path.split("?");
+      // Browsing a timeline survives every navigation within it - opening a photo, arrow keys,
+      // swiping, toggling slideshow, going back to the album - unless the caller already named a
+      // different one explicitly. Comparisons below use `pathname`, not `path`, so this can never
+      // affect the scroll-restoring `history.back()` case just below.
+      const url =
+        album.kind === "timeline" && !/(?:^|&)timeline=/.test(query ?? "")
+          ? `${pathname}?${query ? `${query}&` : ""}timeline=${encodeURIComponent(album.path)}`
+          : path;
+
       // Only our own key is passed on: Next treats a state object carrying its internal
       // marker as its own call and skips the router sync that updates `usePathname`.
       const openedFromAlbum = Boolean(window.history.state?.openedFromAlbum);
       if (mode === "replace") {
-        window.history.replaceState({ openedFromAlbum }, "", path);
+        window.history.replaceState({ openedFromAlbum }, "", url);
         return;
       }
       // Closing a photo that was opened from this album's grid goes back in history, so the
       // browser restores the grid's scroll position as it does for the back button.
-      if (path === album.path && openedFromAlbum) {
+      if (pathname === album.path && openedFromAlbum) {
         window.history.back();
         return;
       }
       window.history.pushState(
-        { openedFromAlbum: path !== album.path },
+        { openedFromAlbum: pathname !== album.path },
         "",
-        path,
+        url,
       );
     },
-    [album.path],
+    [album.path, album.kind],
   );
 
   const index = album.photos.findIndex((p) => p.path === currentPath);

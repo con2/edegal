@@ -154,11 +154,17 @@ export async function legacyTimelinePictures(
 ): Promise<LegacyTimelinePictureRow[]> {
   const { rows } = await pool.query<LegacyTimelinePictureRow>(
     `select p.id, p.path, p.title, p.is_public, to_json(p.taken_at) #>> '{}' as taken_at,
+       p.album_id,
        (a.is_public and ${ancestorsPublic("a")}) as album_public,
        (a.is_visible and ${ancestorsVisible("a")}) as album_visible,
+       a.is_downloadable,
+       ${photographerJson("ph")} as photographer,
+       ${photographerJson("d")} as director,
        (select json_agg(${mediaJson("m")}) from edegal_media m where m.picture_id = p.id) as media
      from edegal_picture p
      join edegal_album a on a.id = p.album_id
+     left join edegal_photographer ph on ph.id = a.photographer_id
+     left join edegal_photographer d on d.id = a.director_id
      join edegal_album root on root.id = $1
      where a.tree_id = root.tree_id and a.lft >= root.lft and a.rght <= root.rght
        and p.taken_at is not null
@@ -203,7 +209,10 @@ export async function legacyAlbumsForRedirectWalk(
 ): Promise<LegacyRedirectRow[]> {
   if (paths.length === 0) return [];
   const { rows } = await pool.query<LegacyRedirectRow>(
-    `select path, redirect_url, is_public from edegal_album where path = any($1::text[]) and redirect_url <> '' and is_public`,
+    // Effective, not the album's own is_public: an ancestor's private/invisible status must not
+    // be bypassed just because this album's own flag says public.
+    `select a.path, a.redirect_url, a.is_public from edegal_album a
+     where a.path = any($1::text[]) and a.redirect_url <> '' and a.is_public and ${ancestorsPublic("a")}`,
     [paths],
   );
   return rows;

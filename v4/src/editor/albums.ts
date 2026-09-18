@@ -27,11 +27,14 @@ export function slugForAlbum(title: string, requested: string): string {
 
 /**
  * Refuses paths already used by any v4 or legacy album, photo or series (other than
- * `selfAlbumId`), and root slugs that routing claims.
+ * `selfAlbumId`), and root slugs that routing claims. `allowLegacySeries` lets a v4 series be
+ * created or renamed onto an existing legacy series' slug, the intended way to continue one -
+ * `loadSeriesPageBySlug` already merges the two by slug once that v4 row exists.
  */
 export async function assertPathFree(
   path: string,
   selfAlbumId?: string,
+  allowLegacySeries = false,
 ): Promise<void> {
   if (isReservedRootPath(path)) throw new PathTakenError(path);
   const taken = await resolvePath(path);
@@ -42,7 +45,40 @@ export async function assertPathFree(
     taken.albumId === selfAlbumId
   )
     return;
+  if (allowLegacySeries && taken.kind === "series" && taken.source === "legacy")
+    return;
   throw new PathTakenError(path);
+}
+
+/**
+ * How long a chain of local redirects is followed before giving up and calling it a loop; a
+ * genuine chain is one or two hops, so this is generous without spinning forever on bad data.
+ */
+const maxRedirectChainLength = 10;
+
+/**
+ * True when saving `redirectUrl` on the album at `albumPath` would create a redirect cycle -
+ * pointing at itself directly, or at another album whose own chain of redirects eventually leads
+ * back here. An external URL, or an already-broken chain, is never a cycle by this definition.
+ */
+export async function wouldCreateRedirectLoop(
+  albumPath: string,
+  redirectUrl: string,
+): Promise<boolean> {
+  if (redirectUrl === "" || redirectUrl.includes("://")) return false;
+  let target = redirectUrl;
+  for (let hop = 0; hop < maxRedirectChainLength; hop++) {
+    if (target === albumPath) return true;
+    const next = await db.orm.public.Album.where({ path: target })
+      .select("redirectUrl")
+      .first();
+    if (!next || !next.redirectUrl || next.redirectUrl.includes("://"))
+      return false;
+    target = next.redirectUrl;
+  }
+  // A chain this long either already loops somewhere we didn't land on exactly, or is a separate
+  // bug; either way it should not be extended further.
+  return true;
 }
 
 export async function replaceCredits(

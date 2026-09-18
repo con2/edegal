@@ -47,13 +47,23 @@ beforeAll(async () => {
     title: "Flickr set",
     redirectUrl: "https://flickr.com/set",
   });
-  await db.orm.public.Album.create({
+  const secret = await db.orm.public.Album.create({
     parentId: root.id,
     slug: "secret",
     path: "/secret",
     title: "Secret",
     visibility: "private",
     redirectUrl: "https://example.com/secret",
+  });
+  // Public in its own right, but its parent is private: its effective visibility is private, and
+  // its redirect must not leak through the walk just because its own flag says public.
+  await db.orm.public.Album.create({
+    parentId: secret.id,
+    slug: "inner",
+    path: "/secret/inner",
+    title: "Inner",
+    visibility: "public",
+    redirectUrl: "https://example.com/inner",
   });
 });
 
@@ -110,6 +120,13 @@ describe("redirects", () => {
     expect((await loadGalleryPage("/secret/x", anonymous)).kind).toBe(
       "not-found",
     );
+  });
+
+  it("does not leak a redirect through an ancestor's private effective visibility", async () => {
+    // /secret/inner is public in its own right, but its parent is private: the walk must use
+    // effective visibility, not the album's own flag, to decide whether to reveal its redirect.
+    // The path itself resolves to a real album, so only a path below it exercises the walk.
+    expect(await resolveRedirect("/secret/inner/x")).toBeNull();
   });
 
   it("shows a redirect-only album as an external link tile in its parent", async () => {

@@ -20,6 +20,7 @@ import {
   sortPhotos as sortAlbumPhotos,
   type PhotoSort,
   usableTermsId,
+  wouldCreateRedirectLoop,
 } from "@/editor/albums";
 import { ensurePhotographer } from "@/editor/photographers";
 import { importFlickrAlbum as runFlickrImport } from "@/editor/importFlickr";
@@ -118,6 +119,10 @@ export async function createAlbum(
       );
     throw error;
   }
+  if (await wouldCreateRedirectLoop(path, form.redirectUrl))
+    return void redirect(
+      withMessage(`${parent.path}`, "error", "redirectLoop") + "&new=1",
+    );
   const credits =
     form.credits.length > 0
       ? form.credits
@@ -236,6 +241,10 @@ export async function updateAlbum(
       );
     throw error;
   }
+  if (!isRoot && (await wouldCreateRedirectLoop(path, form.redirectUrl)))
+    return void redirect(
+      withMessage(album.path, "error", "redirectLoop") + "&edit=1",
+    );
 
   await db.orm.public.Album.where({ id: album.id }).update({
     slug,
@@ -451,7 +460,7 @@ export async function createSeries(locale: string, formData: FormData) {
   const slug = slugForAlbum(form.title, form.slug);
   const path = seriesRedirectTarget(slug);
   try {
-    await assertPathFree(path);
+    await assertPathFree(path, undefined, true);
   } catch (error) {
     if (error instanceof PathTakenError)
       return void redirect(
@@ -487,7 +496,7 @@ export async function updateSeries(
   const path = seriesRedirectTarget(slug);
   if (slug !== series.slug) {
     try {
-      await assertPathFree(path);
+      await assertPathFree(path, undefined, true);
     } catch (error) {
       if (error instanceof PathTakenError)
         return void redirect(

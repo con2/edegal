@@ -36,7 +36,14 @@ export function applyVisibility(
       .filter((p) =>
         canSeePhoto(
           viewer,
-          { source: vm.source, ownerId: p.ownerId ?? vm.ownerId },
+          {
+            source: vm.source,
+            // `undefined` (no containing-album owner recorded, i.e. not a timeline photo) falls
+            // back to the page's own owner; an explicit `null` (that album has no owner) must
+            // not, or a deleted owner's private subalbum would inherit visibility from whoever
+            // owns the timeline's root album instead of being restricted to admins only.
+            ownerId: p.ownerId !== undefined ? p.ownerId : vm.ownerId,
+          },
           p.visibility,
         ),
       )

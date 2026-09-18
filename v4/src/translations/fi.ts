@@ -235,6 +235,8 @@ const translations: Translations = {
     errors: {
       pathTaken: "Tässä osoitteessa on jo albumi, sarja tai kuva.",
       invalidParent: "Valittu yläalbumi ei ole käytettävissä.",
+      redirectLoop:
+        "Tämä uudelleenohjaus johtaa takaisin tähän albumiin, suoraan tai toisen albumin uudelleenohjauksen kautta.",
       confirmMismatch: "Kirjoittamasi osoitetunnus ei vastaa albumia.",
       foreignSubalbums:
         "Albumissa on toisten kuvaajien omistamia albumeita. Heidän täytyy poistaa omansa ensin, tai pyydä adminia.",
@@ -274,7 +276,7 @@ const translations: Translations = {
       tooLarge: "Yli 100 Mt",
       tooManyPixels: "Yli 100 megapikseliä",
       unsupported: "Ei JPEG-, PNG-, WebP- tai AVIF-kuva (HEIC ei ole tuettu)",
-      exists: "Albumissa on jo tämän niminen kuva",
+      exists: "Jokin muu kuin kuva käyttää jo tätä nimeä",
       forbidden: "Ei sallittu",
       network: "Verkkovirhe",
     },

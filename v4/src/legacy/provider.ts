@@ -247,20 +247,39 @@ export async function loadLegacyAlbum(
 
 /**
  * Every picture in a legacy album's subtree, chronologically ordered. Legacy pictures carry their
- * own `is_public` independent of their album, unlike v4 photos, so each one's visibility is the
- * more restrictive of its own flag and its containing album's effective visibility.
+ * own `is_public` independent of their album, unlike v4 photos, so a descendant's picture is the
+ * more restrictive of its own flag and its containing album's effective visibility. The requested
+ * root album's own direct pictures use only their own `is_public`, matching how its normal page
+ * already treats them (the album's own hidden/visible status gates whether the page is reachable
+ * at all, not its own pictures once you're on it). Each picture also carries its containing
+ * album's own credits/contact/download settings, since these can differ across the subtree.
  */
 export async function legacyTimelinePhotos(
   albumId: number,
 ): Promise<PhotoVM[]> {
   const rows = await legacyTimelinePictures(albumId);
   return rows.flatMap((row): PhotoVM[] => {
-    const visibility = mostRestrictive([
-      row.is_public ? "public" : "private",
-      legacyVisibility(row.album_public, row.album_visible),
-    ]);
+    const ownVisibility: Visibility = row.is_public ? "public" : "private";
+    const visibility =
+      row.album_id === albumId
+        ? ownVisibility
+        : mostRestrictive([
+            ownVisibility,
+            legacyVisibility(row.album_public, row.album_visible),
+          ]);
     const vm = toLegacyPhoto(row, visibility);
-    return vm ? [vm] : [];
+    if (!vm) return [];
+    const credits: CreditVM[] = [];
+    if (row.photographer) credits.push(toCredit(row.photographer, true, ""));
+    if (row.director) credits.push(toCredit(row.director, false, "director"));
+    return [
+      {
+        ...vm,
+        credits,
+        contactable: row.photographer?.has_email ?? false,
+        isDownloadable: row.is_downloadable,
+      },
+    ];
   });
 }
 

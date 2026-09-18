@@ -2,6 +2,8 @@ import { legacyEnabled } from "@/config";
 import { legacyAlbumsForRedirectWalk } from "@/legacy/sql";
 import { db } from "@/prisma/db";
 
+import { effectiveVisibilities } from "./v4/effective";
+
 export interface RedirectSource {
   path: string;
   /** An external URL, or a gallery path. */
@@ -24,6 +26,9 @@ export function walkRedirects(
     const target = byPath.get(ancestorPath);
     if (!target) continue;
     if (target.includes("://")) return target;
+    // A local target must be an absolute gallery path; one without a leading slash (bad legacy
+    // data) would build a relative Location that keeps re-resolving under the same prefix.
+    if (!target.startsWith("/")) continue;
     const rest = segments.slice(depth).join("/");
     return `${target.replace(/\/+$/, "")}/${rest}`;
   }
@@ -56,10 +61,17 @@ export async function resolveRedirect(path: string): Promise<string | null> {
       ? legacyAlbumsForRedirectWalk(ancestorPaths)
       : Promise.resolve([]),
   ]);
+  // Effective, not the album's own visibility: a public-looking album under a private parent must
+  // not leak its redirect's existence and destination just because its own flag says "public".
+  const effective = await effectiveVisibilities(albums.map((a) => a.path));
   // A redirect reveals the album exists and where it went; private albums keep that to themselves.
   const sources: RedirectSource[] = [
     ...albums
-      .filter((a) => a.redirectUrl !== "" && a.visibility !== "private")
+      .filter(
+        (a) =>
+          a.redirectUrl !== "" &&
+          (effective.get(a.path) ?? a.visibility) !== "private",
+      )
       .map((a) => ({ path: a.path, target: a.redirectUrl })),
     ...moves.map((m) => ({ path: m.fromPath, target: m.toPath })),
     ...legacy.map((l) => ({ path: l.path, target: l.redirect_url })),
