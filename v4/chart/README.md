@@ -69,8 +69,8 @@ Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` cha
 2. Add `https://<apex>/api/auth/callback/kompassi` to the v4 OIDC client in Kompassi.
 3. Values: `hostname: <apex>`, `additionalHostnames: []`; push. Until step 4 the legacy Ingress
    still claims the host too, and Traefik may hand `/` to either backend.
-4. In the legacy namespace: `kubectl delete ingress edegal deployment nginx service nginx`
-   (skaffold does not prune). Redirect `uusi.<apex>` to the apex out of band.
+4. In the legacy namespace, one resource per command since skaffold does not prune:
+   `kubectl delete ingress edegal`, `kubectl delete deployment nginx`, `kubectl delete service nginx`. Redirect `uusi.<apex>` to the apex out of band.
 
 ## Deploy
 
