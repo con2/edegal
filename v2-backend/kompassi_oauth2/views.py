@@ -53,6 +53,6 @@ class CallbackView(View):
         user = authenticate(oauth2_session=session)
         if user is not None and user.is_active and user.is_staff:
             login(request, user)
-            return redirect(next_url if next_url else "/")
+            return redirect(next_url or reverse("admin:index"))
         else:
             return HttpResponse(LOGIN_FAILED, status=401)
