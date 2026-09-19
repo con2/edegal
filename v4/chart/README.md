@@ -70,7 +70,7 @@ Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` cha
 3. Values: `hostname: <apex>`, `additionalHostnames: []`; push. Until step 4 the legacy Ingress
    still claims the host too, and Traefik may hand `/` to either backend.
 4. In the legacy namespace, one resource per command since skaffold does not prune:
-   `kubectl delete ingress edegal`, `kubectl delete deployment nginx`, `kubectl delete service nginx`. Redirect `uusi.<apex>` to the apex out of band.
+   `kubectl delete ingress edegal`, `kubectl delete deployment nginx`, `kubectl delete service nginx`. Redirect `uusi.<apex>` to the apex in the [con2/redirects](https://github.com/con2/redirects) repo.
 
 ## Deploy
 
