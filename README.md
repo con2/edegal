@@ -1,14 +1,14 @@
-# Edegal – A web picture gallery
+# Conikuvat.fi / Larppikuvat.fi photo gallery v4 ("Edegal")
 
-Edegal runs [Conikuvat.fi](https://conikuvat.fi) (pictures from anime and cosplay conventions in
+This repo serves [Conikuvat.fi](https://conikuvat.fi) (pictures from anime and cosplay conventions in
 Finland) and [Larppikuvat.fi](https://larppikuvat.fi) (pictures from larps in Finland).
 
 ## Repository layout
 
-* `v4/` – the gallery: a Next.js 16 application on PostgreSQL via Prisma 8, with Kompassi sign-in
+- `v4/` – the gallery: a Next.js 16 application on PostgreSQL via Prisma 8, with Kompassi sign-in
   through Auth.js, uploads with a separate media worker, album and photographer management, on-demand
   album zips, a contact form and a Helm chart in `v4/chart/`. See `v4/README.md`.
-* `v2-backend/` – the previous Django backend, kept for its admin at `/admin` until the remaining
+- `v2-backend/` – the previous Django backend, kept for its admin at `/admin` until the remaining
   editing features move to v4. It shares the PostgreSQL database and the media directory with v4.
   See `v2-backend/README.md`.
 
@@ -25,16 +25,24 @@ how legacy albums show up in a local v4.
 
 Both sites run on Kubernetes behind Traefik with the Gateway API.
 
-* v4 is deployed from `v4/chart/` by `.github/workflows/v4.yaml` on every push to `main` that touches
+- v4 is deployed from `v4/chart/` by `.github/workflows/v4.yaml` on every push to `main` that touches
   `v4/`. Its Gateway owns the site hostname and routes `/admin` and `/static` to the Django Service in
   the legacy namespace. See `v4/chart/README.md`.
-* The Django backend is deployed with [Emskaffolden](https://github.com/con2/emskaffolden)
+- The Django backend is deployed with [Emskaffolden](https://github.com/con2/emskaffolden)
   (Skaffold + Emrichen) from `v2-backend/kubernetes/` by `.github/workflows/v2-backend.yaml`. To
   deploy elsewhere, copy `v2-backend/kubernetes/staging.vars.yaml` under your environment name and
   run `emskaffolden -E myenv -- run --default-repo=...` in `v2-backend/`.
 
 Media lives on a shared NFS export. `/media/pictures` holds the originals: back them up. Previews
 and thumbnails under `/media/previews` can be regenerated.
+
+## Want to use it for your own picture gallery?
+
+Have your pet clanker redo the authentication and authorization in
+`v4/src/auth.ts` to support whatever OIDC backend you may be using. [Auth.js v5](https://authjs.dev/)
+supports a wide variety of OIDC providers out of the box.
+
+You probably won't need the legacy part. Set `LEGACY_ENABLED=false` and skip deploying the v2 backend.
 
 ## License
 

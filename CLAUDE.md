@@ -1,4 +1,4 @@
-# Edegal
+# Conikuvat.fi / Larppikuvat.fi photo gallery v4 ("Edegal")
 
 Photo gallery behind conikuvat.fi and larppikuvat.fi. Two applications share one PostgreSQL
 database (`public` schema) and one media directory (NFS in production, owned by uid 1082):
@@ -11,6 +11,12 @@ database (`public` schema) and one media directory (NFS in production, owned by 
 Deployment: `v4/chart/` (Helm, Gateway API, per-site values files) and `v2-backend/kubernetes/`
 (emskaffolden); workflows `.github/workflows/v4.yaml` and `v2-backend.yaml`. Media access moves to
 self-hosted S3 in con2/edegal#245; do not start that unprompted.
+
+## Name of the application
+
+The app used to be called "Edegal", but we're phasing the name out. No new name has been decided,
+and it's okay to refer to the app internally by Edegal, but let's not prominently display it to
+the user in new places.
 
 ## Working style
 
