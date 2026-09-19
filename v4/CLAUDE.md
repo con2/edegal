@@ -1,7 +1,7 @@
 # v4 (Edegal rewrite)
 
 Next.js 16 App Router + Prisma 8 (prisma-next) + PostgreSQL. Lives alongside the legacy Django
-backend (`../backend`) and SPA (`../frontend`); shares their PostgreSQL database and `public` schema.
+backend (`../v2-backend`, admin only); shares its PostgreSQL database and `public` schema.
 
 ## Commands
 
@@ -48,7 +48,7 @@ Read-only access to the Django tables lives in `src/legacy/` as hand-written SQL
 
 - Translations: `src/translations/en.ts` defines the `Translations` type, `fi.ts` implements it.
   Components take narrow `messages` props typed as `Translations["Namespace"]`.
-- Bootstrap + SCSS (no Tailwind). Reuse markup and class names from `../frontend/src/components`.
+- Bootstrap + SCSS (no Tailwind).
 - Locale is negotiated by next-intl (`src/proxy.ts`) without URL prefixes; pages live under
   `src/app/[locale]/`.
 - Lowercase SQL keywords in hand-written SQL.

@@ -14,7 +14,7 @@ additionalHostnames: []
 
 # Django admin of the legacy stack, reached at /admin with its static files at /static. An empty
 # namespace disables both routes. The legacy namespace must grant the HTTPRoute access to the
-# Service with a ReferenceGrant (kubernetes/referencegrant.in.yaml in the legacy manifests).
+# Service with a ReferenceGrant (v2-backend/kubernetes/referencegrant.in.yaml).
 legacy:
   namespace: ""
   service: edegal

@@ -14,7 +14,9 @@ This is the REST API backend for Edegal. Technology choices include the followin
 
 ### The Docker Compose way
 
-This is the recommended way to develop Edegal. There is a single unified Docker Compose development environment for both the frontend and the backend. For instructions, see `README.md` in the parent directory.
+Run `docker compose up` in this directory: the backend starts at http://localhost:8000 with a superuser `mahti` / `mahti`. Tests and lint run with
+
+    docker compose -f docker-compose.test.yml up --exit-code-from test
 
 ### The uv way
 

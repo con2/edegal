@@ -1,5 +1,4 @@
-hostname: uusi.larppikuvat.fi
-additionalHostnames: [larppikuvat.fi]
+hostname: larppikuvat.fi
 legacy:
   namespace: larppikuvat
 mediaNfs:

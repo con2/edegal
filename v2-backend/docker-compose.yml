@@ -1,13 +1,13 @@
 services:
   backend:
-    build: backend
+    build: .
     init: true
     command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict redis:6379 -- python manage.py docker_start
     ports:
       - 8000:8000
     volumes:
-      - ./backend/edegal:/usr/src/app/edegal
-      - ./backend/larppikuvat:/usr/src/app/larppikuvat
+      - ./edegal:/usr/src/app/edegal
+      - ./larppikuvat:/usr/src/app/larppikuvat
       - media:/usr/src/app/media
     environment: &environment
       DEBUG: 1
@@ -18,32 +18,15 @@ services:
       CACHE_URL: redis://redis/1
       EDEGAL_ENABLE_LARPPIKUVAT_FEATURES: "true"
   worker:
-    build: backend
+    build: .
     init: true
     command: scripts/wait-for-it.sh --timeout=60 --strict postgres:5432 -- scripts/wait-for-it.sh --timeout=60  --strict redis:6379 -- celery -A edegal_site.celery:app worker
     volumes:
-      - ./backend/edegal:/usr/src/app/edegal
-      - ./backend/larppikuvat:/usr/src/app/larppikuvat
+      - ./edegal:/usr/src/app/edegal
+      - ./larppikuvat:/usr/src/app/larppikuvat
       - media:/usr/src/app/media
     environment:
       <<: *environment
-  frontend:
-    build: frontend
-    init: true
-    command:
-      - node_modules/.bin/vite
-      - --host=0.0.0.0
-    ports:
-      - 3000:3000
-    volumes:
-      - ./frontend/src:/usr/src/app/src
-    tmpfs:
-      - /usr/src/app/node_modules/.cache
-      - /usr/src/app/node_modules/.vite
-    environment:
-      VITE_EDEGAL_PROXY_URL: http://backend:8000
-      VITE_EDEGAL_LOGIN_URL: http://localhost:8000/admin/
-      CI: "true"
   postgres:
     image: postgres
     volumes:

@@ -13,7 +13,7 @@ import { pool } from "@/legacy/pool";
  */
 
 const siteTitle = process.env.SITE_TITLE || "Larppikuvat.fi (v4 dev)";
-const exampleDir = path.resolve(process.cwd(), "../backend/example_content");
+const exampleDir = path.resolve(process.cwd(), "../v2-backend/example_content");
 
 function slugify(filename: string): string {
   return filename

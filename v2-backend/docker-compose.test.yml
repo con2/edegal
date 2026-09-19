@@ -1,7 +1,7 @@
 services:
   test:
     build:
-      context: backend
+      context: .
       target: test
     init: true
     command:
@@ -13,7 +13,7 @@ services:
     links:
       - postgres
     volumes:
-      - ./backend/edegal:/usr/src/app/edegal
+      - ./edegal:/usr/src/app/edegal
     environment:
       DEBUG: 1
       PYTHONUNBUFFERED: 1

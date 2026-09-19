@@ -1,5 +1,4 @@
-hostname: uusi.conikuvat.fi
-additionalHostnames: [conikuvat.fi]
+hostname: conikuvat.fi
 legacy:
   namespace: conikuvat-production
 mediaNfs:

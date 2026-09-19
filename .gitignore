@@ -16,7 +16,7 @@ public
 rev-manifest.json
 tmp/
 virtualenv/
-backend/static/**
+v2-backend/static/**
 *.log
 docker-compose.secret.yml
 .env

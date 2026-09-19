@@ -15,30 +15,13 @@ See it live:
 * [Conikuvat.fi](https://conikuvat.fi) – pictures from anime & cosplay conventions in Finland
 * [Larppikuvat.fi](https://larppikuvat.fi) – pictures from LARPs in Finland
 
-## Getting started
+## Repository layout
 
-### The Docker Compose Way
-
-There is a single unified Docker Compose development environment for both the Django backend and the TypeScript/React frontend. Start the development environment with
-
-    docker-compose up
-
-Backend will start at http://localhost:8000 and frontend dev server will start at http://localhost:3000. Usually you will want to open the latter in your browser. A superuser will be created with username `mahti` and password `mahti`.
-
-To run tests:
-
-    alias dc-test="docker-compose --file=docker-compose.test.yml up --abort-on-container-exit --exit-code-from=test"
-    dc-test
-
-#### Caveats
-
-* Due to deep magic performed by the `react-scripts` proxy, picture & album downloads do not work in local dev and you are offered `index.html` instead.
-
-### The Traditional Way
-
-For developing the backend or frontend components without Docker Compose, please see the set-up instructions in their respective README files under `backend/` and `frontend/`.
-
-If you need not touch the backend, you can also develop against the Conikuvat.fi backend. This is the default for local non-Docker development in the frontend.
+* `v4/` – the gallery itself: Next.js 16 + Prisma 8, served at the site root. See `v4/README.md`.
+* `v2-backend/` – the previous Django backend, kept for its admin at `/admin` until the remaining
+  editing features move to v4. Shares the PostgreSQL database and media directory with v4. See
+  `v2-backend/README.md`.
+* `spec/` – design notes for the rewrite.
 
 ## Testimonials
 
@@ -51,53 +34,18 @@ If you need not touch the backend, you can also develop against the Conikuvat.fi
 
 ## Deployment
 
-Rules of thumb for rolling your own deployment:
+Both sites run on Kubernetes behind Traefik with the Gateway API.
 
-* Everyhing should be served from one hostname for now. Separate media host/CDN is currently not a priority but can be considered if the need arises.
-* Only `/api` and `/admin` prefixes should be proxied to the backend. Everything else should be served from static files.
-* Static files directories should be served by `nginx` or some other fast web server and organized as follows:
-  * `/`: Read-only. Contents of `frontend/build` after `npm run build`.
-  * `/static`: Read-only. Merged contents of `frontend/build/static` (after `npm run build`) and `backend/static` (after `python manage.py collectstatic`).
-  * `/media`: Read-write.
-    * `/media/downloads`: Download cache. Can be nuked whenever you feel like it – the worker will generate zip files upon request.
-    * `/media/pictures`: Original pictures. Safeguard with your life (backups!).
-    * `/media/previews`: Generated previews and thumbnails in JPEG and WebP. Can be regenerated if lost, but it takes time and CPU cycles.
-    * `/media/uploads`: Admin-uploaded images for HTML content. Should also be carefully backed up.
-* Serve `/index.html` when the request is not backed up by an actual file (`try_files $uri /index.html`).
+* v4 is a Helm chart in `v4/chart/`, deployed by `.github/workflows/v4.yaml`. Its Gateway owns the
+  site hostname and routes `/admin` and `/static` to the Django Service in the legacy namespace. See
+  `v4/chart/README.md`.
+* The Django backend is deployed with [Emskaffolden](https://github.com/con2/emskaffolden)
+  (Skaffold + Emrichen) from `v2-backend/kubernetes/`, by `.github/workflows/v2-backend.yaml`. To
+  deploy elsewhere, copy `v2-backend/kubernetes/staging.vars.yaml` under your environment name and
+  run `emskaffolden -E myenv -- run --default-repo=...` in `v2-backend/`.
 
-### Kubernetes
-
-The following services are required:
-
-* [ingress-nginx](https://github.com/kubernetes/ingress-nginx) or some other ingress controller
-* [cert-manager](https://github.com/jetstack/cert-manager) if you want TLS (not required for local development)
-
-The Kubernetes deployment uses [Emskaffolden](https://github.com/con2/emskaffolden) which in turn wraps [Skaffold](https://skaffold.dev) with [Emrichen](https://github.com/con2/emrichen).
-
-To deploy in [Docker Desktop](https://www.docker.com/products/docker-desktop) or similar local Kubernetes:
-
-    # If you don't already have an ingress controller
-    kubectl create namespace ingress-nginx
-    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-    helm install -n ingress-nginx ingress-nginx ingress-nginx/ingress-nginx
-
-    # If you need TLS and don't already have cert-manager
-    kubectl create namespace cert-manager
-    helm repo add jetstack https://charts.jetstack.io
-    helm install -n cert-manager cert-manager jetstack/cert-manager --set installCRDs=true
-
-    # Once you have the above requirements installed
-    emskaffolden run
-
-To customize, first see `kubernetes/default.vars.yaml` and make a copy of `kubernetes/staging.vars.yaml` under your environment name (eg. `kubernetes/myenv.vars.yaml`). Then activate your environment with `-E myenv`. For a non-local Kubernetes cluster, you also need to add your private registry using `--default-repo`. Eg.
-
-    emskaffolden run -E myenv -- --default-repo=harbor.con2.fi/con2
-
-### Ansible & Docker
-
-**DEPRECATED**: Will stop being maintained once we move Conikuvat.fi and Larppikuvat.fi to Kubernetes.
-
-See [here](https://github.com/tracon/ansible-tracon/tree/master/roles/edegal/).
+Media lives on a shared NFS export (`/media/pictures` holds the originals: back them up), and both
+apps talk to the same PostgreSQL database.
 
 ## License
 
