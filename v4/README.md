@@ -1,7 +1,6 @@
 # v4
 
 Rewrite of the conikuvat.fi / larppikuvat.fi gallery as a Next.js + Prisma 8 application.
-See `../spec/rewrite.md` for the specification.
 
 ## Development
 

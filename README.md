@@ -1,57 +1,46 @@
 # Edegal – A web picture gallery
 
-Edegal is a web picture gallery written in Python 3 and TypeScript and designed with performance and scalability in mind.
-
-This is the "version 2" reboot of the Edegal project. It incorporates the following changes to "version 1":
-
-* MongoDB is dead, long live PostgreSQL (and Redis)
-* Replace the Node.js backend with Python 3.8 and Django 3.0
-* Rewrite frontend in TypeScript instead of CoffeeScript or ECMAScript 6
-
-High performance is achieved through the usage of a dead simple REST JSON API in which most cache misses only result in two database queries.
-
-See it live:
-
-* [Conikuvat.fi](https://conikuvat.fi) – pictures from anime & cosplay conventions in Finland
-* [Larppikuvat.fi](https://larppikuvat.fi) – pictures from LARPs in Finland
+Edegal runs [Conikuvat.fi](https://conikuvat.fi) (pictures from anime and cosplay conventions in
+Finland) and [Larppikuvat.fi](https://larppikuvat.fi) (pictures from larps in Finland).
 
 ## Repository layout
 
-* `v4/` – the gallery itself: Next.js 16 + Prisma 8, served at the site root. See `v4/README.md`.
+* `v4/` – the gallery: a Next.js 16 application on PostgreSQL via Prisma 8, with Kompassi sign-in
+  through Auth.js, uploads with a separate media worker, album and photographer management, on-demand
+  album zips, a contact form and a Helm chart in `v4/chart/`. See `v4/README.md`.
 * `v2-backend/` – the previous Django backend, kept for its admin at `/admin` until the remaining
-  editing features move to v4. Shares the PostgreSQL database and media directory with v4. See
-  `v2-backend/README.md`.
-* `spec/` – design notes for the rewrite.
+  editing features move to v4. It shares the PostgreSQL database and the media directory with v4.
+  See `v2-backend/README.md`.
 
-## Testimonials
+The React frontend of the previous generation and the design notes of the rewrite have been removed;
+they live in the git history.
 
-* "That's mighty fast!"
-* "I don't remember having ever run into another web gallery as nifty as this!"
-* "I find the page load speed of Edegal incredible. But I think I've just grown accustomed to bad galleries."
-* "Edegal seems exactly what I've been looking for!"
-* "Edegal <3"
-* "This sounds really good from the perspective of our operations team"
+## Development
+
+Each application documents its own setup: `v4/README.md` (Node, PostgreSQL, `npm run dev`) and
+`v2-backend/README.md` (uv or Docker Compose). Both can point at the same local database, which is
+how legacy albums show up in a local v4.
 
 ## Deployment
 
 Both sites run on Kubernetes behind Traefik with the Gateway API.
 
-* v4 is a Helm chart in `v4/chart/`, deployed by `.github/workflows/v4.yaml`. Its Gateway owns the
-  site hostname and routes `/admin` and `/static` to the Django Service in the legacy namespace. See
-  `v4/chart/README.md`.
+* v4 is deployed from `v4/chart/` by `.github/workflows/v4.yaml` on every push to `main` that touches
+  `v4/`. Its Gateway owns the site hostname and routes `/admin` and `/static` to the Django Service in
+  the legacy namespace. See `v4/chart/README.md`.
 * The Django backend is deployed with [Emskaffolden](https://github.com/con2/emskaffolden)
-  (Skaffold + Emrichen) from `v2-backend/kubernetes/`, by `.github/workflows/v2-backend.yaml`. To
+  (Skaffold + Emrichen) from `v2-backend/kubernetes/` by `.github/workflows/v2-backend.yaml`. To
   deploy elsewhere, copy `v2-backend/kubernetes/staging.vars.yaml` under your environment name and
   run `emskaffolden -E myenv -- run --default-repo=...` in `v2-backend/`.
 
-Media lives on a shared NFS export (`/media/pictures` holds the originals: back them up), and both
-apps talk to the same PostgreSQL database.
+Media lives on a shared NFS export. `/media/pictures` holds the originals: back them up. Previews
+and thumbnails under `/media/previews` can be regenerated.
 
 ## License
 
     The MIT License (MIT)
 
-    Copyright © 2010-2025 Luka Pajukanta
+    Copyright © 2010-2026 Luka Pajukanta
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
