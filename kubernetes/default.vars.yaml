@@ -1,7 +1,6 @@
 # Note: For {dev.,beta.,}conikuvat.fi and larppikuvat.fi, edegal_tag is overridden in Jenkinsfile.
 
 edegal_image: edegal
-edegal_static_image: edegal-static
 edegal_admins: []
 
 # By default image storage is configured using a PersistentVolumeClaim.
@@ -31,15 +30,14 @@ kompassi_editor_group: conikuvat-staff
 smtp_server: ''
 smtp_default_from_email: ''
 
-# Set this to the public hostname of your service.
-ingress_public_hostname: edegal.localhost
-edegal_frontend_url: !Format https://{ingress_public_hostname}
+# Public hostname of the site. The v4 Gateway in v4_namespace owns it and routes /admin and
+# /static here; this stack itself exposes no Ingress.
+public_hostname: edegal.localhost
+edegal_frontend_url: !Format https://{public_hostname}
 
-# If you use ingress-nginx and cert-manager, TLS can be automatically configured by setting this to true.
-ingress_letsencrypt_enabled: false
-ingress_letsencrypt_cluster_issuer: letsencrypt-prod
-
-ingress_class_name: traefik
+# Namespace of the v4 deployment whose HTTPRoute may target the edegal Service. Empty disables
+# the ReferenceGrant.
+v4_namespace: ''
 
 redis_managed: true
 redis_image: redis
@@ -133,7 +131,7 @@ edegal_environment:
   - name: KOMPASSI_EDITOR_GROUP
     value: !Var kompassi_editor_group
   - name: ALLOWED_HOSTS
-    value: !Var ingress_public_hostname
+    value: !Var public_hostname
   - name: EMAIL_HOST
     value: !Var smtp_server
   - name: DEFAULT_FROM_EMAIL
@@ -145,7 +143,7 @@ edegal_environment:
   - name: EDEGAL_FRONTEND_URL
     value: !Var edegal_frontend_url
 
-# Common volumes for edegal, celery and nginx pods.
+# Common volumes for edegal and celery pods.
 edegal_media_volume_mounts:
   - mountPath: /usr/src/app/media
     name: edegal-media
@@ -167,28 +165,3 @@ edegal_media_volumes_definition:
         nfs:
           server: !Var edegal_storage_nfs_host
           path: !Var edegal_storage_nfs_path
-
-# Traefik middleware chain. The https-redirect middleware must only be attached where
-# TLS is actually configured (not local/dev without letsencrypt) - see
-# infrastructure/kubernetes/traefik-middlewares.yaml for why this is a per-app opt-in
-# Middleware rather than a global entrypoint redirect (ACME HTTP-01 safety).
-traefik_middlewares_no_tls: default-body-100m@kubernetescrd
-traefik_middlewares_with_tls: default-https-redirect@kubernetescrd,default-body-100m@kubernetescrd
-
-# Default annotations work with or without LetsEncrypt TLS. Override if you need something else.
-ingress_annotations: !Merge
-  - traefik.ingress.kubernetes.io/router.middlewares: !If
-      test: !Var ingress_letsencrypt_enabled
-      then: !Var traefik_middlewares_with_tls
-      else: !Var traefik_middlewares_no_tls
-  - !If
-      test: !Var ingress_letsencrypt_enabled
-      then:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-
-ingress_tls: !If
-  test: !Var ingress_letsencrypt_enabled
-  then:
-    - secretName: ingress-letsencrypt
-      hosts:
-        - !Var ingress_public_hostname

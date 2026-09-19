@@ -39,6 +39,18 @@ spec:
       backendRefs:
         - name: nginx
           port: 8080
+    {{- if .Values.legacy.namespace }}
+    {{- range list "/admin" "/static" }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ . }}
+      backendRefs:
+        - name: {{ $.Values.legacy.service }}
+          namespace: {{ $.Values.legacy.namespace }}
+          port: {{ $.Values.legacy.port }}
+    {{- end }}
+    {{- end }}
     - matches:
         - path:
             type: PathPrefix

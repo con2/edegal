@@ -45,3 +45,6 @@ spec:
     name: letsencrypt-prod
   dnsNames:
     - {{ .Values.hostname | quote }}
+    {{- range .Values.additionalHostnames }}
+    - {{ . | quote }}
+    {{- end }}

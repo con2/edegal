@@ -69,17 +69,10 @@
 !Include celery/deployment.in.yaml
 
 
-###############################
-# NGINX (Static file serving) #
-###############################
+#######################################
+# V4 GATEWAY ACCESS TO THE DJANGO ADMIN #
+#######################################
 ---
-!Include nginx/service.in.yaml
----
-!Include nginx/deployment.in.yaml
-
-
-###########
-# INGRESS #
-###########
----
-!Include ingress.in.yaml
+!If
+  test: !Var v4_namespace
+  then: !Include referencegrant.in.yaml

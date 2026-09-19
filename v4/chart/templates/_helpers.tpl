@@ -7,5 +7,5 @@ stack: v4
 {{- end -}}
 
 {{- define "v4.tlsSecretName" -}}
-tls-{{ .Values.hostname | replace "." "-" }}
+tls-v4
 {{- end -}}

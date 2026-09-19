@@ -1,8 +1,8 @@
 # v4 Helm chart
 
-Deploys the v4 gallery next to the legacy stack: a Next.js Deployment (with a Prisma migration
-init container), an nginx Deployment serving `/media` from the shared NFS export, a per-namespace
-Gateway with HTTPRoutes, and a cert-manager Certificate.
+Deploys the v4 gallery: a Next.js Deployment (with a Prisma migration init container), an nginx
+Deployment serving `/media` from the shared NFS export, a per-namespace Gateway with HTTPRoutes,
+and a cert-manager Certificate. The Gateway also fronts the legacy Django admin (see below).
 
 ## Prerequisites per namespace (`conikuvat-v4`, `larppikuvat-v4`)
 
@@ -48,6 +48,29 @@ claimed with `SKIP LOCKED`, a job whose process died is requeued after 15 minute
 out of attempts), and the album thumbnail choice tolerates two jobs of one album finishing together.
 Each conversion needs about one CPU for libvips plus libaom's threads for AVIF and up to 400 MB for
 a 100 megapixel input, which is what `resources.worker` is sized for.
+
+## Legacy Django admin
+
+`legacy.namespace` (with `legacy.service` and `legacy.port`) routes `/admin` and `/static` on the
+same hostname to the legacy stack's Django Service in that namespace. Django serves its own static
+files through whitenoise, so no other backend is involved. The legacy namespace must hold a
+ReferenceGrant allowing this namespace's HTTPRoute to target the Service; the legacy manifests
+create one when `v4_namespace` is set. An empty `legacy.namespace` renders neither route.
+
+`additionalHostnames` adds dnsNames to the Certificate without adding Gateway listeners. The TLS
+Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` change.
+
+## Hostname cutover runbook (uusi.* -> apex, done 2026-09)
+
+1. Values: `additionalHostnames: [<apex>]`, `legacy.namespace: <legacy ns>`; push. Check
+   `kubectl -n <ns> get certificate v4` is Ready with both names and
+   `kubectl -n <ns> get httproute app -o yaml` reports `ResolvedRefs=True`.
+   `curl -sI https://uusi.<apex>/static/admin/css/base.css` returns 200.
+2. Add `https://<apex>/api/auth/callback/kompassi` to the v4 OIDC client in Kompassi.
+3. Values: `hostname: <apex>`, `additionalHostnames: []`; push. Until step 4 the legacy Ingress
+   still claims the host too, and Traefik may hand `/` to either backend.
+4. In the legacy namespace: `kubectl delete ingress edegal deployment nginx service nginx`
+   (skaffold does not prune). Redirect `uusi.<apex>` to the apex out of band.
 
 ## Deploy
 

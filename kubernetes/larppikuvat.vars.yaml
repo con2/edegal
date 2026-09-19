@@ -1,4 +1,5 @@
-ingress_public_hostname: larppikuvat.fi
+v4_namespace: larppikuvat-v4
+public_hostname: larppikuvat.fi
 
 postgres_managed: false
 postgres_hostname: siilo.tracon.fi
@@ -23,7 +24,5 @@ setup_should_run: true
 smtp_server: sr1.pahaip.fi
 smtp_default_from_email: root@tracon.fi
 
-ingress_letsencrypt_enabled: true
-ingress_letsencrypt_cluster_issuer: letsencrypt-prod
 
 kompassi_editor_group: larppikuvat-staff

@@ -9,19 +9,6 @@ build:
   artifacts:
     - image: edegal
       context: backend
-    - image: edegal-frontend
-      context: frontend
-      docker:
-        dockerfile: Dockerfile
-    - image: edegal-static
-      context: frontend
-      docker:
-        dockerfile: Dockerfile.static
-      requires:
-        - image: edegal
-          alias: BACKEND_IMAGE
-        - image: edegal-frontend
-          alias: FRONTEND_IMAGE
 
 deploy:
   kubectl:

@@ -1,0 +1,14 @@
+# Lets the v4 Gateway's HTTPRoute in the v4 namespace send /admin and /static to the edegal Service.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: v4-gateway
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: !Var v4_namespace
+  to:
+    - group: ""
+      kind: Service
+      name: edegal
