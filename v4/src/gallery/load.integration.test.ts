@@ -41,6 +41,29 @@ async function insertFixtures() {
     body: "Hello",
     eventDate: "2019-06-22",
   });
+  const visiblePhotographer = await db.orm.public.Photographer.create({
+    slug: "visible",
+    displayName: "Visible Photographer",
+  });
+  const privatePhotographer = await db.orm.public.Photographer.create({
+    slug: "hidden-shooter",
+    displayName: "Private Photographer",
+    visibility: "private",
+  });
+  await db.orm.public.AlbumCredit.createAll([
+    {
+      albumId: event.id,
+      photographerId: visiblePhotographer.id,
+      isCopyright: true,
+      ordering: 0,
+    },
+    {
+      albumId: event.id,
+      photographerId: privatePhotographer.id,
+      isCopyright: true,
+      ordering: 1,
+    },
+  ]);
   await db.orm.public.Album.create({
     parentId: event.id,
     slug: "hidden",
@@ -315,6 +338,15 @@ describe("loadGalleryPage", () => {
     );
     expect(result.album.photos).toHaveLength(2);
     expect(result.album.body).toBe("Hello");
+  });
+
+  it("does not link a credit to a private photographer's own page", async () => {
+    const result = await loadGalleryPage("/event", anonymous);
+    if (result.kind !== "ok") throw new Error("expected ok");
+    expect(result.album.credits.map((c) => [c.displayName, c.path])).toEqual([
+      ["Visible Photographer", "/photographers/visible"],
+      ["Private Photographer", null],
+    ]);
   });
 
   it("follows album redirects and upstream redirects", async () => {

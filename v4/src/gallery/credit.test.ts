@@ -98,4 +98,13 @@ describe("copyrightStatement", () => {
       "",
     );
   });
+
+  it("omits the year, without a stray double space, when there is no date", () => {
+    expect(
+      copyrightStatement(photo({ takenAt: null }), {
+        credits: [credit({ displayName: "Jane" })],
+        date: null,
+      }),
+    ).toBe("© Jane");
+  });
 });

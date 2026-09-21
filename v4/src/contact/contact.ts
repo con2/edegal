@@ -1,6 +1,5 @@
 import { publicUrl } from "@/config";
 import { loadGalleryPage } from "@/gallery/load";
-import { resolvePath } from "@/gallery/resolve";
 import type { Viewer } from "@/gallery/viewer";
 import { db } from "@/prisma/db";
 
@@ -59,13 +58,11 @@ export async function contactRecipients(
 ): Promise<ContactRecipients | null> {
   const page = await loadGalleryPage(path, viewer);
   if (page.kind !== "ok" || page.unfiltered.kind !== "album") return null;
-  const resolution = await resolvePath(path);
-  if (!resolution || resolution.kind === "series") return null;
   const siteName =
     page.unfiltered.breadcrumb[0]?.title ?? page.unfiltered.title;
 
   const credits = await db.orm.public.AlbumCredit.where({
-    albumId: resolution.albumId,
+    albumId: page.unfiltered.id,
     isCopyright: true,
   })
     .include("photographer")

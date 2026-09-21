@@ -10,7 +10,7 @@ import type {
   Visibility,
 } from "@/gallery/types";
 import { mostRestrictive } from "@/gallery/access";
-import { lastSegment, pathPrefixes } from "@/gallery/paths";
+import { pathPrefixes } from "@/gallery/paths";
 import { seriesNeighbours } from "@/gallery/series";
 import { formatPreference } from "@/media/specs";
 import { mediaUrl } from "@/media/url";
@@ -96,6 +96,7 @@ interface CreditRow {
     displayName: string;
     slug: string;
     email: string;
+    visibility: Visibility;
     links: { href: string; title: string; ordering: number }[];
   };
 }
@@ -103,7 +104,12 @@ interface CreditRow {
 function v4CreditVM(credit: CreditRow): CreditVM {
   return {
     displayName: credit.photographer.displayName,
-    path: `/photographers/${credit.photographer.slug}`,
+    // A private profile's own page 404s for everyone but its owner and admins, so a link to it
+    // from someone else's page would just be broken for every other visitor.
+    path:
+      credit.photographer.visibility === "private"
+        ? null
+        : `/photographers/${credit.photographer.slug}`,
     isCopyright: credit.isCopyright,
     description: credit.description,
     links: credit.photographer.links
@@ -123,9 +129,8 @@ export async function loadV4Album(
 ): Promise<AlbumPageVM | null> {
   const album = await db.orm.public.Album.where({ id: albumId })
     .include("children", (children) =>
-      children
-        .include("thumbnailPhoto", (photo) => photo.include("media"))
-        .orderBy((a) => a.ordering.asc()),
+      // Re-sorted below by ordering then event date; querying in any order is fine.
+      children.include("thumbnailPhoto", (photo) => photo.include("media")),
     )
     .include("photos", (photos) =>
       photos
@@ -173,8 +178,8 @@ export async function loadV4Album(
   }));
   if (series)
     breadcrumb.splice(1, 0, { path: series.path, title: series.title });
-  const neighbours = series
-    ? await seriesNeighbours(lastSegment(series.path), album.path)
+  const neighbours = seriesId
+    ? await seriesNeighbours(seriesId, album.path)
     : { previous: null, next: null };
 
   // The album's own terms, else the nearest ancestor's.

@@ -88,7 +88,7 @@ export async function addPhotoToAlbum(
   }
 
   const photoPath = `${album.path === "/" ? "" : album.path}/${slug}`;
-  // A photo path must not shadow an album or legacy content: photos win in path resolution.
+  // A photo path must not shadow an album: photos win in path resolution.
   try {
     await assertPathFree(photoPath);
   } catch (error) {

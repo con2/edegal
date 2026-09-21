@@ -24,11 +24,6 @@ export function mostRestrictive(visibilities: Visibility[]): Visibility {
   );
 }
 
-/** Django gave both the editor and the admin group `is_staff`, which sees everything. */
-export function isStaff(viewer: Viewer): boolean {
-  return viewer.kind === "user" && (viewer.isAdmin || viewer.isPhotographer);
-}
-
 export function owns(viewer: Viewer, ownerId: string | null): boolean {
   return (
     viewer.kind === "user" && ownerId !== null && ownerId === viewer.userId

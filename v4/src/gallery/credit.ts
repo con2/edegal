@@ -23,12 +23,13 @@ export function copyrightOf(
   };
 }
 
-/** "© 2024 Jane, John", or "" when nobody holds copyright. */
+/** "© 2024 Jane, John", "© Jane, John" with no known date, or "" when nobody holds copyright. */
 export function copyrightStatement(
   photo: PhotoVM | null,
   album: Pick<ClientAlbumPage, "credits" | "date">,
 ): string {
   const { year, holders } = copyrightOf(photo, album);
   if (holders.length === 0) return "";
-  return `© ${year} ${holders.map((h) => h.displayName).join(", ")}`;
+  const names = holders.map((h) => h.displayName).join(", ");
+  return year ? `© ${year} ${names}` : `© ${names}`;
 }

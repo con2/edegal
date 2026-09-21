@@ -34,7 +34,7 @@ function mediaJson(variant: MediaVariant | undefined): MediaJson | null {
     : null;
 }
 
-/** A v4 album's children's preview media, keyed by path; null for a legacy page or a childless one. */
+/** An album's children's preview media, keyed by path; empty for a non-album page or a childless one. */
 async function previewsByPath(
   kind: string,
   albumId: string,

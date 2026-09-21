@@ -15,7 +15,8 @@ interface Props {
 
 /**
  * A photographer's page. When no photographer has the slug, the path may still be an ordinary
- * (legacy) album under /photographers, so fall back to the gallery resolution.
+ * album under /photographers (new albums can't be created there, but one may predate that rule),
+ * so fall back to the gallery resolution.
  */
 const getPage = cache(async (slug: string) => {
   const viewer = await getViewer();

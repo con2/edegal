@@ -10,7 +10,7 @@ export interface MediaVariant {
   width: number;
   height: number;
   format: MediaFormat;
-  /** File size, when the pipeline recorded one; legacy media never did. */
+  /** File size; null for media migrated from the old Django database, which never recorded one. */
   byteSize: number | null;
 }
 

@@ -130,7 +130,10 @@ export async function loadPhotographerPageBySlug(
             .sort((a, b) => a.ordering - b.ordering)
             .map((c) => ({
               displayName: c.photographer.displayName,
-              path: `${photographersPath}/${c.photographer.slug}`,
+              path:
+                c.photographer.visibility === "private"
+                  ? null
+                  : `${photographersPath}/${c.photographer.slug}`,
             })),
         }
       : null;

@@ -4,7 +4,7 @@ import { documentTitle } from "@/components/breadcrumb";
 import { getTranslations } from "@/translations";
 
 import { copyrightStatement } from "./credit";
-import type { ClientAlbumPage, GalleryPageResult, PhotoVM } from "./types";
+import type { ClientAlbumPage, GalleryPageResult } from "./types";
 
 /**
  * The Open Graph image of an album page with no photo of its own selected: a subalbum's thumbnail
@@ -18,19 +18,6 @@ function albumImage(album: ClientAlbumPage) {
   return album.subalbums[0]?.thumbnail?.fallback;
 }
 
-/**
- * The photo that stands for a page with no specific photo selected - an album or timeline's own
- * first photo (chronologically first, for a timeline), the same one its Open Graph image and
- * description are based on when there is no better subalbum thumbnail. `null` for photographer,
- * series and photographers-index pages, which carry no photos of their own at this level.
- */
-function representativePhoto(
-  album: ClientAlbumPage,
-  photo: PhotoVM | null,
-): PhotoVM | null {
-  return photo ?? album.photos[0] ?? null;
-}
-
 export function galleryMetadata(
   locale: string,
   result: GalleryPageResult,
@@ -38,7 +25,10 @@ export function galleryMetadata(
   if (result.kind !== "ok") return {};
   const t = getTranslations(locale);
   const { album, photo } = result;
-  const representative = representativePhoto(album, photo);
+  // The page's own photo, else the album or timeline's first (chronologically first, for a
+  // timeline) - the same one its Open Graph image falls back to below. `null` for photographer,
+  // series and photographers-index pages, which carry no photos of their own at this level.
+  const representative = photo ?? album.photos[0] ?? null;
   const image =
     photo?.preview?.fallback ??
     photo?.thumbnail.fallback ??

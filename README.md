@@ -18,8 +18,7 @@ they live in the git history.
 ## Development
 
 Each application documents its own setup: `v4/README.md` (Node, PostgreSQL, `npm run dev`) and
-`v2-backend/README.md` (uv or Docker Compose). Both can point at the same local database, which is
-how legacy albums show up in a local v4.
+`v2-backend/README.md` (uv or Docker Compose). Both can point at the same local database.
 
 ## Deployment
 
@@ -42,7 +41,8 @@ Have your pet clanker redo the authentication and authorization in
 `v4/src/auth.ts` to support whatever OIDC backend you may be using. [Auth.js v5](https://authjs.dev/)
 supports a wide variety of OIDC providers out of the box.
 
-You probably won't need the legacy part. Set `LEGACY_ENABLED=false` and skip deploying the v2 backend.
+You probably won't need the legacy part: v4 no longer reads the Django tables, so skip deploying
+the v2 backend and drop `legacy.namespace` from the Helm values.
 
 ## License
 

@@ -7,7 +7,7 @@ const ttlMs = 3_600_000;
 
 interface Entry {
   vm: AlbumPageVM;
-  /** The album's `updated_at` when loaded; null when the source has no version to compare. */
+  /** The album's `updated_at` when loaded. */
   version: string | null;
 }
 
@@ -24,28 +24,23 @@ const albums = new LRUCache<string, Entry>({
 
 const inFlight = new Map<string, Promise<AlbumPageVM | null>>();
 
-export function albumCacheKey(albumId: string): string {
-  return albumId;
-}
-
 export async function cachedAlbum(
   albumId: string,
   load: () => Promise<AlbumPageVM | null>,
   version: string | null = null,
 ): Promise<AlbumPageVM | null> {
-  const key = albumCacheKey(albumId);
-  const hit = albums.get(key);
+  const hit = albums.get(albumId);
   if (hit && hit.version === version) return hit.vm;
-  const pending = inFlight.get(key);
+  const pending = inFlight.get(albumId);
   if (pending) return pending;
 
   const promise = load()
     .then((vm) => {
-      if (vm) albums.set(key, { vm, version }, { ttl: ttlMs });
+      if (vm) albums.set(albumId, { vm, version });
       return vm;
     })
-    .finally(() => inFlight.delete(key));
-  inFlight.set(key, promise);
+    .finally(() => inFlight.delete(albumId));
+  inFlight.set(albumId, promise);
   return promise;
 }
 
@@ -54,6 +49,6 @@ export function invalidateAlbum(
   albumId: string,
   parentAlbumId?: string | null,
 ): void {
-  albums.delete(albumCacheKey(albumId));
-  if (parentAlbumId) albums.delete(albumCacheKey(parentAlbumId));
+  albums.delete(albumId);
+  if (parentAlbumId) albums.delete(parentAlbumId);
 }

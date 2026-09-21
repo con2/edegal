@@ -1,6 +1,6 @@
 import { db } from "@/prisma/db";
 
-import type { AlbumPageVM, Crumb, SubalbumVM, Visibility } from "./types";
+import type { AlbumPageVM, Crumb, SubalbumVM } from "./types";
 import { effectiveVisibilities } from "./v4/effective";
 import { buildMediaSet } from "./v4/provider";
 
@@ -40,27 +40,16 @@ export function neighboursOf(
   };
 }
 
-type Member = Crumb & { date: string | null; visibility: Visibility };
-
-interface SeriesMembers {
-  /** Every member, for previous/next links. */
-  all: Member[];
-  /** Members with a tile, for the series page. */
-  tiles: SubalbumVM[];
-}
-
-async function seriesMembersBySlug(slug: string): Promise<SeriesMembers> {
-  const v4Series = await db.orm.public.Series.where({ slug })
-    .select("id")
-    .first();
-  const v4Albums = v4Series
-    ? await db.orm.public.Album.where({ seriesId: v4Series.id })
+/** Tiles for every album in the series, effective-visibility-aware, newest first. */
+async function seriesMembersOf(seriesId: string | null): Promise<SubalbumVM[]> {
+  const albums = seriesId
+    ? await db.orm.public.Album.where({ seriesId })
         .include("thumbnailPhoto", (photo) => photo.include("media"))
         .all()
     : [];
   // A series is a site-wide listing, so members show their effective visibility.
-  const effective = await effectiveVisibilities(v4Albums.map((a) => a.path));
-  const tiles: SubalbumVM[] = v4Albums.map((album) => ({
+  const effective = await effectiveVisibilities(albums.map((a) => a.path));
+  const tiles: SubalbumVM[] = albums.map((album) => ({
     path: album.path,
     title: album.title,
     date: album.eventDate,
@@ -71,24 +60,14 @@ async function seriesMembersBySlug(slug: string): Promise<SeriesMembers> {
     externalUrl: album.redirectUrl.includes("://") ? album.redirectUrl : null,
     ownerId: album.ownerId,
   }));
-  return {
-    all: orderSeriesMembers(
-      tiles.map(({ path, title, date, visibility }) => ({
-        path,
-        title,
-        date,
-        visibility,
-      })),
-    ),
-    tiles: orderSeriesMembers(tiles),
-  };
+  return orderSeriesMembers(tiles);
 }
 
 export async function seriesNeighbours(
-  slug: string,
+  seriesId: string,
   albumPath: string,
 ): Promise<{ previous: Crumb | null; next: Crumb | null }> {
-  return neighboursOf((await seriesMembersBySlug(slug)).all, albumPath);
+  return neighboursOf(await seriesMembersOf(seriesId), albumPath);
 }
 
 export async function seriesVersion(slug: string): Promise<string | null> {
@@ -102,12 +81,12 @@ export async function seriesVersion(slug: string): Promise<string | null> {
 export async function loadSeriesPageBySlug(
   slug: string,
 ): Promise<AlbumPageVM | null> {
-  const [v4Series, root, members] = await Promise.all([
-    db.orm.public.Series.where({ slug }).first(),
-    db.orm.public.Album.where({ path: "/" }).select("title").first(),
-    seriesMembersBySlug(slug),
-  ]);
+  const v4Series = await db.orm.public.Series.where({ slug }).first();
   if (!v4Series) return null;
+  const [root, tiles] = await Promise.all([
+    db.orm.public.Album.where({ path: "/" }).select("title").first(),
+    seriesMembersOf(v4Series.id),
+  ]);
   const rootCrumb: Crumb[] = root ? [{ path: "/", title: root.title }] : [];
   return {
     kind: "series",
@@ -129,7 +108,7 @@ export async function loadSeriesPageBySlug(
     photosProcessing: 0,
     hasManualOrdering: false,
     breadcrumb: rootCrumb,
-    subalbums: members.tiles,
+    subalbums: tiles,
     photos: [],
     credits: [],
     terms: null,
