@@ -82,11 +82,11 @@ Peli pelattiin **18.7.2026** Verstas-näyttämöllä.
   });
 
   it("keeps intentional double spaces from &nbsp; but trims a trailing one at end of paragraph", () => {
-    const html = `<p>Hi, my name is Ewan.&nbsp; I am a photographer.</p>
+    const html = `<p>Hi, my name is Alex.&nbsp; I am a photographer.</p>
 
 <p>They like to act and pose and show emotion.&nbsp;&nbsp;</p>`;
     expect(legacyHtmlToMarkdown(html)).toBe(
-      "Hi, my name is Ewan.  I am a photographer.\n\nThey like to act and pose and show emotion.",
+      "Hi, my name is Alex.  I am a photographer.\n\nThey like to act and pose and show emotion.",
     );
   });
 
