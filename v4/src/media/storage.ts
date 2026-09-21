@@ -10,6 +10,11 @@ export interface MediaStat {
   mtime: Date;
 }
 
+/** Inclusive end offset of a prefix read; an S3 backend would send it as a Range header. */
+export interface ByteRange {
+  end: number;
+}
+
 /**
  * Media files are addressed by storage key (`pictures/...`, `previews/...`, `thumbnails/...`).
  * The local implementation is the only one for now; an S3-compatible one can replace it without
@@ -18,7 +23,8 @@ export interface MediaStat {
 export interface MediaStorage {
   put(key: string, data: Buffer, contentType: string): Promise<void>;
   stat(key: string): Promise<MediaStat | null>;
-  getStream(key: string): Readable;
+  /** The file's bytes, or only its first `range.end + 1` bytes when a range is given. */
+  getStream(key: string, range?: ByteRange): Readable;
   /** Removes the file; a missing file is not an error. */
   delete(key: string): Promise<void>;
 }
@@ -51,8 +57,8 @@ export class LocalMediaStorage implements MediaStorage {
     }
   }
 
-  getStream(key: string): Readable {
-    return createReadStream(this.resolve(key));
+  getStream(key: string, range?: ByteRange): Readable {
+    return createReadStream(this.resolve(key), range ? { start: 0, end: range.end } : undefined);
   }
 
   async delete(key: string): Promise<void> {

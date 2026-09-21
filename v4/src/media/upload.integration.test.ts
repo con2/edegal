@@ -107,6 +107,19 @@ describe("photo upload and processing", () => {
     }
   });
 
+  // A retried job, or a photo queued again because its files went stale, must not leave the
+  // earlier rows behind or duplicate them.
+  it("re-running a job refreshes the existing variant rows instead of adding to them", async () => {
+    const photo = await db.orm.public.Photo.where({ path: "/uploads/img-0003" }).include("media").first();
+    const before = photo!.media.filter((m) => m.role !== "original");
+    const job = await db.orm.public.MediaJob.create({ photoId: photo!.id });
+    await processMediaJob(job);
+    const after = await db.orm.public.Photo.where({ id: photo!.id }).include("media").first();
+    expect(after!.media.filter((m) => m.role !== "original").map((m) => m.id).sort()).toEqual(before.map((m) => m.id).sort());
+    expect(after!.media.every((m) => m.byteSize !== null)).toBe(true);
+    expect((await db.orm.public.MediaJob.where({ id: job.id }).first())?.status).toBe("done");
+  });
+
   it("stores PNG, WebP and AVIF originals as uploaded and still renders jpeg and avif variants", async () => {
     const encoders = {
       png: (image: Sharp) => image.png(),

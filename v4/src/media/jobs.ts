@@ -3,7 +3,7 @@ import { touchAlbum } from "@/gallery/touch";
 import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
-import { generateScaledMedia } from "./pipeline";
+import { generateScaledMedia, type ProducedMedia } from "./pipeline";
 import { mediaStorage } from "./storage";
 
 export interface ClaimedJob {
@@ -51,6 +51,41 @@ export async function pickAutoThumbnail(albumId: string): Promise<string | null>
   return (landscape ?? candidates[0])?.id ?? null;
 }
 
+type ScaledMediaRow = Pick<ProducedMedia, "role" | "format"> & { id: string };
+
+/**
+ * Makes the photo's scaled rows match `produced`: an existing role/format row is repointed at the
+ * new file, others are created, and rows for variants the pipeline no longer produces are removed.
+ * A re-run of a job (a retry, or a photo re-queued after its files went stale) therefore ends up
+ * with exactly the current set. Files a replaced row pointed at are left in place: for a photo
+ * migrated from the legacy site they are the old previews, which the legacy admin still serves.
+ */
+async function replaceScaledMedia(
+  photoId: string,
+  current: readonly ScaledMediaRow[],
+  produced: readonly ProducedMedia[],
+): Promise<void> {
+  const variantKey = (m: { role: string; format: string }) => `${m.role}/${m.format}`;
+  const existing = new Map(current.filter((m) => m.role !== "original").map((m) => [variantKey(m), m]));
+  for (const m of produced) {
+    const row = existing.get(variantKey(m));
+    if (row) {
+      await db.orm.public.Media.where({ id: row.id }).update({
+        width: m.width,
+        height: m.height,
+        storageKey: m.storageKey,
+        byteSize: m.byteSize,
+      });
+    } else {
+      await db.orm.public.Media.create({ photoId, ...m });
+    }
+  }
+  const producedKeys = new Set(produced.map(variantKey));
+  for (const [key, row] of existing) {
+    if (!producedKeys.has(key)) await db.orm.public.Media.where({ id: row.id }).delete();
+  }
+}
+
 /**
  * Generates the scaled variants for one photo and maintains the album's automatic thumbnail: the
  * first processed photo becomes the thumbnail, and a later landscape photo replaces an
@@ -72,11 +107,7 @@ export async function processMediaJob(job: ClaimedJob): Promise<void> {
     // would put this photo's own derivatives at that unrelated file's key.
     const keyBase = photo.mediaKeyBase || photo.path;
     const produced = await generateScaledMedia(keyBase, await readAll(original.storageKey));
-    const existing = new Set(photo.media.map((m) => `${m.role}/${m.format}`));
-    const fresh = produced.filter((m) => !existing.has(`${m.role}/${m.format}`));
-    if (fresh.length > 0) {
-      await db.orm.public.Media.createAll(fresh.map((m) => ({ photoId: photo.id, ...m })));
-    }
+    await replaceScaledMedia(photo.id, photo.media, produced);
 
     const { album } = photo;
     const currentThumbnailOriginal = album.thumbnailPhoto?.media.find((m) => m.role === "original");

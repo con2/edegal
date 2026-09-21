@@ -19,7 +19,8 @@
     "db:verify": "prisma db verify",
     "db:seed": "tsx src/bin/seed.ts",
     "prepare": "husky",
-    "worker": "tsx src/bin/worker.ts"
+    "worker": "tsx src/bin/worker.ts",
+    "media:backfill": "tsx src/bin/backfill-media.ts"
   },
   "dependencies": {
     "@con2/components": "github:con2/components#v5.0.0",

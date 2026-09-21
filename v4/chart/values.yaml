@@ -45,6 +45,13 @@ worker:
   replicas: 4
 workerConcurrency: 4
 
+# One-off media backfill Job (chart/README.md, "Media backfill"). Bump `runId` for every run; the
+# default args are a dry run, add "--apply" to write.
+mediaBackfill:
+  enabled: false
+  runId: 1
+  args: []
+
 # Sized from production usage (node 140-530 MiB, worker 100-220 MiB idle, nginx mostly page cache).
 # An upload holds up to 100 MB of body plus the decoded image (about 4 bytes per pixel, capped at
 # 100 megapixels), and the worker decodes `workerConcurrency` images at once. Each AVIF encode
@@ -60,6 +67,9 @@ resources:
   migrate:
     requests: { cpu: 50m, memory: 128Mi }
     limits: { cpu: "1", memory: 512Mi }
+  mediaBackfill:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: "1", memory: 1Gi }
   nginx:
     requests: { cpu: 20m, memory: 64Mi }
     limits: { cpu: "1", memory: 512Mi }

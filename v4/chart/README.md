@@ -55,6 +55,23 @@ out of attempts), and the album thumbnail choice tolerates two jobs of one album
 Each conversion needs about one CPU for libvips plus libaom's threads for AVIF and up to 400 MB for
 a 100 megapixel input, which is what `resources.worker` is sized for.
 
+## Media backfill
+
+The legacy migration copied media rows from the Django tables without opening the files: no file
+size, and for camera portrait shots the original's dimensions in stored-pixel (landscape) order,
+with previews that were rendered without applying the EXIF orientation tag. `mediaBackfill` runs
+`src/bin/backfill-media.ts` once as a Job against every row still lacking a size; it fills sizes
+and displayed dimensions and queues a media job for each photo whose original carries an
+orientation tag, which the worker Deployment then re-renders. The Job mounts the export read-only.
+
+1. Values: `mediaBackfill.enabled: true`, `runId: 1`, `args: []`; push. Read the tally at the end
+   of `kubectl -n <ns> logs job/media-backfill-1`: rows scanned should be about the site's media
+   row count and rotated originals a fraction of the photos.
+2. Values: `runId: 2`, `args: ["--apply"]`; push. Then watch the worker drain the queue:
+   `select status, count(*) from v4_media_job group by 1`.
+3. Rerunning is safe: a row is inspected once, and only rows whose file was missing come back.
+   Set `enabled: false` afterwards.
+
 ## Legacy Django admin
 
 `legacy.namespace` (with `legacy.service` and `legacy.port`) routes `/admin` and `/static` on the
