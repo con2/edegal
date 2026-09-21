@@ -1,10 +1,3 @@
-import { legacyEnabled } from "@/config";
-import {
-  legacyHtmlBody,
-  legacyVisibility,
-  toLegacySubalbums,
-} from "@/legacy/provider";
-import { legacySeriesAlbums, legacySeriesBySlug } from "@/legacy/sql";
 import { db } from "@/prisma/db";
 
 import type { AlbumPageVM, Crumb, SubalbumVM, Visibility } from "./types";
@@ -52,27 +45,22 @@ type Member = Crumb & { date: string | null; visibility: Visibility };
 interface SeriesMembers {
   /** Every member, for previous/next links. */
   all: Member[];
-  /** Members with a tile, for the series page; v4 wins on equal paths. */
+  /** Members with a tile, for the series page. */
   tiles: SubalbumVM[];
 }
 
-/** Members from both worlds for the series with this slug. */
 async function seriesMembersBySlug(slug: string): Promise<SeriesMembers> {
-  const [v4Series, legacy] = await Promise.all([
-    db.orm.public.Series.where({ slug }).select("id").first(),
-    legacyEnabled ? legacySeriesBySlug(slug) : Promise.resolve(null),
-  ]);
-  const [v4Albums, legacyRows] = await Promise.all([
-    v4Series
-      ? db.orm.public.Album.where({ seriesId: v4Series.id })
-          .include("thumbnailPhoto", (photo) => photo.include("media"))
-          .all()
-      : Promise.resolve([]),
-    legacy ? legacySeriesAlbums(legacy.id) : Promise.resolve([]),
-  ]);
+  const v4Series = await db.orm.public.Series.where({ slug })
+    .select("id")
+    .first();
+  const v4Albums = v4Series
+    ? await db.orm.public.Album.where({ seriesId: v4Series.id })
+        .include("thumbnailPhoto", (photo) => photo.include("media"))
+        .all()
+    : [];
   // A series is a site-wide listing, so members show their effective visibility.
   const effective = await effectiveVisibilities(v4Albums.map((a) => a.path));
-  const v4Tiles: SubalbumVM[] = v4Albums.map((album) => ({
+  const tiles: SubalbumVM[] = v4Albums.map((album) => ({
     path: album.path,
     title: album.title,
     date: album.eventDate,
@@ -83,30 +71,16 @@ async function seriesMembersBySlug(slug: string): Promise<SeriesMembers> {
     externalUrl: album.redirectUrl.includes("://") ? album.redirectUrl : null,
     ownerId: album.ownerId,
   }));
-  const v4Paths = new Set(v4Tiles.map((s) => s.path));
-  const legacyOnly = legacyRows.filter((r) => !v4Paths.has(r.path));
   return {
-    all: orderSeriesMembers([
-      ...v4Tiles.map(({ path, title, date, visibility }) => ({
+    all: orderSeriesMembers(
+      tiles.map(({ path, title, date, visibility }) => ({
         path,
         title,
         date,
         visibility,
       })),
-      ...legacyOnly.map((r) => ({
-        path: r.path,
-        title: r.title,
-        date: r.date,
-        visibility: legacyVisibility(
-          r.is_public && r.ancestors_public,
-          r.is_visible && r.ancestors_visible,
-        ),
-      })),
-    ]),
-    tiles: orderSeriesMembers([
-      ...v4Tiles,
-      ...toLegacySubalbums(legacyOnly, true),
-    ]),
+    ),
+    tiles: orderSeriesMembers(tiles),
   };
 }
 
@@ -117,7 +91,6 @@ export async function seriesNeighbours(
   return neighboursOf((await seriesMembersBySlug(slug)).all, albumPath);
 }
 
-/** The v4 series' updated_at as a cache version; null when only a legacy series has this slug. */
 export async function seriesVersion(slug: string): Promise<string | null> {
   const row = await db.orm.public.Series.where({ slug })
     .select("updatedAt")
@@ -125,42 +98,30 @@ export async function seriesVersion(slug: string): Promise<string | null> {
   return row?.updatedAt ?? null;
 }
 
-/**
- * The series page for a slug: the v4 row when there is one, filled in from a legacy series with
- * the same slug; a legacy-only series renders on its own. Null when neither exists.
- */
+/** The series page for a slug; null when no series has it. */
 export async function loadSeriesPageBySlug(
   slug: string,
 ): Promise<AlbumPageVM | null> {
-  const [v4Series, legacy, root, members] = await Promise.all([
+  const [v4Series, root, members] = await Promise.all([
     db.orm.public.Series.where({ slug }).first(),
-    legacyEnabled ? legacySeriesBySlug(slug) : Promise.resolve(null),
     db.orm.public.Album.where({ path: "/" }).select("title").first(),
     seriesMembersBySlug(slug),
   ]);
-  if (!v4Series && !legacy) return null;
+  if (!v4Series) return null;
   const rootCrumb: Crumb[] = root ? [{ path: "/", title: root.title }] : [];
-  const legacyBody = legacyHtmlBody(legacy?.body);
   return {
-    source: v4Series ? "v4" : "legacy",
     kind: "series",
-    id: v4Series ? v4Series.id : `series:${legacy!.id}`,
+    id: v4Series.id,
     parentId: null,
     path: `/${slug}`,
-    title: v4Series?.title ?? legacy!.title,
-    description: v4Series?.description || legacy?.description || "",
-    body: v4Series?.body.trim()
-      ? { kind: "markdown", text: v4Series.body }
-      : legacyBody,
+    title: v4Series.title,
+    description: v4Series.description || "",
+    body: v4Series.body,
     cover: null,
     date: null,
     layout: "simple",
-    visibility: v4Series
-      ? v4Series.visibility
-      : legacyVisibility(legacy!.is_public, legacy!.is_visible),
-    effectiveVisibility: v4Series
-      ? v4Series.visibility
-      : legacyVisibility(legacy!.is_public, legacy!.is_visible),
+    visibility: v4Series.visibility,
+    effectiveVisibility: v4Series.visibility,
     contactable: false,
     ownerId: null,
     isOpenForSubalbums: false,
@@ -175,6 +136,5 @@ export async function loadSeriesPageBySlug(
     previousInSeries: null,
     nextInSeries: null,
     redirectUrl: null,
-    legacyAdminUrl: null,
   };
 }

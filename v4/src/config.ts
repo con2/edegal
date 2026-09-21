@@ -60,13 +60,6 @@ export const kompassiOidc = {
 export const photographerGroup = env("PHOTOGRAPHER_GROUP", "larppikuvat-staff");
 export const adminGroup = env("ADMIN_GROUP", "admins");
 
-/** Legacy Django content in the same database. Off for a clean install. */
-export const legacyEnabled = env("LEGACY_ENABLED", "true") !== "false";
-export const legacyAdminUrl = env(
-  "LEGACY_ADMIN_URL",
-  "https://larppikuvat.fi/admin/",
-).replace(/\/?$/, "/");
-
 export const timezone = "Europe/Helsinki";
 
 /** Outgoing mail, larpit-fi style: no host means messages are logged in development and refused in production. */

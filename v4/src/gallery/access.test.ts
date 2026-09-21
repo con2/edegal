@@ -35,92 +35,66 @@ const admin: Viewer = {
   isAdmin: true,
 };
 
-const v4 = (visibility: "public" | "hidden" | "private") => ({
-  source: "v4" as const,
+const guard = (visibility: "public" | "hidden" | "private") => ({
   visibility,
   ownerId: "owner",
-});
-const legacy = (visibility: "public" | "hidden" | "private") => ({
-  source: "legacy" as const,
-  visibility,
-  ownerId: null,
 });
 
 describe("canView", () => {
   it("lets everyone view public and hidden content", () => {
-    expect(canView(anonymous, v4("public"))).toBe(true);
-    expect(canView(anonymous, v4("hidden"))).toBe(true);
-    expect(canView(anonymous, legacy("hidden"))).toBe(true);
+    expect(canView(anonymous, guard("public"))).toBe(true);
+    expect(canView(anonymous, guard("hidden"))).toBe(true);
   });
 
-  it("restricts private v4 content to the owner and admins", () => {
-    expect(canView(anonymous, v4("private"))).toBe(false);
-    expect(canView(photographer, v4("private"))).toBe(false);
-    expect(canView(owner, v4("private"))).toBe(true);
-    expect(canView(admin, v4("private"))).toBe(true);
-  });
-
-  it("restricts private legacy content to staff, like Django's is_staff", () => {
-    expect(canView(anonymous, legacy("private"))).toBe(false);
-    expect(canView(photographer, legacy("private"))).toBe(true);
+  it("restricts private content to the owner and admins", () => {
+    expect(canView(anonymous, guard("private"))).toBe(false);
+    expect(canView(photographer, guard("private"))).toBe(false);
+    expect(canView(owner, guard("private"))).toBe(true);
+    expect(canView(admin, guard("private"))).toBe(true);
   });
 });
 
 describe("canList", () => {
   it("lists hidden content only for those who could edit it", () => {
-    expect(canList(anonymous, v4("hidden"))).toBe(false);
-    expect(canList(photographer, v4("hidden"))).toBe(false);
-    expect(canList(owner, v4("hidden"))).toBe(true);
-    expect(canList(admin, v4("hidden"))).toBe(true);
-    expect(canList(photographer, legacy("hidden"))).toBe(true);
+    expect(canList(anonymous, guard("hidden"))).toBe(false);
+    expect(canList(photographer, guard("hidden"))).toBe(false);
+    expect(canList(owner, guard("hidden"))).toBe(true);
+    expect(canList(admin, guard("hidden"))).toBe(true);
   });
 });
 
 describe("canSeePhoto", () => {
-  it("shows non-public legacy pictures to staff, like Django's is_staff", () => {
-    expect(canSeePhoto(photographer, legacy("public"), "private")).toBe(true);
-    expect(canSeePhoto(anonymous, legacy("public"), "private")).toBe(false);
-  });
-
-  // Photographers are not staff over each other's v4 content.
-  it("shows non-public v4 photos only to the album owner and admins", () => {
-    expect(canSeePhoto(owner, v4("public"), "private")).toBe(true);
-    expect(canSeePhoto(admin, v4("public"), "hidden")).toBe(true);
-    expect(canSeePhoto(photographer, v4("public"), "private")).toBe(false);
-    expect(canSeePhoto(photographer, v4("public"), "hidden")).toBe(false);
-    expect(canSeePhoto(anonymous, v4("public"), "public")).toBe(true);
+  it("shows non-public photos only to the album owner and admins", () => {
+    expect(canSeePhoto(owner, { ownerId: "owner" }, "private")).toBe(true);
+    expect(canSeePhoto(admin, { ownerId: "owner" }, "hidden")).toBe(true);
+    expect(canSeePhoto(photographer, { ownerId: "owner" }, "private")).toBe(
+      false,
+    );
+    expect(canSeePhoto(photographer, { ownerId: "owner" }, "hidden")).toBe(
+      false,
+    );
+    expect(canSeePhoto(anonymous, { ownerId: "owner" }, "public")).toBe(true);
   });
 });
 
 describe("editing", () => {
-  it("never allows editing legacy albums through v4", () => {
-    expect(canEditAlbum(admin, { source: "legacy", ownerId: null })).toBe(
-      false,
-    );
-  });
-
   it("allows owners and admins to edit, and open albums to accept subalbums from photographers", () => {
-    expect(canEditAlbum(owner, { source: "v4", ownerId: "owner" })).toBe(true);
-    expect(canEditAlbum(photographer, { source: "v4", ownerId: "owner" })).toBe(
-      false,
-    );
+    expect(canEditAlbum(owner, { ownerId: "owner" })).toBe(true);
+    expect(canEditAlbum(photographer, { ownerId: "owner" })).toBe(false);
     expect(
       canCreateSubalbum(photographer, {
-        source: "v4",
         ownerId: "owner",
         isOpenForSubalbums: false,
       }),
     ).toBe(false);
     expect(
       canCreateSubalbum(photographer, {
-        source: "v4",
         ownerId: "owner",
         isOpenForSubalbums: true,
       }),
     ).toBe(true);
     expect(
       canCreateSubalbum(anonymous, {
-        source: "v4",
         ownerId: "owner",
         isOpenForSubalbums: true,
       }),
@@ -128,21 +102,12 @@ describe("editing", () => {
   });
 
   it("never deletes the root album and ties uploads to editing", () => {
-    expect(
-      canDeleteAlbum(admin, { source: "v4", ownerId: "owner", path: "/" }),
-    ).toBe(false);
-    expect(
-      canDeleteAlbum(owner, { source: "v4", ownerId: "owner", path: "/x" }),
-    ).toBe(true);
-    expect(
-      canDeleteAlbum(photographer, {
-        source: "v4",
-        ownerId: "owner",
-        path: "/x",
-      }),
-    ).toBe(false);
-    expect(canUpload(owner, { source: "v4", ownerId: "owner" })).toBe(true);
-    expect(canUpload(admin, { source: "legacy", ownerId: null })).toBe(false);
+    expect(canDeleteAlbum(admin, { ownerId: "owner", path: "/" })).toBe(false);
+    expect(canDeleteAlbum(owner, { ownerId: "owner", path: "/x" })).toBe(true);
+    expect(canDeleteAlbum(photographer, { ownerId: "owner", path: "/x" })).toBe(
+      false,
+    );
+    expect(canUpload(owner, { ownerId: "owner" })).toBe(true);
   });
 });
 

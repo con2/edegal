@@ -1,5 +1,3 @@
-import { legacyTimelinePhotos } from "@/legacy/provider";
-
 import { isAncestorOrSelf } from "./paths";
 import { finishGalleryPage, loadResolved, presentAlbumPage } from "./load";
 import { resolveRedirect } from "./redirects";
@@ -17,7 +15,7 @@ export function timelineVM(shell: AlbumPageVM, photos: PhotoVM[]): AlbumPageVM {
   return {
     ...shell,
     kind: "timeline",
-    body: { ...shell.body, text: "" },
+    body: "",
     subalbums: [],
     photos,
     hasManualOrdering: false,
@@ -40,8 +38,7 @@ export function timelineVM(shell: AlbumPageVM, photos: PhotoVM[]): AlbumPageVM {
  * visibility handling `loadGalleryPage` uses) whenever a timeline would not make sense:
  * - the path did not resolve to a single album (a series page, or nothing at all),
  * - an explicit root does not resolve to an album, or does not actually contain `path`,
- * - the resolved root is the site root, where a timeline would scan the entire gallery across
- *   both content sources at once,
+ * - the resolved root is the site root, where a timeline would scan the entire gallery at once,
  * - the root album redirects elsewhere, or
  * - the request named a specific photo that has no capture time (or no thumbnail yet) and so was
  *   dropped from the flattened list - it still exists, just not on this page.
@@ -83,13 +80,10 @@ export async function loadTimelinePage(
   }
 
   // Applies to the resolved root regardless of how it was named: a timeline at the site root
-  // would scan the entire gallery across both content sources at once.
+  // would scan the entire gallery at once.
   if (root.path === "/") return fallback();
 
-  const photos =
-    root.source === "v4"
-      ? await v4TimelinePhotos(root)
-      : await legacyTimelinePhotos(Number(root.id));
+  const photos = await v4TimelinePhotos(root);
 
   if (photoPath !== null && !photos.some((p) => p.path === photoPath)) {
     return fallback();

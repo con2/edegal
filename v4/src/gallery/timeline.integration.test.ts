@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
@@ -8,13 +8,6 @@ import { loadTimelinePage } from "./timeline";
 import type { Viewer } from "./viewer";
 
 const anonymous: Viewer = { kind: "anonymous" };
-const staff: Viewer = {
-  kind: "user",
-  userId: "u-staff",
-  name: "Staff",
-  isPhotographer: true,
-  isAdmin: false,
-};
 const admin: Viewer = {
   kind: "user",
   userId: "u-admin",
@@ -205,57 +198,11 @@ async function insertV4Fixtures() {
   await thumbnail(pPrivate.id, "thumbnails/event/private/p-private.jpeg");
 }
 
-/**
- * legacy: /legacy-event (public) > /legacy-event/day-1 > /legacy-event/day-1/stage, plus
- * /legacy-event/hidden (is_visible = false) - a public picture inside it must still be excluded
- * from an anonymous timeline, unlike legacy's own backend, which only checks the picture's own
- * `is_public`.
- */
-async function insertLegacyFixtures() {
-  await pool.query(`
-    insert into edegal_album (id, slug, path, title, description, body, is_public, is_visible, is_downloadable, redirect_url, layout, lft, rght, tree_id, level, date, parent_id)
-    values
-      (1, '', '/', 'Legacy root', '', '', true, true, true, '', 'simple', 1, 10, 1, 0, null, null),
-      (2, 'legacy-event', '/legacy-event', 'Legacy event', '', '', true, true, true, '', 'simple', 2, 9, 1, 1, null, 1),
-      (3, 'day-1', '/legacy-event/day-1', 'Day 1', '', '', true, true, true, '', 'simple', 3, 6, 1, 2, null, 2),
-      (4, 'stage', '/legacy-event/day-1/stage', 'Stage', '', '', true, true, true, '', 'simple', 4, 5, 1, 3, null, 3),
-      (5, 'hidden', '/legacy-event/hidden', 'Hidden', '', '', true, false, true, '', 'simple', 7, 8, 1, 2, null, 2)
-  `);
-  await pool.query(`
-    insert into edegal_picture (id, slug, "order", path, title, description, is_public, album_id, taken_at)
-    values
-      (1, 'pic-1', 0, '/legacy-event/pic-1', 'Pic 1', '', true, 2, '2024-02-01T00:00:00+00'),
-      (2, 'secret', 1, '/legacy-event/secret', 'Secret', '', false, 2, '2024-02-01T06:00:00+00'),
-      (3, 'pic-null', 2, '/legacy-event/pic-null', 'No capture time', '', true, 2, null),
-      (4, 'pic-no-thumb', 3, '/legacy-event/pic-no-thumb', 'Not processed', '', true, 2, '2024-02-01T03:00:00+00'),
-      (5, 'pic-hidden', 0, '/legacy-event/hidden/pic-hidden', 'Hidden picture', '', true, 5, '2024-02-01T12:00:00+00'),
-      (6, 'pic-2', 0, '/legacy-event/day-1/pic-2', 'Pic 2', '', true, 3, '2024-02-02T00:00:00+00'),
-      (7, 'pic-3', 0, '/legacy-event/day-1/stage/pic-3', 'Pic 3', '', true, 4, '2024-02-03T00:00:00+00')
-  `);
-  await pool.query(`
-    insert into edegal_mediaspec (id, max_width, max_height, quality, format, role, active)
-    values (1, 900, 240, 60, 'jpeg', 'thumbnail', true)
-  `);
-  await pool.query(`
-    insert into edegal_media (id, width, height, src, picture_id, spec_id, format, role)
-    values
-      (1, 360, 240, 'previews/legacy-event/pic-1.thumbnail.jpeg', 1, 1, 'jpeg', 'thumbnail'),
-      (2, 360, 240, 'previews/legacy-event/secret.thumbnail.jpeg', 2, 1, 'jpeg', 'thumbnail'),
-      (3, 360, 240, 'previews/legacy-event/hidden/pic-hidden.thumbnail.jpeg', 5, 1, 'jpeg', 'thumbnail'),
-      (4, 360, 240, 'previews/legacy-event/day-1/pic-2.thumbnail.jpeg', 6, 1, 'jpeg', 'thumbnail'),
-      (5, 360, 240, 'previews/legacy-event/day-1/stage/pic-3.thumbnail.jpeg', 7, 1, 'jpeg', 'thumbnail')
-  `);
-}
-
 beforeAll(async () => {
   await pool.query(
     `truncate v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade`,
   );
-  await pool.query(
-    `truncate edegal_media, edegal_mediaspec, edegal_picture, edegal_album, edegal_series, edegal_termsandconditions cascade`,
-  );
   await insertV4Fixtures();
-  await insertLegacyFixtures();
 });
 
 afterAll(async () => {
@@ -383,49 +330,5 @@ describe("loadTimelinePage (v4)", () => {
     expect(await loadTimelinePage(path, anonymous, "/event/private")).toEqual(
       await loadGalleryPage(path, anonymous),
     );
-  });
-});
-
-describe("loadTimelinePage (legacy)", () => {
-  it("flattens a legacy subtree via its nested-set columns, dropping a null-taken_at and a thumbnail-less picture", async () => {
-    const result = await loadTimelinePage("/legacy-event", staff, "");
-    if (result.kind !== "ok") throw new Error("expected ok");
-    expect(result.album.photos.map((p) => p.path)).not.toContain(
-      "/legacy-event/pic-null",
-    );
-    expect(result.album.photos.map((p) => p.path)).not.toContain(
-      "/legacy-event/pic-no-thumb",
-    );
-  });
-
-  it("hides a public picture inside a hidden descendant album from visitors but shows it to staff", async () => {
-    const anon = await loadTimelinePage("/legacy-event", anonymous, "");
-    const asStaff = await loadTimelinePage("/legacy-event", staff, "");
-    if (anon.kind !== "ok" || asStaff.kind !== "ok")
-      throw new Error("expected ok");
-    expect(anon.album.photos.map((p) => p.path)).toEqual([
-      "/legacy-event/pic-1",
-      "/legacy-event/day-1/pic-2",
-      "/legacy-event/day-1/stage/pic-3",
-    ]);
-    expect(asStaff.album.photos.map((p) => p.path)).toEqual([
-      "/legacy-event/pic-1",
-      "/legacy-event/secret",
-      "/legacy-event/hidden/pic-hidden",
-      "/legacy-event/day-1/pic-2",
-      "/legacy-event/day-1/stage/pic-3",
-    ]);
-  });
-
-  it("shows a hidden legacy album's own timeline its own direct pictures even to anonymous visitors", async () => {
-    const result = await loadTimelinePage(
-      "/legacy-event/hidden",
-      anonymous,
-      "",
-    );
-    if (result.kind !== "ok") throw new Error("expected ok");
-    expect(result.album.photos.map((p) => p.path)).toEqual([
-      "/legacy-event/hidden/pic-hidden",
-    ]);
   });
 });

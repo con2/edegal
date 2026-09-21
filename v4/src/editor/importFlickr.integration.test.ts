@@ -2,7 +2,7 @@ import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { Viewer } from "@/gallery/viewer";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { importFlickrAlbum } from "./importFlickr";

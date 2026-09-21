@@ -55,14 +55,13 @@ function photo(overrides: Partial<PhotoVM> = {}): PhotoVM {
 
 function timeline(photos: PhotoVM[]): AlbumPageVM {
   return {
-    source: "v4",
     kind: "timeline",
     id: "root",
     parentId: null,
     path: "/root",
     title: "Root",
     description: "",
-    body: { kind: "markdown", text: "" },
+    body: "",
     cover: null,
     date: null,
     layout: "simple",
@@ -82,7 +81,6 @@ function timeline(photos: PhotoVM[]): AlbumPageVM {
     previousInSeries: null,
     nextInSeries: null,
     redirectUrl: null,
-    legacyAdminUrl: null,
   };
 }
 

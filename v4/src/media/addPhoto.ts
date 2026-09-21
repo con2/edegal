@@ -79,7 +79,7 @@ export async function addPhotoToAlbum(
       await tx.orm.public.MediaJob.create({ photoId: existing.id });
     });
     await touchAlbum(album.id);
-    invalidateAlbum("v4", album.id, album.parentId);
+    invalidateAlbum(album.id, album.parentId);
     return {
       ok: true,
       photo: { id: existing.id, path: existing.path },
@@ -125,7 +125,7 @@ export async function addPhotoToAlbum(
 
   await clearRedirect(photoPath);
   await touchAlbum(album.id);
-  invalidateAlbum("v4", album.id, album.parentId);
+  invalidateAlbum(album.id, album.parentId);
   return {
     ok: true,
     photo: { id: photo.id, path: photo.path },

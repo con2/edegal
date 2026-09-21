@@ -2,7 +2,6 @@ import { publicUrl } from "@/config";
 import { loadGalleryPage } from "@/gallery/load";
 import { resolvePath } from "@/gallery/resolve";
 import type { Viewer } from "@/gallery/viewer";
-import { legacyAlbumPhotographerEmail } from "@/legacy/sql";
 import { db } from "@/prisma/db";
 
 import { MailNotConfiguredError, sendMail } from "./mail";
@@ -65,23 +64,15 @@ export async function contactRecipients(
   const siteName =
     page.unfiltered.breadcrumb[0]?.title ?? page.unfiltered.title;
 
-  let to: string[];
-  if (resolution.source === "v4") {
-    const credits = await db.orm.public.AlbumCredit.where({
-      albumId: resolution.albumId,
-      isCopyright: true,
-    })
-      .include("photographer")
-      .all();
-    to = credits
-      .map((c) => c.photographer.email)
-      .filter((email) => email !== "");
-  } else {
-    const email = await legacyAlbumPhotographerEmail(
-      Number(resolution.albumId),
-    );
-    to = email ? [email] : [];
-  }
+  const credits = await db.orm.public.AlbumCredit.where({
+    albumId: resolution.albumId,
+    isCopyright: true,
+  })
+    .include("photographer")
+    .all();
+  const to = credits
+    .map((c) => c.photographer.email)
+    .filter((email) => email !== "");
   return to.length > 0 ? { siteName, to: [...new Set(to)] } : null;
 }
 

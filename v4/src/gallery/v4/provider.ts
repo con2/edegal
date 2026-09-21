@@ -15,7 +15,7 @@ import { seriesNeighbours } from "@/gallery/series";
 import { formatPreference } from "@/media/specs";
 import { mediaUrl } from "@/media/url";
 import { compareEventDateDesc, pgTimestampToIso } from "@/lib/time";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { effectiveVisibilities, v4AncestorsPublicSql } from "./effective";
@@ -214,14 +214,13 @@ export async function loadV4Album(
   });
 
   return {
-    source: "v4",
     kind: "album",
     id: album.id,
     parentId: album.parentId,
     path: album.path,
     title: album.title,
     description: album.description,
-    body: { kind: "markdown", text: album.body },
+    body: album.body,
     cover: null,
     date: album.eventDate,
     layout: album.layout,
@@ -237,13 +236,10 @@ export async function loadV4Album(
     subalbums,
     photos,
     credits: album.credits.map(v4CreditVM),
-    terms: terms
-      ? { kind: "markdown", text: terms.text, url: terms.url }
-      : null,
+    terms: terms ? { text: terms.text, url: terms.url } : null,
     previousInSeries: neighbours.previous,
     nextInSeries: neighbours.next,
     redirectUrl: album.redirectUrl || null,
-    legacyAdminUrl: null,
   };
 }
 

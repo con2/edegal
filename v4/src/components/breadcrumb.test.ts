@@ -39,13 +39,12 @@ function photo(path: string, title: string): PhotoVM {
 
 function album(overrides: Partial<ClientAlbumPage> = {}): ClientAlbumPage {
   return {
-    source: "v4",
     kind: "album",
     id: "1",
     path: "/root",
     title: "Root album",
     description: "",
-    body: { kind: "markdown", text: "" },
+    body: "",
     cover: null,
     date: null,
     layout: "simple",
@@ -63,7 +62,6 @@ function album(overrides: Partial<ClientAlbumPage> = {}): ClientAlbumPage {
     previousInSeries: null,
     nextInSeries: null,
     redirectUrl: null,
-    legacyAdminUrl: null,
     ...overrides,
   };
 }

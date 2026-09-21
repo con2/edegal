@@ -11,8 +11,6 @@ data:
   KOMPASSI_BASE_URL: {{ .Values.kompassi.baseUrl | quote }}
   PHOTOGRAPHER_GROUP: {{ .Values.kompassi.photographerGroup | quote }}
   ADMIN_GROUP: {{ .Values.kompassi.adminGroup | quote }}
-  LEGACY_ENABLED: {{ .Values.legacy.enabled | quote }}
-  LEGACY_ADMIN_URL: {{ .Values.legacyAdminUrl | quote }}
   SMTP_HOSTNAME: {{ .Values.mail.smtpHostname | quote }}
   SMTP_PORT: {{ .Values.mail.smtpPort | quote }}
   MAIL_SENDER: {{ .Values.mail.sender | quote }}

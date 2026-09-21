@@ -36,11 +36,10 @@ function mediaJson(variant: MediaVariant | undefined): MediaJson | null {
 
 /** A v4 album's children's preview media, keyed by path; null for a legacy page or a childless one. */
 async function previewsByPath(
-  source: "v4" | "legacy",
   kind: string,
   albumId: string,
 ): Promise<Map<string, MediaJson | null>> {
-  if (source !== "v4" || kind !== "album") return new Map();
+  if (kind !== "album") return new Map();
   const children = await db.orm.public.Album.where({ parentId: albumId })
     .include("thumbnailPhoto", (t) => t.include("media"))
     .all();
@@ -91,7 +90,6 @@ export async function GET(
 
   const { album } = result;
   const previews = await previewsByPath(
-    result.unfiltered.source,
     result.unfiltered.kind,
     result.unfiltered.id,
   );

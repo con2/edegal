@@ -1,10 +1,3 @@
-import { legacyEnabled } from "@/config";
-import {
-  legacyHtmlBody,
-  legacyPhotographerSubalbums,
-  loadLegacyPhotographerPage,
-} from "@/legacy/provider";
-import { legacyAlbumByPath, legacyPhotographerIdBySlug } from "@/legacy/sql";
 import { compareEventDateDesc } from "@/lib/time";
 import { db } from "@/prisma/db";
 
@@ -24,10 +17,10 @@ async function rootCrumb() {
 }
 
 /**
- * Public v4 photographers, one tile each: their own profile photo, or an empty tile when they
+ * Public photographers, one tile each: their own profile photo, or an empty tile when they
  * have none - never guessed from a credited album, so an empty tile means exactly what it shows.
  */
-async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
+async function photographerSubalbums(): Promise<SubalbumVM[]> {
   const photographers = await db.orm.public.Photographer.where({
     visibility: "public",
   })
@@ -57,48 +50,23 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
   });
 }
 
-/** The /photographers index: v4 and legacy photographers merged by slug (v4 wins), sorted by name. */
+/** The /photographers index: every public photographer, sorted by name. */
 export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
-  const [v4, legacy, root, v4Intro, legacyIntro] = await Promise.all([
-    v4PhotographerSubalbums(),
-    legacyEnabled ? legacyPhotographerSubalbums() : Promise.resolve([]),
+  const [subalbums, root, intro] = await Promise.all([
+    photographerSubalbums(),
     rootCrumb(),
     db.orm.public.Album.where({ path: photographersPath })
       .select("body")
       .first(),
-    legacyEnabled
-      ? legacyAlbumByPath(photographersPath)
-      : Promise.resolve(null),
   ]);
-  // Merged by path (one tile per photographer, never two): a v4 tile with its own thumbnail
-  // wins outright; otherwise the legacy tile fills in if it has one, so a v4 profile whose own
-  // cover photo is momentarily unusable (e.g. its album went private) still shows something
-  // real instead of the empty tile it would get on its own. Only when neither side has a usable
-  // photo does the (public) v4 tile's empty placeholder show through.
-  const legacyByPath = new Map(legacy.map((s) => [s.path, s]));
-  const v4Paths = new Set(v4.map((s) => s.path));
-  const subalbums = [
-    ...v4.map((tile) =>
-      tile.thumbnail
-        ? tile
-        : {
-            ...tile,
-            thumbnail: legacyByPath.get(tile.path)?.thumbnail ?? null,
-          },
-    ),
-    ...legacy.filter((s) => !v4Paths.has(s.path)),
-  ].sort((a, b) => a.title.localeCompare(b.title, "fi"));
   return {
-    source: "v4",
     kind: "photographers",
     id: "photographers",
     parentId: null,
     path: photographersPath,
     title: "Photographers",
     description: "",
-    body: v4Intro?.body
-      ? { kind: "markdown", text: v4Intro.body }
-      : legacyHtmlBody(legacyIntro?.body),
+    body: intro?.body ?? "",
     cover: null,
     date: null,
     layout: "simple",
@@ -111,24 +79,21 @@ export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
     photosProcessing: 0,
     hasManualOrdering: false,
     breadcrumb: root,
-    subalbums,
+    subalbums: subalbums.sort((a, b) => a.title.localeCompare(b.title, "fi")),
     photos: [],
     credits: [],
     terms: null,
     previousInSeries: null,
     nextInSeries: null,
     redirectUrl: null,
-    legacyAdminUrl: null,
   };
 }
 
-/** A v4 photographer's page: introduction, links and every album they are credited on. */
-export async function loadV4PhotographerPage(
-  photographerId: string,
+/** A photographer's page: introduction, links and every album they are credited on. */
+export async function loadPhotographerPageBySlug(
+  slug: string,
 ): Promise<AlbumPageVM | null> {
-  const photographer = await db.orm.public.Photographer.where({
-    id: photographerId,
-  })
+  const photographer = await db.orm.public.Photographer.where({ slug })
     .include("links", (l) => l.orderBy((x) => x.ordering.asc()))
     .include("credits", (c) =>
       c.include("album", (a) =>
@@ -214,14 +179,13 @@ export async function loadV4PhotographerPage(
   });
 
   return {
-    source: "v4",
     kind: "photographer",
     id: `photographer:${photographer.id}`,
     parentId: null,
     path: `${photographersPath}/${photographer.slug}`,
     title: photographer.displayName,
     description: "",
-    body: { kind: "markdown", text: photographer.introduction },
+    body: photographer.introduction,
     cover,
     date: null,
     layout: "yearly",
@@ -254,38 +218,5 @@ export async function loadV4PhotographerPage(
     previousInSeries: null,
     nextInSeries: null,
     redirectUrl: null,
-    legacyAdminUrl: null,
-  };
-}
-
-/**
- * A photographer page by slug. A person who photographed before and after the rewrite has a
- * v4 row and a legacy row with the same slug; their page shows both sets of albums, the v4
- * introduction taking precedence and the legacy cover picture filling in until v4 has one.
- */
-export async function loadPhotographerPageBySlug(
-  slug: string,
-): Promise<AlbumPageVM | null> {
-  const [v4Row, legacyId] = await Promise.all([
-    db.orm.public.Photographer.where({ slug }).select("id").first(),
-    legacyEnabled ? legacyPhotographerIdBySlug(slug) : Promise.resolve(null),
-  ]);
-  const [v4, legacy] = await Promise.all([
-    v4Row ? loadV4PhotographerPage(v4Row.id) : Promise.resolve(null),
-    legacyId !== null
-      ? loadLegacyPhotographerPage(legacyId)
-      : Promise.resolve(null),
-  ]);
-  if (!v4) return legacy;
-  if (!legacy) return v4;
-  const seen = new Set(v4.subalbums.map((s) => s.path));
-  return {
-    ...v4,
-    body: v4.body.text ? v4.body : legacy.body,
-    cover: v4.cover ?? legacy.cover,
-    subalbums: [
-      ...v4.subalbums,
-      ...legacy.subalbums.filter((s) => !seen.has(s.path)),
-    ],
   };
 }

@@ -25,28 +25,15 @@ export function slugForAlbum(title: string, requested: string): string {
   return requested || slugifyDash(title) || "album";
 }
 
-/**
- * Refuses paths already used by any v4 or legacy album, photo or series (other than
- * `selfAlbumId`), and root slugs that routing claims. `allowLegacySeries` lets a v4 series be
- * created or renamed onto an existing legacy series' slug, the intended way to continue one -
- * `loadSeriesPageBySlug` already merges the two by slug once that v4 row exists.
- */
+/** Refuses paths already used by any album, photo or series (other than `selfAlbumId`), and root slugs that routing claims. */
 export async function assertPathFree(
   path: string,
   selfAlbumId?: string,
-  allowLegacySeries = false,
 ): Promise<void> {
   if (isReservedRootPath(path)) throw new PathTakenError(path);
   const taken = await resolvePath(path);
   if (!taken) return;
-  if (
-    taken.kind === "album" &&
-    taken.source === "v4" &&
-    taken.albumId === selfAlbumId
-  )
-    return;
-  if (allowLegacySeries && taken.kind === "series" && taken.source === "legacy")
-    return;
+  if (taken.kind === "album" && taken.albumId === selfAlbumId) return;
   throw new PathTakenError(path);
 }
 
@@ -98,10 +85,7 @@ export async function replaceCredits(
   );
 }
 
-/**
- * Before a move or rename, checks that every descendant album and photo lands on a free path.
- * The unique index would catch v4 collisions anyway, but legacy content is only found this way.
- */
+/** Before a move or rename, checks that every descendant album and photo lands on a free path. */
 export async function assertSubtreePathsFree(
   oldPath: string,
   newPath: string,
@@ -266,7 +250,7 @@ export async function thumbnailTargets(
   album: { id: string; path: string; ownerId: string | null; title: string },
 ): Promise<ThumbnailTarget[]> {
   const targets: ThumbnailTarget[] = [];
-  if (canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+  if (canEditAlbum(viewer, { ownerId: album.ownerId }))
     targets.push({ albumId: album.id, title: album.title, isOwnAlbum: true });
   const prefixes = pathPrefixes(album.path).filter((p) => p !== "/");
   if (prefixes.length === 0) return targets;
@@ -275,7 +259,7 @@ export async function thumbnailTargets(
     .all();
   ancestors.sort((a, b) => b.path.length - a.path.length);
   for (const ancestor of ancestors)
-    if (canEditAlbum(viewer, { source: "v4", ownerId: ancestor.ownerId }))
+    if (canEditAlbum(viewer, { ownerId: ancestor.ownerId }))
       targets.push({
         albumId: ancestor.id,
         title: ancestor.title,
@@ -311,7 +295,6 @@ export async function moveTargets(
       (a) =>
         !isAncestorOrSelf(album.path, a.path) &&
         canCreateSubalbum(viewer, {
-          source: "v4",
           ownerId: a.ownerId,
           isOpenForSubalbums: a.isOpenForSubalbums,
         }),

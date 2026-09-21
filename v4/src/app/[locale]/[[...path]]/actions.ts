@@ -87,7 +87,7 @@ async function touchSeriesMembership(
       const series = await db.orm.public.Series.where({ id })
         .select("slug")
         .first();
-      if (series) invalidateAlbum("v4", `series:${series.slug}`);
+      if (series) invalidateAlbum(`series:${series.slug}`);
     }
 }
 
@@ -100,7 +100,6 @@ export async function createAlbum(
   const parent = await requireAlbum(parentId);
   if (
     !canCreateSubalbum(viewer, {
-      source: "v4",
       ownerId: parent.ownerId,
       isOpenForSubalbums: parent.isOpenForSubalbums,
     })
@@ -157,7 +156,7 @@ export async function createAlbum(
   await clearRedirect(path);
   await touchSeriesMembership(album.seriesId);
   await touchAlbum(album.id, parent.id);
-  invalidateAlbum("v4", album.id, parent.id);
+  invalidateAlbum(album.id, parent.id);
   revalidatePath(`/${locale}${parent.path}`);
   return void redirect(withMessage(path, "success", "albumSaved"));
 }
@@ -172,7 +171,6 @@ export async function importFlickrAlbum(
   const parent = await requireAlbum(parentId);
   if (
     !canCreateSubalbum(viewer, {
-      source: "v4",
       ownerId: parent.ownerId,
       isOpenForSubalbums: parent.isOpenForSubalbums,
     })
@@ -206,7 +204,7 @@ export async function updateAlbum(
 ) {
   const viewer = await requireUser();
   const album = await requireAlbum(albumId);
-  if (!canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+  if (!canEditAlbum(viewer, { ownerId: album.ownerId }))
     throw new Error("not allowed to edit this album");
   const form = AlbumFormSchema.parse(normalizeFormData(formData));
   const isRoot = album.path === "/";
@@ -277,11 +275,11 @@ export async function updateAlbum(
       parentId: newParent.id,
     });
     await touchAlbum(newParent.id);
-    invalidateAlbum("v4", newParent.id, null);
+    invalidateAlbum(newParent.id, null);
     revalidatePath(`/${locale}${newParent.path}`);
   }
   await touchAlbum(album.id, album.parentId);
-  invalidateAlbum("v4", album.id, album.parentId);
+  invalidateAlbum(album.id, album.parentId);
   revalidatePath(`/${locale}${album.path}`);
   return void redirect(withMessage(path, "success", "albumSaved"));
 }
@@ -295,7 +293,6 @@ export async function deleteAlbum(
   const album = await requireAlbum(albumId);
   if (
     !canDeleteAlbum(viewer, {
-      source: "v4",
       ownerId: album.ownerId,
       path: album.path,
     })
@@ -311,7 +308,6 @@ export async function deleteAlbum(
   const foreign = subtree.some(
     (a) =>
       !canDeleteAlbum(viewer, {
-        source: "v4",
         ownerId: a.ownerId,
         path: a.path,
       }),
@@ -329,7 +325,7 @@ export async function deleteAlbum(
   await deleteAlbumSubtree(album.id, album.path);
   await touchSeriesMembership(...seriesIds.map((a) => a.seriesId));
   if (album.parentId) await touchAlbum(album.parentId);
-  invalidateAlbum("v4", album.id, album.parentId);
+  invalidateAlbum(album.id, album.parentId);
   revalidatePath(`/${locale}${parentPath}`);
   return void redirect(withMessage(parentPath, "success", "albumDeleted"));
 }
@@ -340,7 +336,7 @@ export async function deletePhoto(locale: string, photoId: string) {
     .include("album")
     .first();
   if (!photo) throw new Error("photo not found");
-  if (!canManagePhoto(viewer, { source: "v4", ownerId: photo.album.ownerId }))
+  if (!canManagePhoto(viewer, { ownerId: photo.album.ownerId }))
     throw new Error("not allowed to delete this photo");
   const storageKeys = await photoStorageKeys(photo.id);
   await db.orm.public.Photo.where({ id: photo.id }).delete();
@@ -352,7 +348,7 @@ export async function deletePhoto(locale: string, photoId: string) {
     });
   }
   await touchAlbum(photo.albumId, photo.album.parentId);
-  invalidateAlbum("v4", photo.albumId, photo.album.parentId);
+  invalidateAlbum(photo.albumId, photo.album.parentId);
   revalidatePath(`/${locale}${photo.album.path}`);
   return void redirect(
     withMessage(photo.album.path, "success", "photoDeleted"),
@@ -373,12 +369,11 @@ export async function setAlbumThumbnail(
   if (!photo) throw new Error("photo not found");
   if (!isAncestorOrSelf(target.path, photo.album.path))
     throw new Error("photo is not in this album or below it");
-  if (!canEditAlbum(viewer, { source: "v4", ownerId: target.ownerId }))
+  if (!canEditAlbum(viewer, { ownerId: target.ownerId }))
     throw new Error("not allowed to edit this album");
   // The target's tile is as public as the target; the photo must be listable to the viewer.
   if (
     !canList(viewer, {
-      source: "v4",
       visibility: photo.album.visibility,
       ownerId: photo.album.ownerId,
     })
@@ -389,7 +384,7 @@ export async function setAlbumThumbnail(
     thumbnailIsAuto: false,
   });
   await touchAlbum(target.id, target.parentId);
-  invalidateAlbum("v4", target.id, target.parentId);
+  invalidateAlbum(target.id, target.parentId);
   revalidatePath(`/${locale}${target.path}`);
   revalidatePath(`/${locale}${photo.album.path}`);
 }
@@ -401,11 +396,11 @@ export async function sortPhotos(
 ) {
   const viewer = await requireUser();
   const album = await requireAlbum(albumId);
-  if (!canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+  if (!canEditAlbum(viewer, { ownerId: album.ownerId }))
     throw new Error("not allowed to edit this album");
   await sortAlbumPhotos(album.id, by);
   await touchAlbum(album.id);
-  invalidateAlbum("v4", album.id, album.parentId);
+  invalidateAlbum(album.id, album.parentId);
   revalidatePath(`/${locale}${album.path}`);
   return void redirect(withMessage(album.path, "success", "photosSorted"));
 }
@@ -414,7 +409,7 @@ export async function sortPhotos(
 export async function albumProcessingStatus(albumId: string) {
   const viewer = await requireUser();
   const album = await requireAlbum(albumId);
-  if (!canEditAlbum(viewer, { source: "v4", ownerId: album.ownerId }))
+  if (!canEditAlbum(viewer, { ownerId: album.ownerId }))
     throw new Error("not allowed");
   return albumJobCounts(album.id);
 }
@@ -433,7 +428,6 @@ export async function setProfilePhoto(locale: string, photoId: string) {
   if (
     !photo ||
     !canList(viewer, {
-      source: "v4",
       visibility: photo.album.visibility,
       ownerId: photo.album.ownerId,
     })
@@ -460,7 +454,7 @@ export async function createSeries(locale: string, formData: FormData) {
   const slug = slugForAlbum(form.title, form.slug);
   const path = seriesRedirectTarget(slug);
   try {
-    await assertPathFree(path, undefined, true);
+    await assertPathFree(path);
   } catch (error) {
     if (error instanceof PathTakenError)
       return void redirect(
@@ -477,7 +471,7 @@ export async function createSeries(locale: string, formData: FormData) {
     visibility: form.visibility,
   });
   await clearRedirect(path);
-  invalidateAlbum("v4", `series:${slug}`);
+  invalidateAlbum(`series:${slug}`);
   revalidatePath(`/${locale}${path}`);
   return void redirect(withMessage(path, "success", "seriesSaved"));
 }
@@ -496,7 +490,7 @@ export async function updateSeries(
   const path = seriesRedirectTarget(slug);
   if (slug !== series.slug) {
     try {
-      await assertPathFree(path, undefined, true);
+      await assertPathFree(path);
     } catch (error) {
       if (error instanceof PathTakenError)
         return void redirect(
@@ -517,8 +511,8 @@ export async function updateSeries(
     });
   });
   await touchSeries(series.id);
-  invalidateAlbum("v4", `series:${series.slug}`);
-  invalidateAlbum("v4", `series:${slug}`);
+  invalidateAlbum(`series:${series.slug}`);
+  invalidateAlbum(`series:${slug}`);
   revalidatePath(`/${locale}${path}`);
   return void redirect(withMessage(path, "success", "seriesSaved"));
 }
@@ -540,7 +534,7 @@ export async function deleteSeries(
     );
   await touchSeries(series.id);
   await db.orm.public.Series.where({ id: series.id }).delete();
-  invalidateAlbum("v4", `series:${series.slug}`);
+  invalidateAlbum(`series:${series.slug}`);
   revalidatePath(`/${locale}/`);
   return void redirect(withMessage("/", "success", "seriesDeleted"));
 }

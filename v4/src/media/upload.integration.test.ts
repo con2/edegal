@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { mediaRoot } from "@/config";
 import { moveAlbumPath } from "@/editor/albums";
 import { clearRedirect } from "@/gallery/redirects";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { albumJobCounts, claimJob, cleanupFinishedJobs, processMediaJob, requeueStrandedJobs } from "./jobs";

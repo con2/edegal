@@ -6,7 +6,7 @@ import {
   processMediaJob,
   requeueStrandedJobs,
 } from "@/media/jobs";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 /**

@@ -44,8 +44,7 @@ export function AlbumView({
   hideBody = false,
 }: AlbumViewProps) {
   const isPhotographer = album.kind === "photographer";
-  const hasBody =
-    !hideBody && (isPhotographer || album.body.text.trim().length > 0);
+  const hasBody = !hideBody && (isPhotographer || album.body.trim().length > 0);
   const hasSeriesLinks =
     !hideBody && (album.previousInSeries || album.nextInSeries);
 
@@ -75,11 +74,7 @@ export function AlbumView({
               />
             ) : (
               <article className="container">
-                {album.body.kind === "markdown" ? (
-                  <Markdown input={album.body.text} />
-                ) : (
-                  <div dangerouslySetInnerHTML={{ __html: album.body.text }} />
-                )}
+                <Markdown input={album.body} />
               </article>
             )
           ) : null}

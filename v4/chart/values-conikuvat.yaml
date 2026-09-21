@@ -1,6 +1,5 @@
 hostname: conikuvat.fi
 legacy:
-  enabled: false
   namespace: conikuvat-production
 mediaNfs:
   server: 91.105.252.80
@@ -9,7 +8,6 @@ kompassi:
   baseUrl: https://kompassi.eu
   photographerGroup: conikuvat-staff
   adminGroup: admins
-legacyAdminUrl: https://conikuvat.fi/admin/
 mail:
   smtpHostname: sr1.pahaip.fi
   smtpPort: 25

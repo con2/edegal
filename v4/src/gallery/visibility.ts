@@ -26,7 +26,6 @@ export function applyVisibility(
     subalbums: subalbums
       .filter((s) =>
         canList(viewer, {
-          source: vm.source,
           visibility: s.visibility,
           ownerId: s.ownerId,
         }),
@@ -37,7 +36,6 @@ export function applyVisibility(
         canSeePhoto(
           viewer,
           {
-            source: vm.source,
             // `undefined` (no containing-album owner recorded, i.e. not a timeline photo) falls
             // back to the page's own owner; an explicit `null` (that album has no owner) must
             // not, or a deleted owner's private subalbum would inherit visibility from whoever

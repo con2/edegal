@@ -11,13 +11,12 @@ createuser edegal --pwprompt          # password "photos" in the defaults
 createdb -O edegal edegal
 cp .env.example .env                  # defaults match the above
 npm install
-npm run legacy:schema                 # empty edegal_* tables so legacy code paths work (skip if the DB holds a production dump)
 npm run db:migrate:dev                # apply v4 migrations
 npm run db:seed                       # example content and media
 npm run dev                           # http://localhost:3160
 ```
 
-To browse real legacy content locally, restore a production dump into the database before
+To develop against real content locally, restore a production dump into the database before
 running the migrations and point `MEDIA_BASE_URL` at the production media host.
 
 ## Photographers
@@ -48,16 +47,15 @@ An album's own visibility decides only whether it is listed inside its parent. E
 the least visible album on the chain to the root counts. A public album under a hidden parent is
 therefore listed inside that parent for people with the link but stays off the rest of the site
 until the parent is public; a public album under a private parent is private. This is how a larp
-embargo works: one hidden parent, public children, released by one visibility change. The same
-rule is applied to legacy albums through their nested-set columns.
+embargo works: one hidden parent, public children, released by one visibility change.
 
 ### Redirects
 
 Renaming or moving an album records every old path (the album, its subalbums and photos) in
 `v4_redirect`, so old links keep working with a redirect; a later move re-points the earlier
-records. The edit form's redirect field does what the legacy `redirect_url` did: a web address
-turns the album into an external link tile and forwards visitors, a gallery path forwards to that
-album, and either applies to everything below the album. Root slugs that routing claims (`/admin`,
+records. The edit form's redirect field: a web address turns the album into an external link tile
+and forwards visitors, a gallery path forwards to that album, and either applies to everything
+below the album. Root slugs that routing claims (`/admin`,
 `/api`, `/media`, `/photographers`, ...) cannot be used for albums.
 
 ### Importing Flickr albums
@@ -75,21 +73,13 @@ A series groups albums chronologically (the runs of a campaign, the years of an 
 own page at `/<slug>`. Admins create series from the front page (`?newSeries=1`) and edit or
 delete them on the series page; any photographer may put their album in a series through the album
 form. Members get the series in their breadcrumb and previous/next links ordered by event date.
-A v4 series with the same slug as a legacy series renders as one page and links across both, so
-a series that started on the old site continues here: the slug field suggests legacy slugs that
-have no v4 counterpart yet.
 
 The v4 root album is created automatically when the server starts and none exists yet (see
-`src/instrumentation.ts`), titled like the legacy root. Until an admin edits it, the front page
-shows the legacy root's body text. Album creation and editing controls only appear on v4 albums;
-legacy albums stay read-only apart from the "Edit in old admin" link.
+`src/instrumentation.ts`).
 
 Public photographer pages live on dedicated routes rather than the gallery catch-all:
-`/photographers` tiles every photographer who has a cover picture (v4) or a credited album with a
-thumbnail (legacy), and `/photographers/<slug>` shows their introduction, links and albums grouped
-by year. A slug present in both the v4 and legacy tables renders as one merged page. Slugs that
-match neither fall back to the ordinary gallery resolution, so legacy albums under `/photographers`
-still open.
+`/photographers` tiles every public photographer who has a cover picture, and
+`/photographers/<slug>` shows their introduction, links and albums grouped by year.
 
 ## Contacting photographers
 
@@ -112,4 +102,4 @@ production reports the form as unavailable.
 3. `npm run db:migrate:dev`.
 4. Commit the contract, the emitted `contract.json`/`contract.d.ts`, the migration and `migrations/app/refs/db.json`.
 
-Never use `prisma db update` here: it drops every table the contract does not describe, including the legacy Django tables.
+Never use `prisma db update` here: it drops every table the contract does not describe, including the still-present legacy Django tables.

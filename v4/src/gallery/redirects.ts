@@ -1,5 +1,3 @@
-import { legacyEnabled } from "@/config";
-import { legacyAlbumsForRedirectWalk } from "@/legacy/sql";
 import { db } from "@/prisma/db";
 
 import { effectiveVisibilities } from "./v4/effective";
@@ -37,8 +35,8 @@ export function walkRedirects(
 
 /**
  * Where a path that resolves to nothing should go: an exact record of a rename or move, else a
- * redirecting ancestor (a v4 album's redirect URL, a recorded move of an ancestor, or a public
- * legacy album's redirect). Null when the path is simply unknown.
+ * redirecting ancestor (a v4 album's redirect URL or a recorded move of an ancestor). Null when
+ * the path is simply unknown.
  */
 export async function resolveRedirect(path: string): Promise<string | null> {
   const exact = await db.orm.public.Redirect.where({ fromPath: path }).first();
@@ -50,16 +48,13 @@ export async function resolveRedirect(path: string): Promise<string | null> {
     .map((_, i) => "/" + segments.slice(0, i + 1).join("/"));
   if (ancestorPaths.length === 0) return null;
 
-  const [albums, moves, legacy] = await Promise.all([
+  const [albums, moves] = await Promise.all([
     db.orm.public.Album.where((a) => a.path.in(ancestorPaths))
       .select("path", "redirectUrl", "visibility")
       .all(),
     db.orm.public.Redirect.where((r) => r.fromPath.in(ancestorPaths))
       .select("fromPath", "toPath")
       .all(),
-    legacyEnabled
-      ? legacyAlbumsForRedirectWalk(ancestorPaths)
-      : Promise.resolve([]),
   ]);
   // Effective, not the album's own visibility: a public-looking album under a private parent must
   // not leak its redirect's existence and destination just because its own flag says "public".
@@ -74,7 +69,6 @@ export async function resolveRedirect(path: string): Promise<string | null> {
       )
       .map((a) => ({ path: a.path, target: a.redirectUrl })),
     ...moves.map((m) => ({ path: m.fromPath, target: m.toPath })),
-    ...legacy.map((l) => ({ path: l.path, target: l.redirect_url })),
   ];
   return walkRedirects(path, sources);
 }

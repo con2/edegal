@@ -1,4 +1,4 @@
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 
 /**
  * Bumps updated_at so every process (web and worker) sees the cached album page as stale. The

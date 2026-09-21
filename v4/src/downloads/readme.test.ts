@@ -5,13 +5,12 @@ import type { ClientAlbumPage } from "@/gallery/types";
 import { albumReadme } from "./readme";
 
 const album: ClientAlbumPage = {
-  source: "v4",
   kind: "album",
   id: "album-1",
   path: "/event/saturday",
   title: "Saturday",
   description: "",
-  body: { kind: "markdown", text: "" },
+  body: "",
   date: "2026-09-05",
   layout: "simple",
   visibility: "public",
@@ -43,14 +42,12 @@ const album: ClientAlbumPage = {
     },
   ],
   terms: {
-    kind: "markdown",
     text: "Credit the photographer.",
     url: "https://example.com/terms",
   },
   previousInSeries: null,
   nextInSeries: null,
   redirectUrl: null,
-  legacyAdminUrl: null,
 };
 
 describe("albumReadme", () => {

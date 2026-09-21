@@ -4,7 +4,7 @@ import path from "node:path";
 
 import { importOriginal, takenAtOf } from "@/media/pipeline";
 import { db } from "@/prisma/db";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 
 /**
  * Example v4 content for local development: a root album, a photographer and one event album tree

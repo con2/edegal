@@ -2,12 +2,7 @@ import type {
   AlbumFormOptions,
   AlbumFormValues,
 } from "@/components/editor/AlbumForm";
-import type {
-  SeriesFormOptions,
-  SeriesFormValues,
-} from "@/components/editor/SeriesForm";
-import { legacyEnabled } from "@/config";
-import { legacySeriesList } from "@/legacy/sql";
+import type { SeriesFormValues } from "@/components/editor/SeriesForm";
 import type { CreditInput } from "@/editor/schemas";
 import { parentPathOf, pathPrefixes } from "@/gallery/paths";
 
@@ -153,16 +148,6 @@ export async function existingAlbumValues(
       description: c.description,
     })),
   };
-}
-
-/** Legacy series without a v4 counterpart yet: picking one of their slugs continues that series. */
-export async function seriesFormOptions(): Promise<SeriesFormOptions> {
-  const [legacy, v4] = await Promise.all([
-    legacyEnabled ? legacySeriesList() : Promise.resolve([]),
-    db.orm.public.Series.select("slug").all(),
-  ]);
-  const taken = new Set(v4.map((s) => s.slug));
-  return { legacySeries: legacy.filter((s) => !taken.has(s.slug)) };
 }
 
 export const newSeriesValues: SeriesFormValues = {

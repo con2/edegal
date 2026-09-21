@@ -30,14 +30,13 @@ function photo(path: string): PhotoVM {
 
 function shell(overrides: Partial<AlbumPageVM> = {}): AlbumPageVM {
   return {
-    source: "v4",
     kind: "album",
     id: "1",
     parentId: null,
     path: "/root",
     title: "Root",
     description: "A description",
-    body: { kind: "markdown", text: "Some prose about the album" },
+    body: "Some prose about the album",
     cover: null,
     date: null,
     layout: "simple",
@@ -67,7 +66,6 @@ function shell(overrides: Partial<AlbumPageVM> = {}): AlbumPageVM {
     previousInSeries: { path: "/prev", title: "Prev" },
     nextInSeries: { path: "/next", title: "Next" },
     redirectUrl: null,
-    legacyAdminUrl: null,
     ...overrides,
   };
 }
@@ -83,7 +81,7 @@ describe("timelineVM", () => {
 
   it("blanks the album's own prose and series links, which describe one album, not a subtree", () => {
     const result = timelineVM(shell(), []);
-    expect(result.body).toEqual({ kind: "markdown", text: "" });
+    expect(result.body).toBe("");
     expect(result.previousInSeries).toBeNull();
     expect(result.nextInSeries).toBeNull();
   });

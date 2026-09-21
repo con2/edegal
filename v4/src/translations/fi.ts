@@ -102,7 +102,6 @@ const translations: Translations = {
     photo: "Kuva:",
   },
   Album: {
-    editInLegacyAdmin: "Muokkaa vanhassa hallinnassa",
     hidden: "Piilotettu",
     private: "Yksityinen",
   },

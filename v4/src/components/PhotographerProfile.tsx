@@ -40,13 +40,7 @@ export function PhotographerProfile({
               ))}
             </ul>
           ) : null}
-          {album.body.text.trim() ? (
-            album.body.kind === "markdown" ? (
-              <Markdown input={album.body.text} />
-            ) : (
-              <div dangerouslySetInnerHTML={{ __html: album.body.text }} />
-            )
-          ) : null}
+          {album.body.trim() ? <Markdown input={album.body} /> : null}
         </div>
         {cover ? (
           <figure className={portrait ? "col-md-3" : "col-md-4"}>

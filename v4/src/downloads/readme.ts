@@ -28,8 +28,7 @@ export function albumReadme(
   }
 
   if (album.description) lines.push(album.description, "");
-  if (album.body.kind === "markdown" && album.body.text.trim())
-    lines.push(album.body.text.trim(), "");
+  if (album.body.trim()) lines.push(album.body.trim(), "");
 
   if (album.terms) {
     lines.push(album.terms.text, "");

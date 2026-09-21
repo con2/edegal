@@ -1,8 +1,7 @@
-import type { ContentSource, Visibility } from "./types";
+import type { Visibility } from "./types";
 import type { Viewer } from "./viewer";
 
 interface Guarded {
-  source: ContentSource;
   visibility: Visibility;
   ownerId: string | null;
 }
@@ -36,10 +35,9 @@ export function owns(viewer: Viewer, ownerId: string | null): boolean {
   );
 }
 
-/** Private content is visible to its owner and admins (any staff for legacy content). */
+/** Private content is visible to its owner and admins. */
 export function canView(viewer: Viewer, item: Guarded): boolean {
   if (item.visibility !== "private") return true;
-  if (item.source === "legacy") return isStaff(viewer);
   return (
     owns(viewer, item.ownerId) || (viewer.kind === "user" && viewer.isAdmin)
   );
@@ -49,19 +47,15 @@ export function canView(viewer: Viewer, item: Guarded): boolean {
 export function canList(viewer: Viewer, item: Guarded): boolean {
   if (item.visibility === "public") return true;
   if (item.visibility === "private") return canView(viewer, item);
-  if (item.source === "legacy") return isStaff(viewer);
   return (
     owns(viewer, item.ownerId) || (viewer.kind === "user" && viewer.isAdmin)
   );
 }
 
-/**
- * A non-public photo is shown to whoever could list a non-public album with the same owner:
- * staff for legacy content, the owner and admins for v4 content.
- */
+/** A non-public photo is shown to whoever could list a non-public album with the same owner. */
 export function canSeePhoto(
   viewer: Viewer,
-  album: { source: ContentSource; ownerId: string | null },
+  album: { ownerId: string | null },
   photoVisibility: Visibility,
 ): boolean {
   return canList(viewer, { ...album, visibility: photoVisibility });
@@ -69,26 +63,20 @@ export function canSeePhoto(
 
 export function canEditAlbum(
   viewer: Viewer,
-  album: { source: ContentSource; ownerId: string | null },
+  album: { ownerId: string | null },
 ): boolean {
-  if (album.source === "legacy" || viewer.kind !== "user") return false;
+  if (viewer.kind !== "user") return false;
   return viewer.isAdmin || owns(viewer, album.ownerId);
 }
 
 export function canCreateSubalbum(
   viewer: Viewer,
   album: {
-    source: ContentSource;
     ownerId: string | null;
     isOpenForSubalbums: boolean;
   },
 ): boolean {
-  if (
-    album.source === "legacy" ||
-    viewer.kind !== "user" ||
-    !viewer.isPhotographer
-  )
-    return false;
+  if (viewer.kind !== "user" || !viewer.isPhotographer) return false;
   return (
     viewer.isAdmin || owns(viewer, album.ownerId) || album.isOpenForSubalbums
   );
@@ -108,7 +96,7 @@ export const canManagePhoto = canEditAlbum;
 /** The root album is never deleted. */
 export function canDeleteAlbum(
   viewer: Viewer,
-  album: { source: ContentSource; ownerId: string | null; path: string },
+  album: { ownerId: string | null; path: string },
 ): boolean {
   return album.path !== "/" && canEditAlbum(viewer, album);
 }

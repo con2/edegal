@@ -1,6 +1,6 @@
 import { invalidateAlbum } from "@/gallery/cache";
 import { touchAlbum } from "@/gallery/v4/touch";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { generateScaledMedia } from "./pipeline";
@@ -93,7 +93,7 @@ export async function processMediaJob(job: ClaimedJob): Promise<void> {
       error: "",
     });
     await touchAlbum(album.id, shouldTakeOver ? album.parentId : null);
-    invalidateAlbum("v4", album.id, album.parentId);
+    invalidateAlbum(album.id, album.parentId);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const current = await db.orm.public.MediaJob.where({ id: job.id }).first();

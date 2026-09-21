@@ -1,4 +1,4 @@
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 
 export async function GET() {
   await pool.query("select 1");

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
@@ -9,64 +9,19 @@ import { v4PublicPhotoCount, v4RandomPublicPhotoPath } from "./v4/provider";
 import type { Viewer } from "./viewer";
 
 const anonymous: Viewer = { kind: "anonymous" };
-const staff: Viewer = {
+const admin: Viewer = {
   kind: "user",
-  userId: "u-staff",
-  name: "S",
+  userId: "u-admin",
+  name: "A",
   isPhotographer: true,
-  isAdmin: false,
+  isAdmin: true,
 };
 
 /**
- * Legacy fixtures are inserted with SQL because the Django tables are outside the Prisma contract.
- * Root album is at /, "shared" exists in both worlds to prove v4 wins.
+ * Root at /, with "event" (hidden and private children, three photos) and "shared" (one photo,
+ * inherits the root's terms) below it, plus a moved album and a private redirect.
  */
-async function insertLegacyFixtures() {
-  await pool.query(`
-    insert into edegal_album (id, slug, path, title, description, body, is_public, is_visible, is_downloadable, redirect_url, layout, lft, rght, tree_id, level, date, parent_id)
-    values
-      (1, '', '/', 'Legacy root', '', '', true, true, true, '', 'simple', 1, 10, 1, 0, null, null),
-      (2, 'legacy-event', '/legacy-event', 'Legacy event', '', '<p>Hello <script>x()</script></p>', true, true, true, '', 'simple', 2, 7, 1, 1, '2019-06-22', 1),
-      (3, 'hidden', '/legacy-event/hidden', 'Hidden legacy', '', '', true, false, true, '', 'simple', 3, 4, 1, 2, '2019-06-22', 2),
-      (4, 'private', '/legacy-event/private', 'Private legacy', '', '', false, true, true, '', 'simple', 5, 6, 1, 2, '2019-06-22', 2),
-      (5, 'shared', '/shared', 'Legacy shared', '', '', true, true, true, '', 'simple', 8, 9, 1, 1, '2018-01-01', 1),
-      (6, 'old-name', '/old-name', 'Moved', '', '', true, true, true, '/legacy-event', 'simple', 11, 12, 2, 1, null, 1),
-      (7, 'secret-move', '/secret-move', 'Secret move', '', '', false, true, true, '/legacy-event', 'simple', 13, 14, 3, 1, null, 1)
-  `);
-  await pool.query(`
-    insert into edegal_termsandconditions (id, digest, text, is_public, url, user_id)
-    values (1, 'd', E'Ask first.\nCredit always.', true, 'https://legacy.example/terms', null)
-  `);
-  await pool.query(
-    `update edegal_album set terms_and_conditions_id = 1 where id = 2`,
-  );
-  await pool.query(`
-    insert into edegal_picture (id, slug, "order", path, title, description, is_public, album_id, taken_at)
-    values
-      (1, 'pic-1', 10, '/legacy-event/pic-1', 'Pic 1', '', true, 2, '2019-06-22T12:00:00+03'),
-      (2, 'pic-2', 20, '/legacy-event/pic-2', 'Pic 2', '', true, 2, null),
-      (3, 'pic-3', 30, '/legacy-event/pic-3', 'No thumbnail', '', true, 2, null),
-      (4, 'secret', 40, '/legacy-event/secret', 'Secret', '', false, 2, null)
-  `);
-  await pool.query(
-    `update edegal_album set cover_picture_id = 1 where id in (2, 3, 4, 5)`,
-  );
-  await pool.query(`
-    insert into edegal_mediaspec (id, max_width, max_height, quality, format, role, active) values
-      (1, 900, 240, 60, 'jpeg', 'thumbnail', true), (2, 900, 240, 75, 'webp', 'thumbnail', true), (3, 2400, 1350, 85, 'jpeg', 'preview', true)
-  `);
-  await pool.query(`
-    insert into edegal_media (id, width, height, src, picture_id, spec_id, format, role) values
-      (1, 360, 240, 'previews/legacy-event/pic-1.thumbnail.jpeg', 1, 1, 'jpeg', 'thumbnail'),
-      (2, 360, 240, 'previews/legacy-event/pic-1.thumbnail.webp', 1, 2, 'webp', 'thumbnail'),
-      (3, 2025, 1350, 'previews/legacy-event/pic-1.preview.jpeg', 1, 3, 'jpeg', 'preview'),
-      (4, 6000, 4000, 'pictures/legacy-event/pic-1.jpeg', 1, null, 'jpeg', 'original'),
-      (5, 360, 240, 'previews/legacy-event/pic-2.thumbnail.jpeg', 2, 1, 'jpeg', 'thumbnail'),
-      (6, 360, 240, 'previews/legacy-event/secret.thumbnail.jpeg', 4, 1, 'jpeg', 'thumbnail')
-  `);
-}
-
-async function insertV4Fixtures() {
+async function insertFixtures() {
   const terms = await db.orm.public.Terms.create({
     title: "Root terms",
     text: "**Credit** the photographer.",
@@ -78,12 +33,27 @@ async function insertV4Fixtures() {
     title: "V4 root",
     termsId: terms.id,
   });
-  const shared = await db.orm.public.Album.create({
+  const event = await db.orm.public.Album.create({
     parentId: root.id,
-    slug: "shared",
-    path: "/shared",
-    title: "V4 shared",
-    eventDate: "2026-01-01",
+    slug: "event",
+    path: "/event",
+    title: "Event",
+    body: "Hello",
+    eventDate: "2019-06-22",
+  });
+  await db.orm.public.Album.create({
+    parentId: event.id,
+    slug: "hidden",
+    path: "/event/hidden",
+    title: "Hidden",
+    visibility: "hidden",
+  });
+  await db.orm.public.Album.create({
+    parentId: event.id,
+    slug: "private",
+    path: "/event/private",
+    title: "Private",
+    visibility: "private",
   });
   const secret = await db.orm.public.Album.create({
     parentId: root.id,
@@ -98,7 +68,105 @@ async function insertV4Fixtures() {
     path: "/secret/hidden-1",
     title: "Hidden 1",
   });
-  const photo = await db.orm.public.Photo.create({
+  await db.orm.public.Album.create({
+    parentId: root.id,
+    slug: "old-name",
+    path: "/old-name",
+    title: "Moved",
+    eventDate: "2020-01-01",
+    redirectUrl: "/event",
+  });
+  await db.orm.public.Album.create({
+    parentId: root.id,
+    slug: "secret-move",
+    path: "/secret-move",
+    title: "Secret move",
+    eventDate: "2021-01-01",
+    visibility: "private",
+    redirectUrl: "/event",
+  });
+
+  const pic1 = await db.orm.public.Photo.create({
+    albumId: event.id,
+    slug: "pic-1",
+    path: "/event/pic-1",
+    title: "Pic 1",
+    takenAt: "2019-06-22T09:00:00Z",
+  });
+  await db.orm.public.Media.createAll([
+    {
+      photoId: pic1.id,
+      role: "thumbnail",
+      format: "jpeg",
+      width: 360,
+      height: 240,
+      storageKey: "previews/event/pic-1.thumbnail.jpeg",
+    },
+    {
+      photoId: pic1.id,
+      role: "thumbnail",
+      format: "webp",
+      width: 360,
+      height: 240,
+      storageKey: "previews/event/pic-1.thumbnail.webp",
+    },
+    {
+      photoId: pic1.id,
+      role: "preview",
+      format: "jpeg",
+      width: 2025,
+      height: 1350,
+      storageKey: "previews/event/pic-1.preview.jpeg",
+    },
+    {
+      photoId: pic1.id,
+      role: "original",
+      format: "jpeg",
+      width: 6000,
+      height: 4000,
+      storageKey: "pictures/event/pic-1.jpeg",
+    },
+  ]);
+  const pic2 = await db.orm.public.Photo.create({
+    albumId: event.id,
+    slug: "pic-2",
+    path: "/event/pic-2",
+    title: "Pic 2",
+  });
+  await db.orm.public.Media.create({
+    photoId: pic2.id,
+    role: "thumbnail",
+    format: "jpeg",
+    width: 360,
+    height: 240,
+    storageKey: "previews/event/pic-2.thumbnail.jpeg",
+  });
+  const pic3 = await db.orm.public.Photo.create({
+    albumId: event.id,
+    slug: "pic-3",
+    path: "/event/pic-3",
+    title: "No thumbnail",
+  });
+  await db.orm.public.Media.create({
+    photoId: pic3.id,
+    role: "original",
+    format: "jpeg",
+    width: 6000,
+    height: 4000,
+    storageKey: "pictures/event/pic-3.jpeg",
+  });
+  await db.orm.public.Album.where({ id: event.id }).update({
+    thumbnailPhotoId: pic1.id,
+  });
+
+  const shared = await db.orm.public.Album.create({
+    parentId: root.id,
+    slug: "shared",
+    path: "/shared",
+    title: "V4 shared",
+    eventDate: "2026-01-01",
+  });
+  const img1 = await db.orm.public.Photo.create({
     albumId: shared.id,
     slug: "img-1",
     path: "/shared/img-1",
@@ -106,7 +174,7 @@ async function insertV4Fixtures() {
   });
   await db.orm.public.Media.createAll([
     {
-      photoId: photo.id,
+      photoId: img1.id,
       role: "thumbnail",
       format: "jpeg",
       width: 360,
@@ -114,7 +182,7 @@ async function insertV4Fixtures() {
       storageKey: "thumbnails/shared/img-1.jpeg",
     },
     {
-      photoId: photo.id,
+      photoId: img1.id,
       role: "preview",
       format: "avif",
       width: 2025,
@@ -122,7 +190,7 @@ async function insertV4Fixtures() {
       storageKey: "previews/shared/img-1.avif",
     },
     {
-      photoId: photo.id,
+      photoId: img1.id,
       role: "preview",
       format: "jpeg",
       width: 2025,
@@ -131,19 +199,15 @@ async function insertV4Fixtures() {
     },
   ]);
   await db.orm.public.Album.where({ id: shared.id }).update({
-    thumbnailPhotoId: photo.id,
+    thumbnailPhotoId: img1.id,
   });
 }
 
 beforeAll(async () => {
   await pool.query(
-    `truncate v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade`,
+    `truncate v4_redirect, v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade`,
   );
-  await pool.query(
-    `truncate edegal_media, edegal_mediaspec, edegal_picture, edegal_album, edegal_series, edegal_termsandconditions cascade`,
-  );
-  await insertLegacyFixtures();
-  await insertV4Fixtures();
+  await insertFixtures();
 });
 
 afterAll(async () => {
@@ -152,22 +216,10 @@ afterAll(async () => {
 });
 
 describe("resolvePath", () => {
-  it("prefers v4 content over legacy content at the same path", async () => {
-    expect(await resolvePath("/shared")).toMatchObject({
-      kind: "album",
-      source: "v4",
-    });
-    expect(await resolvePath("/legacy-event")).toMatchObject({
-      kind: "album",
-      source: "legacy",
-    });
-    expect(await resolvePath("/legacy-event/pic-1")).toMatchObject({
-      kind: "photo",
-      source: "legacy",
-    });
+  it("resolves an album and a photo, and returns null for an unknown path", async () => {
+    expect(await resolvePath("/shared")).toMatchObject({ kind: "album" });
     expect(await resolvePath("/shared/img-1")).toMatchObject({
       kind: "photo",
-      source: "v4",
     });
     expect(await resolvePath("/nope")).toBeNull();
   });
@@ -175,83 +227,83 @@ describe("resolvePath", () => {
 
 describe("visibility of redirects and random picks", () => {
   // A redirect discloses the album and its destination; a private one shows neither to visitors.
-  it("follows a private legacy redirect only for staff", async () => {
+  it("follows a private redirect only for admins", async () => {
     expect(await loadGalleryPage("/secret-move", anonymous)).toEqual({
       kind: "not-found",
     });
-    expect(await loadGalleryPage("/secret-move", staff)).toEqual({
+    expect(await loadGalleryPage("/secret-move", admin)).toEqual({
       kind: "redirect",
-      to: "/legacy-event",
+      to: "/event",
     });
     expect(await loadGalleryPage("/old-name", anonymous)).toEqual({
       kind: "redirect",
-      to: "/legacy-event",
+      to: "/event",
     });
   });
 
-  it("counts and samples only photos in public v4 albums", async () => {
-    expect(await v4PublicPhotoCount()).toBe(1);
-    expect(await v4RandomPublicPhotoPath()).toBe("/shared/img-1");
+  it("counts and samples only photos in public albums", async () => {
+    expect(await v4PublicPhotoCount()).toBe(4);
+    const path = await v4RandomPublicPhotoPath();
+    expect([
+      "/shared/img-1",
+      "/event/pic-1",
+      "/event/pic-2",
+      "/event/pic-3",
+    ]).toContain(path);
   });
 });
 
 describe("loadGalleryPage", () => {
-  it("merges legacy root subalbums into the v4 front page", async () => {
+  it("lists the root album's own subalbums, newest first", async () => {
     const result = await loadGalleryPage("/", anonymous);
     expect(result.kind).toBe("ok");
     if (result.kind !== "ok") return;
     expect(result.album.title).toBe("V4 root");
     expect(result.album.subalbums.map((s) => s.path)).toEqual([
       "/shared",
-      "/legacy-event",
+      "/old-name",
+      "/event",
     ]);
   });
 
   it("lists hidden and private children only for those allowed", async () => {
-    const anon = await loadGalleryPage("/legacy-event", anonymous);
-    const asStaff = await loadGalleryPage("/legacy-event", staff);
-    if (anon.kind !== "ok" || asStaff.kind !== "ok")
+    const anon = await loadGalleryPage("/event", anonymous);
+    const asAdmin = await loadGalleryPage("/event", admin);
+    if (anon.kind !== "ok" || asAdmin.kind !== "ok")
       throw new Error("expected ok");
     expect(anon.album.subalbums.map((s) => s.path)).toEqual([]);
-    expect(asStaff.album.subalbums.map((s) => s.path).sort()).toEqual([
-      "/legacy-event/hidden",
-      "/legacy-event/private",
+    expect(asAdmin.album.subalbums.map((s) => s.path).sort()).toEqual([
+      "/event/hidden",
+      "/event/private",
     ]);
     expect(anon.album.photos.map((p) => p.path)).toEqual([
-      "/legacy-event/pic-1",
-      "/legacy-event/pic-2",
+      "/event/pic-1",
+      "/event/pic-2",
     ]);
-    expect(asStaff.album.photos.map((p) => p.path)).toContain(
-      "/legacy-event/secret",
-    );
   });
 
   it("hides private albums entirely from anonymous visitors but not hidden ones", async () => {
-    expect(
-      (await loadGalleryPage("/legacy-event/private", anonymous)).kind,
-    ).toBe("not-found");
-    expect(
-      (await loadGalleryPage("/legacy-event/hidden", anonymous)).kind,
-    ).toBe("ok");
+    expect((await loadGalleryPage("/event/private", anonymous)).kind).toBe(
+      "not-found",
+    );
+    expect((await loadGalleryPage("/event/hidden", anonymous)).kind).toBe("ok");
     expect((await loadGalleryPage("/secret", anonymous)).kind).toBe(
       "not-found",
     );
-    expect((await loadGalleryPage("/legacy-event/private", staff)).kind).toBe(
-      "ok",
-    );
+    expect((await loadGalleryPage("/event/private", admin)).kind).toBe("ok");
   });
 
   it("returns the whole album with the requested photo and media sets from media rows", async () => {
-    const result = await loadGalleryPage("/legacy-event/pic-1", anonymous);
+    const result = await loadGalleryPage("/event/pic-1", anonymous);
     if (result.kind !== "ok") throw new Error("expected ok");
-    expect(result.photo?.path).toBe("/legacy-event/pic-1");
+    expect(result.photo?.path).toBe("/event/pic-1");
     expect(new Date(result.photo!.takenAt!).toISOString()).toBe(
       "2019-06-22T09:00:00.000Z",
     );
     expect(result.photo?.thumbnail.alternates).toEqual([
       {
-        src: "/media/previews/legacy-event/pic-1.thumbnail.webp",
-        storageKey: "previews/legacy-event/pic-1.thumbnail.webp",
+        src: "/media/previews/event/pic-1.thumbnail.webp",
+        storageKey: "previews/event/pic-1.thumbnail.webp",
         width: 360,
         height: 240,
         format: "webp",
@@ -259,20 +311,20 @@ describe("loadGalleryPage", () => {
       },
     ]);
     expect(result.photo?.original?.src).toBe(
-      "/media/pictures/legacy-event/pic-1.jpeg",
+      "/media/pictures/event/pic-1.jpeg",
     );
     expect(result.album.photos).toHaveLength(2);
-    expect(result.album.body.text).toBe("<p>Hello </p>");
+    expect(result.album.body).toBe("Hello");
   });
 
-  it("follows legacy album redirects and upstream redirects", async () => {
+  it("follows album redirects and upstream redirects", async () => {
     expect(await loadGalleryPage("/old-name", anonymous)).toEqual({
       kind: "redirect",
-      to: "/legacy-event",
+      to: "/event",
     });
     expect(await loadGalleryPage("/old-name/pic-1", anonymous)).toEqual({
       kind: "redirect",
-      to: "/legacy-event/pic-1",
+      to: "/event/pic-1",
     });
   });
 
@@ -291,20 +343,12 @@ describe("loadGalleryPage", () => {
     expect(result.album.breadcrumb).toEqual([{ path: "/", title: "V4 root" }]);
   });
 
-  it("inherits v4 terms from the nearest ancestor and maps legacy terms as plain text", async () => {
-    const v4 = await loadGalleryPage("/shared", anonymous);
-    const legacy = await loadGalleryPage("/legacy-event", anonymous);
-    if (v4.kind !== "ok" || legacy.kind !== "ok")
-      throw new Error("expected ok");
-    expect(v4.album.terms).toEqual({
-      kind: "markdown",
+  it("inherits terms from the nearest ancestor", async () => {
+    const result = await loadGalleryPage("/shared", anonymous);
+    if (result.kind !== "ok") throw new Error("expected ok");
+    expect(result.album.terms).toEqual({
       text: "**Credit** the photographer.",
       url: "",
-    });
-    expect(legacy.album.terms).toEqual({
-      kind: "text",
-      text: "Ask first.\nCredit always.",
-      url: "https://legacy.example/terms",
     });
   });
 });

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { moveAlbumPath } from "@/editor/albums";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
@@ -14,9 +14,6 @@ let con: { id: string };
 beforeAll(async () => {
   await pool.query(
     "truncate v4_redirect, v4_series, v4_media_job, v4_media, v4_photo, v4_album_credit, v4_album, v4_user cascade",
-  );
-  await pool.query(
-    "truncate edegal_media, edegal_mediaspec, edegal_picture, edegal_album, edegal_series cascade",
   );
   const root = await db.orm.public.Album.create({
     slug: "",

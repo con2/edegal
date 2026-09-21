@@ -11,11 +11,6 @@ export interface SeriesFormValues {
   body: string;
 }
 
-export interface SeriesFormOptions {
-  /** Legacy series with no v4 counterpart; their slugs are offered so a series can continue. */
-  legacySeries: { slug: string; title: string }[];
-}
-
 interface SeriesFormProps {
   locale: string;
   action: (formData: FormData) => void | Promise<void>;
@@ -23,7 +18,6 @@ interface SeriesFormProps {
   submitLabel: string;
   cancelHref: string;
   values: SeriesFormValues;
-  options: SeriesFormOptions;
   messages: Translations["Editor"];
 }
 
@@ -34,7 +28,6 @@ export function SeriesForm({
   submitLabel,
   cancelHref,
   values,
-  options,
   messages,
 }: SeriesFormProps) {
   const f = messages.fields;
@@ -87,17 +80,9 @@ export function SeriesForm({
             type="text"
             pattern="[a-z0-9-]*"
             maxLength={255}
-            list="SeriesForm-legacySlugs"
             autoComplete="off"
             defaultValue={values.slug}
           />
-          <datalist id="SeriesForm-legacySlugs">
-            {options.legacySeries.map((s) => (
-              <option key={s.slug} value={s.slug}>
-                {s.title}
-              </option>
-            ))}
-          </datalist>
           <div className="form-text">{f.seriesSlugHelp}</div>
         </div>
 

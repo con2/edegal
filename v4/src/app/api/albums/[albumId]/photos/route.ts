@@ -63,7 +63,7 @@ export async function POST(
   if (!album) return fail("notFound");
   if (
     viewer.kind !== "user" ||
-    !canUpload(viewer, { source: "v4", ownerId: album.ownerId })
+    !canUpload(viewer, { ownerId: album.ownerId })
   ) {
     return fail("forbidden");
   }

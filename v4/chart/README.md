@@ -63,18 +63,6 @@ files through whitenoise, so no other backend is involved. The legacy namespace 
 ReferenceGrant allowing this namespace's HTTPRoute to target the Service; the legacy manifests
 create one when `v4_namespace` is set. An empty `legacy.namespace` renders neither route.
 
-## Legacy data cutover (phase 3 of the legacy-to-v4 migration)
-
-`legacy.enabled` (default `true`) sets `LEGACY_ENABLED`, independently of the admin-proxy
-`legacy.namespace` above. Once a site's migration is verified, set it `false` for that site (in
-its own `values-*.yaml`, not the shared `values.yaml`) so the app stops reading the `edegal_*`
-tables at all - see v4/docs/legacy-migration-plan.md. A `helm upgrade` with this change alone does
-not restart the running pods (it's a ConfigMap, not a new image), so follow it with
-`kubectl -n <ns> rollout restart deployment/node deployment/worker` to pick it up. Before flipping
-it, `npm run legacy:verify` (once with `LEGACY_ENABLED=true`, once with `false`, against the same
-database) diffs every album/photographer/series page's rendering across the flag to catch anything
-the migration missed.
-
 `additionalHostnames` adds dnsNames to the Certificate without adding Gateway listeners. The TLS
 Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` change.
 
@@ -98,33 +86,3 @@ helm upgrade --install v4 v4/chart -n conikuvat-v4 -f v4/chart/values-conikuvat.
 ```
 
 CI does this on every push to `main` that touches `v4/`.
-
-## Legacy-to-v4 data migration (one-off, per site)
-
-`legacyMigration.enabled` (default `false`) renders a Job running
-`src/bin/migrate-legacy.ts` (v4/docs/legacy-migration-plan.md) on the `-worker` image, which has
-`tsx` and the full app; the small `-migrate` image used by the Deployment's init container does
-not. `helm upgrade`/CI never render it. Run by hand, dry run first:
-
-```sh
-helm template v4 v4/chart -n conikuvat-v4 -f v4/chart/values-conikuvat.yaml --set image.tag=<sha> \
-  --set legacyMigration.enabled=true --set legacyMigration.runId=$(date +%s) \
-  -s templates/job-legacy-migration.yaml | kubectl -n conikuvat-v4 apply -f -
-kubectl -n conikuvat-v4 wait --for=condition=complete --timeout=600s job -l component=legacy-migration
-kubectl -n conikuvat-v4 cp "$(kubectl -n conikuvat-v4 get pod -l component=legacy-migration -o name | tail -1 | cut -d/ -f2):/tmp/legacy-migration-report.txt" ./legacy-migration-report.txt
-```
-
-Read the report (every converted body's HTML next to its Markdown) and the pod's own logs
-(`kubectl -n conikuvat-v4 logs job/legacy-migration-<runId>` — the created/skipped counts). Take a
-database backup, then re-run with a new `runId` and `--set 'legacyMigration.args[0]=--apply'` to
-write. The Job is not idempotent-proof against concurrent runs, so only ever run one at a time per
-site.
-
-**Photographer profile visibility, once per site.** The first `--apply` run after this feature
-ships recovers each photographer's legacy profile photo (safe, ordinary enrichment, part of every
-run). Immediately after that run, once per site, also pass `--sync-photographer-visibility` to set
-starting visibility from legacy's own convention (public with a cover photo, hidden without) —
-add it as a second `args` entry: `--set 'legacyMigration.args[0]=--apply'
---set 'legacyMigration.args[1]=--sync-photographer-visibility'`. Do this exactly once per site;
-every later run (this flag omitted) leaves visibility alone so photographers can manage it
-themselves from the `/profile` page afterward.

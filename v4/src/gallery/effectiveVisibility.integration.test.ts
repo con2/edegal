@@ -1,15 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { Viewer } from "@/gallery/viewer";
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
-import { legacyRandomPublicPicturePath } from "@/legacy/sql";
 
 import { loadGalleryPage } from "./load";
-import {
-  loadPhotographerPageBySlug,
-  loadPhotographersIndex,
-} from "./photographers";
+import { loadPhotographerPageBySlug } from "./photographers";
 import { touchSubtree } from "./v4/touch";
 import { v4PublicPhotoCount } from "./v4/provider";
 
@@ -44,16 +40,12 @@ async function jpegMedia(photoId: string, base: string) {
 }
 
 /**
- * v4: root > embargo (hidden) > run (public, credited to Alice, in series "camp", one photo);
- *     root > vault (private) > open (public); root > free (public, credited to Alice).
- * legacy: root > old-embargo (is_visible=false) > old-run (public, photographer Bob, cover picture).
+ * root > embargo (hidden) > run (public, credited to Alice, in series "camp", one photo);
+ * root > vault (private) > open (public); root > free (public, credited to Alice).
  */
 beforeAll(async () => {
   await pool.query(
     "truncate v4_redirect, v4_series, v4_media_job, v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade",
-  );
-  await pool.query(
-    "truncate edegal_media, edegal_mediaspec, edegal_picture, edegal_album, edegal_series, edegal_photographer cascade",
   );
   const user = await db.orm.public.User.create({
     sub: "alice",
@@ -131,21 +123,6 @@ beforeAll(async () => {
       description: name,
     });
   }
-
-  await pool.query(`
-    insert into edegal_photographer (id, slug, display_name, email, body, homepage_url, twitter_handle, instagram_handle, facebook_handle, flickr_handle, bluesky_handle, threads_handle)
-    values (1, 'bob', 'Bob', '', '', '', '', '', '', '', '', '');
-    insert into edegal_album (id, slug, path, title, description, body, is_public, is_visible, is_downloadable, redirect_url, layout, lft, rght, tree_id, level, date, parent_id, photographer_id)
-    values
-      (1, '', '/', 'Legacy root', '', '', true, true, true, '', 'simple', 1, 6, 1, 0, null, null, null),
-      (2, 'old-embargo', '/old-embargo', 'Old embargo', '', '', true, false, true, '', 'simple', 2, 5, 1, 1, '2020-01-01', 1, null),
-      (3, 'old-run', '/old-embargo/old-run', 'Old run', '', '', true, true, true, '', 'simple', 3, 4, 1, 2, '2020-01-01', 2, 1);
-    insert into edegal_picture (id, slug, "order", path, title, description, is_public, album_id, taken_at)
-    values (1, 'q', 0, '/old-embargo/old-run/q', 'Q', '', true, 3, null);
-    update edegal_album set cover_picture_id = 1 where id = 3;
-    insert into edegal_mediaspec (id, max_width, max_height, quality, format, role, active) values (1, 900, 240, 60, 'jpeg', 'thumbnail', true);
-    insert into edegal_media (id, width, height, src, picture_id, spec_id, format, role) values (1, 900, 240, 'thumbnails/old-embargo/old-run/q.jpeg', 1, 1, 'jpeg', 'thumbnail');
-  `);
 });
 
 afterAll(async () => {
@@ -186,17 +163,6 @@ describe("effective visibility", () => {
     ]);
   });
 
-  it("applies the same rule to legacy photographers", async () => {
-    const bob = await loadPhotographerPageBySlug("bob");
-    expect(bob?.subalbums.map((s) => [s.path, s.visibility])).toEqual([
-      ["/old-embargo/old-run", "hidden"],
-    ]);
-    const index = await loadPhotographersIndex();
-    expect(index.subalbums.map((s) => s.path)).toEqual([
-      "/photographers/alice",
-    ]);
-  });
-
   it("keeps embargoed members out of series listings for visitors", async () => {
     const camp = await page("/camp", anonymous);
     expect(camp.subalbums).toEqual([]);
@@ -206,7 +172,6 @@ describe("effective visibility", () => {
 
   it("does not sample embargoed photos for /random", async () => {
     expect(await v4PublicPhotoCount()).toBe(1);
-    expect(await legacyRandomPublicPicturePath()).toBeNull();
   });
 
   it("closes a public album under a private parent to visitors", async () => {

@@ -1,6 +1,5 @@
 hostname: larppikuvat.fi
 legacy:
-  enabled: false
   namespace: larppikuvat
 mediaNfs:
   server: 91.105.252.80
@@ -9,7 +8,6 @@ kompassi:
   baseUrl: https://kompassi.eu
   photographerGroup: larppikuvat-staff
   adminGroup: admins
-legacyAdminUrl: https://larppikuvat.fi/admin/
 mail:
   smtpHostname: sr1.pahaip.fi
   smtpPort: 25

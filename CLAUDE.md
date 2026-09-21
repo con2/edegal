@@ -32,7 +32,6 @@ the user in new places.
 - `npm test` (unit), `npm run test:integration` (needs `TEST_DATABASE_URL`)
 - `npm run db:plan -- <slug>` – emit contract and plan a migration; `npm run db:migrate:dev` – apply and advance the `db` ref
 - `npm run db:seed` – example v4 content into the dev database and `MEDIA_ROOT`
-- `npm run legacy:schema` – create empty `edegal_*` tables in a fresh database (dev/test only)
 
 ## Prisma 8 is not Prisma 7
 
@@ -57,10 +56,10 @@ touching the contract, migrations or queries. Key points:
 
 ## Legacy content
 
-Read-only access to the Django tables lives in `v4/src/legacy/` as hand-written SQL on the `pg`
-driver (same pool as Prisma). Nothing outside `v4/src/legacy/` may name an `edegal_*` table, and the
-legacy tables are deliberately not in the Prisma contract. Legacy media specs (thumbnail and preview
-formats and sizes in the Django admin) are not touched; existing legacy thumbnails stay as they are.
+v4 no longer reads the Django tables: all site content was migrated into `v4_*` tables and
+`LEGACY_ENABLED`/`v4/src/legacy/` are gone. The `edegal_*` tables and their media files are still
+in place (dropping them is a later phase) but nothing outside `v2-backend/` touches them anymore;
+leave existing legacy thumbnails and media files alone.
 
 ## Auth
 

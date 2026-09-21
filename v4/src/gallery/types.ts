@@ -1,11 +1,7 @@
-/**
- * View-model shared by the v4 and legacy providers. The page renders from this shape only, so the
- * two content sources are indistinguishable to visitors.
- */
+/** View-model the gallery pages render from. */
 
 export type Visibility = "public" | "hidden" | "private";
 export type MediaFormat = "jpeg" | "png" | "webp" | "avif";
-export type ContentSource = "v4" | "legacy";
 
 export interface MediaVariant {
   src: string;
@@ -63,7 +59,7 @@ export interface SubalbumVM {
   date: string | null;
   visibility: Visibility;
   thumbnail: MediaSet | null;
-  /** Legacy albums may be pure redirects to an external site; rendered as an external link tile. */
+  /** An album that is really just a redirect to an external site renders as a link tile. */
   externalUrl: string | null;
   /** Server-only; stripped before the payload reaches the client. */
   ownerId: string | null;
@@ -87,8 +83,6 @@ export interface CreditVM {
 }
 
 export interface TermsVM {
-  /** Legacy terms are plain text with line breaks; v4 terms are Markdown. */
-  kind: "markdown" | "text";
   text: string;
   url: string;
 }
@@ -97,7 +91,6 @@ export type PageKind =
   "album" | "series" | "photographers" | "photographer" | "timeline";
 
 export interface AlbumPageVM {
-  source: ContentSource;
   /** Albums and series come from the tables; the photographer pages are assembled from credits. */
   kind: PageKind;
   id: string;
@@ -106,8 +99,8 @@ export interface AlbumPageVM {
   path: string;
   title: string;
   description: string;
-  body: { kind: "markdown" | "html"; text: string };
-  /** A photographer page's cover picture (legacy photographers only). */
+  body: string;
+  /** A photographer page's cover picture. */
   cover: CoverVM | null;
   date: string | null;
   layout: "simple" | "yearly";
@@ -134,10 +127,8 @@ export interface AlbumPageVM {
   terms: TermsVM | null;
   previousInSeries: Crumb | null;
   nextInSeries: Crumb | null;
-  /** Legacy album-level redirect; the page issues a redirect instead of rendering. */
+  /** An album that is really just a redirect; the page issues a redirect instead of rendering. */
   redirectUrl: string | null;
-  /** Where legacy albums are edited; null for v4 albums. */
-  legacyAdminUrl: string | null;
 }
 
 export type ClientSubalbum = Omit<SubalbumVM, "ownerId">;
@@ -151,9 +142,9 @@ export type ClientAlbumPage = Omit<
 };
 
 export type Resolution =
-  | { kind: "album"; source: ContentSource; albumId: string; albumPath: string }
-  | { kind: "photo"; source: ContentSource; albumId: string; photoPath: string }
-  | { kind: "series"; source: ContentSource; seriesId: string; path: string };
+  | { kind: "album"; albumId: string; albumPath: string }
+  | { kind: "photo"; albumId: string; photoPath: string }
+  | { kind: "series"; seriesId: string; path: string };
 
 export type GalleryPageResult =
   | {

@@ -48,14 +48,13 @@ export async function GalleryPage({
     title: album.title,
   };
   const guard = {
-    source: album.source,
     ownerId: unfiltered.ownerId,
     isOpenForSubalbums: unfiltered.isOpenForSubalbums,
     path: album.path,
   };
   const isAlbum = unfiltered.kind === "album";
-  const isV4Series = unfiltered.kind === "series" && album.source === "v4";
-  const manageSeries = isV4Series && canManageSeries(viewer);
+  const isSeries = unfiltered.kind === "series";
+  const manageSeries = isSeries && canManageSeries(viewer);
   const rights = {
     canCreate: isAlbum && canCreateSubalbum(viewer, guard),
     canEdit: (isAlbum && canEditAlbum(viewer, guard)) || manageSeries,
@@ -75,12 +74,9 @@ export async function GalleryPage({
     requestedMode && modeAllowed[requestedMode] ? requestedMode : null;
   const canManage = isAlbum && canManagePhoto(viewer, guard);
   const canPickProfilePhoto =
-    isAlbum &&
-    album.source === "v4" &&
-    viewer.kind === "user" &&
-    viewer.isPhotographer;
+    isAlbum && viewer.kind === "user" && viewer.isPhotographer;
   const targets =
-    isAlbum && album.source === "v4" && viewer.kind === "user"
+    isAlbum && viewer.kind === "user"
       ? await thumbnailTargets(viewer, {
           id: album.id,
           path: album.path,
@@ -131,15 +127,9 @@ export async function GalleryPage({
           album={album}
           messages={{
             BreadcrumbBar: t.BreadcrumbBar,
-            Album: t.Album,
             DownloadAlbumDialog: t.DownloadAlbumDialog,
             Download: t.Download,
           }}
-          canEdit={
-            album.legacyAdminUrl !== null &&
-            viewer.kind === "user" &&
-            viewer.isPhotographer
-          }
           canDownload={
             // The zip route only ever bundles one album's own photos, so it must not be offered
             // on a timeline, whose `photos` are flattened in from a whole subtree.
@@ -153,7 +143,7 @@ export async function GalleryPage({
                 locale={locale}
                 albumId={album.id}
                 albumPath={album.path}
-                kind={isV4Series ? "series" : "album"}
+                kind={isSeries ? "series" : "album"}
                 rights={rights}
                 hasPhotos={album.photos.length > 0}
                 hasManualOrdering={album.hasManualOrdering}

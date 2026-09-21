@@ -1,6 +1,6 @@
 import postgres from "@prisma/orm-postgres/runtime";
 
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import type { Contract } from "./contract.d.ts";
 import contractJson from "./contract.json" with { type: "json" };
 

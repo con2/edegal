@@ -5,7 +5,6 @@ import {
   existingSeriesValues,
   newAlbumDefaults,
   newSeriesValues,
-  seriesFormOptions,
 } from "@/editor/formData";
 import {
   canCreateSubalbum,
@@ -70,7 +69,7 @@ export async function EditorPanel({
   viewer,
   messages,
 }: EditorPanelProps) {
-  if (viewer.kind !== "user" || album.source !== "v4") return null;
+  if (viewer.kind !== "user") return null;
   if (album.kind === "series")
     return (
       <SeriesEditorPanel
@@ -83,7 +82,6 @@ export async function EditorPanel({
     );
   if (album.kind !== "album") return null;
   const guard = {
-    source: album.source,
     ownerId: album.ownerId,
     isOpenForSubalbums: album.isOpenForSubalbums,
     path: album.path,
@@ -99,7 +97,6 @@ export async function EditorPanel({
         submitLabel={messages.Editor.createSeries}
         cancelHref="/"
         values={newSeriesValues}
-        options={await seriesFormOptions()}
         messages={messages.Editor}
       />
     );
@@ -223,7 +220,6 @@ async function SeriesEditorPanel({
         submitLabel={messages.save}
         cancelHref={series.path}
         values={values}
-        options={await seriesFormOptions()}
         messages={messages}
       />
     );

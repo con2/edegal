@@ -15,8 +15,6 @@ import { describeVariant, downloadOptions } from "@/downloads/options";
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
 import type { Translations } from "@/translations";
 
-import { Linebreaks } from "./Linebreaks";
-
 export type DownloadDialogMessages = Translations["DownloadDialog"];
 
 interface DownloadDialogProps {
@@ -92,11 +90,7 @@ export function DownloadDialog({
           <strong>{t.termsAndConditions}</strong>
         </p>
         {album.terms ? (
-          album.terms.kind === "markdown" ? (
-            <Markdown input={album.terms.text} />
-          ) : (
-            <Linebreaks text={album.terms.text} />
-          )
+          <Markdown input={album.terms.text} />
         ) : (
           <p>{t.defaultTerms}</p>
         )}

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { pool } from "@/legacy/pool";
+import { pool } from "@/prisma/pool";
 import { mediaStorage } from "@/media/storage";
 import { db } from "@/prisma/db";
 
@@ -20,15 +20,6 @@ beforeAll(async () => {
   await pool.query(
     "truncate v4_media_job, v4_media, v4_photo, v4_album_credit, v4_album, v4_photographer_link, v4_photographer, v4_terms, v4_user cascade",
   );
-  await pool.query(
-    "truncate edegal_media, edegal_mediaspec, edegal_picture, edegal_album, edegal_series, edegal_termsandconditions cascade",
-  );
-  await pool.query(`insert into edegal_album (id, slug, path, title, description, body, is_public, is_visible, is_downloadable, redirect_url, layout, lft, rght, tree_id, level)
-    values (1, 'legacy', '/legacy', 'Legacy', '', '', true, true, true, '', 'simple', 1, 2, 1, 0)`);
-  await pool.query(`
-    insert into edegal_series (id, title, slug, description, body, is_public, is_visible, path)
-    values (1, 'Legacy series', 'legacy-series', '', '', true, true, '/legacy-series')
-  `);
   const root = await db.orm.public.Album.create({
     slug: "",
     path: "/",
@@ -94,28 +85,12 @@ async function photoOrder(albumId: string) {
 }
 
 describe("album helpers", () => {
-  it("refuses paths taken by legacy or other v4 content but allows an album's own path", async () => {
-    await expect(assertPathFree("/legacy")).rejects.toBeInstanceOf(
-      PathTakenError,
-    );
+  it("refuses paths taken by other albums but allows an album's own path", async () => {
     await expect(assertPathFree("/event/day")).rejects.toBeInstanceOf(
       PathTakenError,
     );
     await expect(assertPathFree("/event/day", dayId)).resolves.toBeUndefined();
     await expect(assertPathFree("/brand-new")).resolves.toBeUndefined();
-  });
-
-  it("refuses a legacy series' path unless continuing it is explicitly allowed", async () => {
-    await expect(assertPathFree("/legacy-series")).rejects.toBeInstanceOf(
-      PathTakenError,
-    );
-    await expect(
-      assertPathFree("/legacy-series", undefined, true),
-    ).resolves.toBeUndefined();
-    // Still refuses ordinary album/photo/legacy-album collisions even when allowed.
-    await expect(
-      assertPathFree("/legacy", undefined, true),
-    ).rejects.toBeInstanceOf(PathTakenError);
   });
 
   it("detects a redirect that would point back to the album itself, directly or via a chain", async () => {

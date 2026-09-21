@@ -62,13 +62,12 @@ function subalbum(overrides: Partial<ClientSubalbum> = {}): ClientSubalbum {
 
 function album(overrides: Partial<ClientAlbumPage> = {}): ClientAlbumPage {
   return {
-    source: "v4",
     kind: "album",
     id: "1",
     path: "/album",
     title: "Album title",
     description: "",
-    body: { kind: "markdown", text: "" },
+    body: "",
     cover: null,
     date: "2020-01-01",
     layout: "simple",
@@ -86,7 +85,6 @@ function album(overrides: Partial<ClientAlbumPage> = {}): ClientAlbumPage {
     previousInSeries: null,
     nextInSeries: null,
     redirectUrl: null,
-    legacyAdminUrl: null,
     ...overrides,
   };
 }

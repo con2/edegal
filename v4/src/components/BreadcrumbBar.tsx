@@ -12,9 +12,8 @@ interface BreadcrumbBarProps {
   album: ClientAlbumPage;
   messages: Pick<
     Translations,
-    "BreadcrumbBar" | "Album" | "DownloadAlbumDialog" | "Download"
+    "BreadcrumbBar" | "DownloadAlbumDialog" | "Download"
   >;
-  canEdit: boolean;
   canDownload: boolean;
   /** Album management links for photographers; rendered before the download button. */
   editor?: React.ReactNode;
@@ -23,7 +22,6 @@ interface BreadcrumbBarProps {
 export function BreadcrumbBar({
   album,
   messages,
-  canEdit,
   canDownload,
   editor,
 }: BreadcrumbBarProps) {
@@ -62,11 +60,6 @@ export function BreadcrumbBar({
               Download: messages.Download,
             }}
           />
-        ) : null}
-        {canEdit && album.legacyAdminUrl ? (
-          <a className="btn btn-link btn-sm" href={album.legacyAdminUrl}>
-            {messages.Album.editInLegacyAdmin}
-          </a>
         ) : null}
       </nav>
     </Container>

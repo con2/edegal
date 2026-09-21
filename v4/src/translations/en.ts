@@ -104,7 +104,6 @@ const translations = {
     photo: "Photo:",
   },
   Album: {
-    editInLegacyAdmin: "Edit in old admin",
     hidden: "Hidden",
     private: "Private",
   },

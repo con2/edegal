@@ -91,7 +91,7 @@ export async function importFlickrAlbum(
   ]);
   await clearRedirect(path);
   await touchAlbum(album.id, parent.id);
-  invalidateAlbum("v4", album.id, parent.id);
+  invalidateAlbum(album.id, parent.id);
 
   let coverImported = false;
   if (meta.imageUrl) {
