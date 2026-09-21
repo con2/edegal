@@ -35,6 +35,13 @@ import { db } from "@/prisma/db";
  * Meant to be passed exactly once, right after this script starts recovering cover photos, to
  * establish everyone's starting visibility from legacy's own convention (no photo, no listing);
  * from then on photographers manage the setting themselves and ordinary runs never touch it.
+ *
+ * An earlier version of this script gave every migrated album a distinct `ordering`, which -
+ * being a manual admin pin that always outranks eventDate in every subalbum sort - replaced the
+ * site's whole chronological order with migration insertion order once LEGACY_ENABLED=false
+ * stopped masking it (the old legacy-merge path re-sorted the front page by date regardless of
+ * ordering). Fixed to leave `ordering` at its default; a database an earlier run already touched
+ * needs a one-time `update v4_album set ordering = 0` by hand, not a script flag.
  */
 
 const apply = process.argv.includes("--apply");
@@ -322,13 +329,7 @@ async function migrateAlbums(): Promise<void> {
     ),
   );
   // Parents before children (exportAlbums orders by level, lft), so parent_id always resolves.
-  // Siblings share a level and are lft-ordered within it, so a global counter assigns them
-  // increasing `ordering` values in their original legacy left-to-right order - load.ts's
-  // subalbum sort falls back to ordering only when eventDate ties, which same-event siblings
-  // dated to one day very often do.
-  let nextOrdering = 0;
   for (const row of await exportAlbums()) {
-    const ordering = nextOrdering++;
     if (redirectedPaths.has(row.path)) {
       tally("albums.skippedRedirected");
       continue;
@@ -382,7 +383,12 @@ async function migrateAlbums(): Promise<void> {
               isDownloadable: row.is_downloadable,
               redirectUrl: row.redirect_url,
               eventDate: row.date,
-              ordering,
+              // Left at its default (0): ordering is a manual admin pin that always outranks
+              // eventDate in every subalbum sort (loadV4Album, the photographer page, the old
+              // front-page legacy merge) - giving every migrated album a distinct value here
+              // replaced the site's whole chronological sort with migration insertion order.
+              // Same-date siblings just sort by whatever order comes back from the query, same
+              // as legacy's own tiebreak effectively was (see legacy-migration-plan.md).
               termsId,
               seriesId,
             })
