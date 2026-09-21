@@ -63,6 +63,18 @@ files through whitenoise, so no other backend is involved. The legacy namespace 
 ReferenceGrant allowing this namespace's HTTPRoute to target the Service; the legacy manifests
 create one when `v4_namespace` is set. An empty `legacy.namespace` renders neither route.
 
+## Legacy data cutover (phase 3 of the legacy-to-v4 migration)
+
+`legacy.enabled` (default `true`) sets `LEGACY_ENABLED`, independently of the admin-proxy
+`legacy.namespace` above. Once a site's migration is verified, set it `false` for that site (in
+its own `values-*.yaml`, not the shared `values.yaml`) so the app stops reading the `edegal_*`
+tables at all - see v4/docs/legacy-migration-plan.md. A `helm upgrade` with this change alone does
+not restart the running pods (it's a ConfigMap, not a new image), so follow it with
+`kubectl -n <ns> rollout restart deployment/node deployment/worker` to pick it up. Before flipping
+it, `npm run legacy:verify` (once with `LEGACY_ENABLED=true`, once with `false`, against the same
+database) diffs every album/photographer/series page's rendering across the flag to catch anything
+the migration missed.
+
 `additionalHostnames` adds dnsNames to the Certificate without adding Gateway listeners. The TLS
 Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` change.
 

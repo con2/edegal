@@ -12,10 +12,14 @@ hostname: v4.example.com
 # hostname flip has no TLS gap.
 additionalHostnames: []
 
-# Django admin of the legacy stack, reached at /admin with its static files at /static. An empty
-# namespace disables both routes. The legacy namespace must grant the HTTPRoute access to the
-# Service with a ReferenceGrant (v2-backend/kubernetes/referencegrant.in.yaml).
+# `enabled: false` sets LEGACY_ENABLED=false, so the app stops reading the edegal_* tables at
+# all (content migrated into v4 - see v4/docs/legacy-migration-plan.md phase 3). Independent of
+# the rest of this block: the Django admin proxy (reached at /admin with its static files at
+# /static) stays up regardless, keyed only by `namespace` below - an empty namespace disables
+# both routes. The legacy namespace must grant the HTTPRoute access to the Service with a
+# ReferenceGrant (v2-backend/kubernetes/referencegrant.in.yaml).
 legacy:
+  enabled: true
   namespace: ""
   service: edegal
   port: 8000
