@@ -112,4 +112,12 @@ Peli pelattiin **18.7.2026** Verstas-näyttämöllä.
   it("returns an empty string for an empty body", () => {
     expect(legacyHtmlToMarkdown("")).toBe("");
   });
+
+  it("moves a trailing space kept inside <strong> outside the ** markers instead of escaping it", () => {
+    const html =
+      "<p><strong>Name </strong>on tamperelainen pelitutkimuksen opiskelija.</p>";
+    expect(legacyHtmlToMarkdown(html)).toBe(
+      "**Name** on tamperelainen pelitutkimuksen opiskelija.",
+    );
+  });
 });

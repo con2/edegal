@@ -19,6 +19,7 @@
     "db:verify": "prisma db verify",
     "db:seed": "tsx src/bin/seed.ts",
     "legacy:schema": "tsx src/legacy/apply-schema.ts",
+    "legacy:migrate": "tsx src/bin/migrate-legacy.ts",
     "prepare": "husky",
     "worker": "tsx src/bin/worker.ts"
   },
