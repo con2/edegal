@@ -46,6 +46,7 @@ next-env.d.ts
 
 # legacy migration script output: real migrated content, never for the repo
 /legacy-migration-report*.txt
+/legacy-migration-verify*.json
 
 # legacy schema dump is intentionally tracked despite the repo-wide *.sql ignore
 !legacy-schema/*.sql
