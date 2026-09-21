@@ -75,14 +75,16 @@ async function migrateTerms(): Promise<void> {
   if (!shouldRun("terms")) return;
   for (const row of await exportTerms()) {
     if (row.text.trim() === "" && row.url.trim() === "") continue;
-    const existing = await db.orm.public.Terms.where({
-      text: row.text,
-      url: row.url,
-    })
+    // Match on the same text v4 would store (hard breaks added), not the raw legacy text - a
+    // multi-line legacy row would otherwise never match its own already-migrated v4 row and get
+    // recreated on every run.
+    const text = row.text.replace(/\n/g, "  \n");
+    const existing = await db.orm.public.Terms.where({ text, url: row.url })
       .select("id")
       .first();
     if (existing) {
       termsMap.set(row.id, existing.id);
+      tally("terms.matched");
       continue;
     }
     tally("terms.created");
@@ -91,9 +93,7 @@ async function migrateTerms(): Promise<void> {
       : (
           await db.orm.public.Terms.create({
             title: deriveTermsTitle(row.text),
-            // Legacy terms are plain text with newlines; hard breaks keep the same line layout
-            // once rendered as Markdown.
-            text: row.text.replace(/\n/g, "  \n"),
+            text,
             url: row.url,
           })
         ).id;
@@ -186,6 +186,8 @@ async function migratePhotographers(): Promise<void> {
         tally("photographers.enriched");
         if (apply)
           await db.orm.public.Photographer.where({ id: v4Id }).update(patch);
+      } else {
+        tally("photographers.matched");
       }
     } else {
       tally("photographers.created");
@@ -215,8 +217,13 @@ async function migratePhotographers(): Promise<void> {
           .select("href")
           .all()
       : [];
-    const seen = new Set(existingLinks.map((l) => l.href));
-    const fresh = links.filter((l) => !seen.has(l.href));
+    // A trailing slash is the only difference seen in practice between a v4 profile's own link
+    // and the same destination's legacy handle; ignore it so enriching doesn't add a duplicate.
+    const withoutTrailingSlash = (href: string) => href.replace(/\/$/, "");
+    const seen = new Set(
+      existingLinks.map((l) => withoutTrailingSlash(l.href)),
+    );
+    const fresh = links.filter((l) => !seen.has(withoutTrailingSlash(l.href)));
     if (fresh.length === 0) continue;
     tally("photographerLinks.created", fresh.length);
     if (apply) {
@@ -253,6 +260,8 @@ async function migrateSeries(): Promise<void> {
       if (Object.keys(patch).length > 0) {
         tally("series.enriched");
         if (apply) await db.orm.public.Series.where({ id: v4Id }).update(patch);
+      } else {
+        tally("series.matched");
       }
     } else {
       tally("series.created");
@@ -291,7 +300,13 @@ const hiddenSiblingMap = new Map<number, string>();
 async function migrateAlbums(): Promise<void> {
   if (!shouldRun("albums")) return;
   // Parents before children (exportAlbums orders by level, lft), so parent_id always resolves.
+  // Siblings share a level and are lft-ordered within it, so a global counter assigns them
+  // increasing `ordering` values in their original legacy left-to-right order - load.ts's
+  // subalbum sort falls back to ordering only when eventDate ties, which same-event siblings
+  // dated to one day very often do.
+  let nextOrdering = 0;
   for (const row of await exportAlbums()) {
+    const ordering = nextOrdering++;
     const existing = await db.orm.public.Album.where({ path: row.path })
       .select("id", "description", "body", "redirectUrl", "termsId", "seriesId")
       .first();
@@ -320,6 +335,8 @@ async function migrateAlbums(): Promise<void> {
       if (Object.keys(patch).length > 0) {
         tally("albums.enriched");
         if (apply) await db.orm.public.Album.where({ id: v4Id }).update(patch);
+      } else {
+        tally("albums.matched");
       }
     } else {
       tally("albums.created");
@@ -339,6 +356,7 @@ async function migrateAlbums(): Promise<void> {
               isDownloadable: row.is_downloadable,
               redirectUrl: row.redirect_url,
               eventDate: row.date,
+              ordering,
               termsId,
               seriesId,
             })
@@ -360,15 +378,24 @@ async function migrateAlbums(): Promise<void> {
       description: string;
       ordering: number;
     }[] = [];
+    // A photographer credited as their own album's director (15 albums in the conikuvat dump)
+    // gets one merged row: v4_album_credit's key is (albumId, photographerId), so two rows for
+    // the same pair is not just redundant but a constraint violation.
+    const sameDirector =
+      row.director_id !== null && row.director_id === row.photographer_id;
     if (row.photographer_id && photographerMap.has(row.photographer_id)) {
       credits.push({
         photographerId: photographerMap.get(row.photographer_id)!,
         isCopyright: true,
-        description: "",
+        description: sameDirector ? "director" : "",
         ordering: 0,
       });
     }
-    if (row.director_id && photographerMap.has(row.director_id)) {
+    if (
+      row.director_id &&
+      !sameDirector &&
+      photographerMap.has(row.director_id)
+    ) {
       credits.push({
         photographerId: photographerMap.get(row.director_id)!,
         isCopyright: false,
@@ -457,11 +484,24 @@ async function migratePicturesAndMedia(): Promise<{
     exportPictures(),
     exportMedia(),
   ]);
-  const mediaByPicture = new Map<number, LegacyExportMedia[]>();
+  // Legacy media specs could render more than one size at the same role+format (e.g. several
+  // preview widths, all "preview"/"jpeg") for responsive <img>; v4's Media model has no size
+  // dimension, one row per (photo, role, format), so only the largest variant of each survives.
+  const bestByPicture = new Map<number, Map<string, LegacyExportMedia>>();
   for (const m of media) {
-    const list = mediaByPicture.get(m.picture_id) ?? [];
-    list.push(m);
-    mediaByPicture.set(m.picture_id, list);
+    const key = `${m.role}/${m.format}`;
+    const byKey =
+      bestByPicture.get(m.picture_id) ?? new Map<string, LegacyExportMedia>();
+    const existing = byKey.get(key);
+    if (existing) tally("media.duplicatesDropped");
+    if (!existing || m.width * m.height > existing.width * existing.height) {
+      byKey.set(key, m);
+    }
+    bestByPicture.set(m.picture_id, byKey);
+  }
+  const mediaByPicture = new Map<number, LegacyExportMedia[]>();
+  for (const [pictureId, byKey] of bestByPicture) {
+    mediaByPicture.set(pictureId, [...byKey.values()]);
   }
 
   for (const picture of pictures) {
