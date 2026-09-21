@@ -1,5 +1,6 @@
 hostname: larppikuvat.fi
 legacy:
+  enabled: false
   namespace: larppikuvat
 mediaNfs:
   server: 91.105.252.80

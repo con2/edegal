@@ -1,5 +1,6 @@
 hostname: conikuvat.fi
 legacy:
+  enabled: false
   namespace: conikuvat-production
 mediaNfs:
   server: 91.105.252.80
