@@ -25,7 +25,9 @@ import { db } from "@/prisma/db";
  * `--dry-run` (the default) touches no data: every "would-be-created" row gets a placeholder id
  * so downstream passes can still resolve relationships, and every write is skipped. `--apply`
  * performs the writes. `--only=<pass>` runs a single pass (terms, photographers, series, albums,
- * pictures). `--report=<path>` sets where the HTML->Markdown conversion report is written.
+ * pictures, redirects) - later passes depend on the in-memory maps earlier ones build, so `--only`
+ * on its own is for isolating one pass's own logic, not for running a subset of a fresh migration.
+ * `--report=<path>` sets where the HTML->Markdown conversion report is written.
  */
 
 const apply = process.argv.includes("--apply");
@@ -211,12 +213,14 @@ async function migratePhotographers(): Promise<void> {
 
     const links = socialLinksFor(row);
     if (links.length === 0) continue;
-    // Dry run never has a real id to query by; treat every link as new for the count.
-    const existingLinks = apply
-      ? await db.orm.public.PhotographerLink.where({ photographerId: v4Id })
+    // A dry run's freshly-would-be-created photographer has no real id to query by, so those
+    // report every link as new; an already-existing one (real id, even in dry run) is checked
+    // for real, so a dry run against an already-migrated database reports accurately too.
+    const existingLinks = v4Id.startsWith("dry:")
+      ? []
+      : await db.orm.public.PhotographerLink.where({ photographerId: v4Id })
           .select("href")
-          .all()
-      : [];
+          .all();
     // A trailing slash is the only difference seen in practice between a v4 profile's own link
     // and the same destination's legacy handle; ignore it so enriching doesn't add a duplicate.
     const withoutTrailingSlash = (href: string) => href.replace(/\/$/, "");
@@ -299,6 +303,14 @@ const hiddenSiblingMap = new Map<number, string>();
 
 async function migrateAlbums(): Promise<void> {
   if (!shouldRun("albums")) return;
+  // A path collapseRedirectOnlyAlbums has already turned into a v4_redirect (this run or an
+  // earlier one) must not get its album resurrected on the next run just because the legacy row
+  // is still sitting there unchanged - the redirect is the deliberate, final outcome for it.
+  const redirectedPaths = new Set(
+    (await db.orm.public.Redirect.select("fromPath").all()).map(
+      (r) => r.fromPath,
+    ),
+  );
   // Parents before children (exportAlbums orders by level, lft), so parent_id always resolves.
   // Siblings share a level and are lft-ordered within it, so a global counter assigns them
   // increasing `ordering` values in their original legacy left-to-right order - load.ts's
@@ -307,6 +319,10 @@ async function migrateAlbums(): Promise<void> {
   let nextOrdering = 0;
   for (const row of await exportAlbums()) {
     const ordering = nextOrdering++;
+    if (redirectedPaths.has(row.path)) {
+      tally("albums.skippedRedirected");
+      continue;
+    }
     const existing = await db.orm.public.Album.where({ path: row.path })
       .select("id", "description", "body", "redirectUrl", "termsId", "seriesId")
       .first();
@@ -404,12 +420,14 @@ async function migrateAlbums(): Promise<void> {
       });
     }
     if (credits.length === 0) continue;
-    // Dry run never has a real id to query by; treat every credit as new for the count.
-    const existingCredits = apply
-      ? await db.orm.public.AlbumCredit.where({ albumId: v4Id })
+    // A dry run's freshly-would-be-created album has no real id to query by, so those report
+    // every credit as new; an already-existing one (real id, even in dry run) is checked for
+    // real, so a dry run against an already-migrated database reports accurately too.
+    const existingCredits = v4Id.startsWith("dry:")
+      ? []
+      : await db.orm.public.AlbumCredit.where({ albumId: v4Id })
           .select("photographerId")
-          .all()
-      : [];
+          .all();
     const seen = new Set(existingCredits.map((c) => c.photographerId));
     const fresh = credits.filter((c) => !seen.has(c.photographerId));
     if (fresh.length === 0) continue;
@@ -634,12 +652,14 @@ async function fixupAlbumThumbnails(
     v4AlbumId: string,
     coverPictureId: number | null,
   ): Promise<void> {
-    // Dry run never has a real id to query by; assume no v4 album already has one.
-    const current = apply
-      ? await db.orm.public.Album.where({ id: v4AlbumId })
+    // A dry run's freshly-would-be-created album has no real id to check, so those are assumed
+    // thumbnail-less; an already-existing one (real id, even in dry run) is checked for real, so
+    // a dry run against an already-migrated database doesn't relist albums that already have one.
+    const current = v4AlbumId.startsWith("dry:")
+      ? null
+      : await db.orm.public.Album.where({ id: v4AlbumId })
           .select("thumbnailPhotoId")
-          .first()
-      : null;
+          .first();
     if (current?.thumbnailPhotoId) return;
 
     const coverV4Id = coverPictureId ? pictureMap.get(coverPictureId) : null;
@@ -673,6 +693,63 @@ async function fixupAlbumThumbnails(
   }
 }
 
+// ---- redirect-only albums ----
+
+/**
+ * An album kept solely to redirect (an embargo-era unguessable slug, kept around after the
+ * embargo lifted so the old link still works) is better represented as a `v4_redirect` row than
+ * as a whole album: it drops out of every listing instead of showing up as an empty tile, and
+ * `resolveRedirect`'s exact-match lookup already does the same one-hop redirect the album's own
+ * `redirectUrl` did. Runs last, over every album this migration touched (created or matched) -
+ * checked against the album's *current* v4 state, not the legacy snapshot, so an admin who has
+ * since added a real photo or subalbum to what used to be a redirect stub keeps it.
+ *
+ * Dry run has no real id for an album this same run would create, so those are skipped rather
+ * than guessed at; the count this pass reports is therefore a floor, not a ceiling, until applied.
+ *
+ * A whole embargo-slug subtree (a redirect-only album whose only children are themselves
+ * redirect-only stubs) collapses level by level: a parent visited before its children still
+ * has them at that moment, only becoming eligible once they're gone. Sweeps until a full pass
+ * collapses nothing more, rather than requiring a second invocation to finish the job.
+ */
+async function collapseRedirectOnlyAlbums(): Promise<void> {
+  if (!shouldRun("redirects")) return;
+  let collapsedThisSweep: number;
+  do {
+    collapsedThisSweep = 0;
+    for (const v4AlbumId of albumMap.values()) {
+      if (v4AlbumId.startsWith("dry:")) continue;
+      const album = await db.orm.public.Album.where({ id: v4AlbumId })
+        .select("path", "redirectUrl")
+        .first();
+      if (!album || !album.redirectUrl) continue;
+
+      const [child, photo] = await Promise.all([
+        db.orm.public.Album.where({ parentId: v4AlbumId }).select("id").first(),
+        db.orm.public.Photo.where({ albumId: v4AlbumId }).select("id").first(),
+      ]);
+      if (child || photo) continue;
+
+      tally("albums.collapsedToRedirect");
+      collapsedThisSweep++;
+      if (apply) {
+        await db.transaction(async (tx) => {
+          await tx.orm.public.Redirect.where({
+            fromPath: album.path,
+          }).deleteAndCount();
+          await tx.orm.public.Redirect.create({
+            fromPath: album.path,
+            toPath: album.redirectUrl,
+          });
+          await tx.orm.public.Album.where({ id: v4AlbumId }).delete();
+        });
+      }
+    }
+    // Dry run can't observe its own (skipped) deletes, so a second sweep would just relist the
+    // same candidates forever; one sweep is all a dry run can usefully report.
+  } while (apply && collapsedThisSweep > 0);
+}
+
 async function writeConversionReport(): Promise<void> {
   const sections = conversionReport.map(
     ({ source, html, markdown }) =>
@@ -695,6 +772,7 @@ async function main(): Promise<void> {
   const { pictureMap, photosByAlbum, hiddenPictureIds } =
     await migratePicturesAndMedia();
   await fixupAlbumThumbnails(pictureMap, photosByAlbum, hiddenPictureIds);
+  await collapseRedirectOnlyAlbums();
 
   if (apply) {
     await touchSubtree("/");
