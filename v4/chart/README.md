@@ -9,7 +9,7 @@ and a cert-manager Certificate. The Gateway also fronts the legacy Django admin 
 ```sh
 kubectl create namespace conikuvat-v4
 kubectl -n conikuvat-v4 create secret generic v4 \
-  --from-literal=DATABASE_URL='postgresql://conikuvat:...@siilo.tracon.fi/conikuvat?sslmode=require' \
+  --from-literal=DATABASE_URL='postgresql://conikuvat:...@siilo.tracon.fi/conikuvat?sslmode=verify-full' \
   --from-literal=AUTH_SECRET="$(openssl rand -base64 32)" \
   --from-literal=KOMPASSI_OIDC_CLIENT_ID=... \
   --from-literal=KOMPASSI_OIDC_CLIENT_SECRET=...
@@ -18,6 +18,12 @@ kubectl -n conikuvat-v4 create secret generic v4 \
 The Kompassi OIDC client must allow the redirect URI `https://<hostname>/api/auth/callback/kompassi`.
 All four keys are mandatory: the server refuses to start without them rather than falling back
 to development defaults.
+
+`sslmode=verify-full` (not `require`) since siilo.tracon.fi has a proper TLS certificate: `pg`
+only warns on `require`/`prefer`/`verify-ca` today because it treats them as aliases for
+`verify-full`, but a future major version will make them mean actual libpq semantics (weaker,
+no hostname verification) instead - spelling out `verify-full` keeps today's behavior
+unambiguous regardless of that future change.
 
 **Never run `prisma db update` or `db init` against these databases.** They share the schema
 with the legacy Django tables, and `db update` plans `DROP TABLE` for every table the contract
