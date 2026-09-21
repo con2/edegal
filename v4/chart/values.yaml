@@ -48,7 +48,7 @@ workerConcurrency: 4
 # One-off media backfill Job (chart/README.md, "Media backfill"). Bump `runId` for every run; the
 # default args are a dry run, add "--apply" to write.
 mediaBackfill:
-  enabled: true
+  enabled: false
   runId: 2
   args: ["--apply"]
 
