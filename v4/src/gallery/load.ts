@@ -5,7 +5,7 @@ import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
 import { loadSeriesPageBySlug, seriesVersion } from "./series";
 import type { AlbumPageVM, GalleryPageResult, Resolution } from "./types";
-import { loadV4Album, v4AlbumVersion } from "./v4/provider";
+import { loadV4Album, v4AlbumVersion } from "./provider";
 import type { Viewer } from "./viewer";
 import { applyVisibility } from "./visibility";
 

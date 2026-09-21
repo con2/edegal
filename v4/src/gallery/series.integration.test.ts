@@ -4,7 +4,7 @@ import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
-import { touchSeries } from "./v4/touch";
+import { touchSeries } from "./touch";
 
 const anonymous = { kind: "anonymous" } as const;
 const admin = {

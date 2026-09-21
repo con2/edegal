@@ -41,7 +41,7 @@ import {
 import { invalidateAlbum } from "@/gallery/cache";
 import { isAncestorOrSelf, parentPathOf } from "@/gallery/paths";
 import { clearRedirect, recordMove } from "@/gallery/redirects";
-import { touchAlbum, touchSeries, touchSubtree } from "@/gallery/v4/touch";
+import { touchAlbum, touchSeries, touchSubtree } from "@/gallery/touch";
 import { getViewer, type Viewer } from "@/gallery/viewer";
 import { albumJobCounts, pickAutoThumbnail } from "@/media/jobs";
 import { db } from "@/prisma/db";

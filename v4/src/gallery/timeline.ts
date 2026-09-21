@@ -3,7 +3,7 @@ import { finishGalleryPage, loadResolved, presentAlbumPage } from "./load";
 import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
 import type { AlbumPageVM, GalleryPageResult, PhotoVM } from "./types";
-import { v4TimelinePhotos } from "./v4/provider";
+import { v4TimelinePhotos } from "./provider";
 import type { Viewer } from "./viewer";
 
 /**

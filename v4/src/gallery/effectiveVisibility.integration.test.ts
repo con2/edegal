@@ -6,8 +6,8 @@ import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
 import { loadPhotographerPageBySlug } from "./photographers";
-import { touchSubtree } from "./v4/touch";
-import { v4PublicPhotoCount } from "./v4/provider";
+import { touchSubtree } from "./touch";
+import { v4PublicPhotoCount } from "./provider";
 
 const anonymous = { kind: "anonymous" } as const;
 const admin: Viewer & { kind: "user" } = {

@@ -1,7 +1,7 @@
 import {
   v4PublicPhotoCount,
   v4RandomPublicPhotoPath,
-} from "@/gallery/v4/provider";
+} from "@/gallery/provider";
 
 export const dynamic = "force-dynamic";
 

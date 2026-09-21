@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { loadGalleryPage } from "@/gallery/load";
 import { normalizeGalleryPath } from "@/gallery/paths";
 import type { ClientSubalbum, MediaVariant } from "@/gallery/types";
-import { buildMediaSet } from "@/gallery/v4/provider";
+import { buildMediaSet } from "@/gallery/provider";
 import { getViewer } from "@/gallery/viewer";
 import { db } from "@/prisma/db";
 

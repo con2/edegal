@@ -1,7 +1,7 @@
 import { assertPathFree, PathTakenError } from "@/editor/albums";
 import { invalidateAlbum } from "@/gallery/cache";
 import { clearRedirect } from "@/gallery/redirects";
-import { touchAlbum } from "@/gallery/v4/touch";
+import { touchAlbum } from "@/gallery/touch";
 import { db } from "@/prisma/db";
 
 import { filenameStem, slugifyFilename } from "./naming";

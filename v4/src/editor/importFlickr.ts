@@ -10,7 +10,7 @@ import { ensurePhotographer } from "@/editor/photographers";
 import { invalidateAlbum } from "@/gallery/cache";
 import { clearRedirect } from "@/gallery/redirects";
 import type { Visibility } from "@/gallery/types";
-import { touchAlbum } from "@/gallery/v4/touch";
+import { touchAlbum } from "@/gallery/touch";
 import type { Viewer } from "@/gallery/viewer";
 import {
   coverFilename,

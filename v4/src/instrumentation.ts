@@ -1,7 +1,7 @@
 /** Runs once per server start, before requests are served. */
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  const { ensureRootAlbum } = await import("@/gallery/v4/root");
+  const { ensureRootAlbum } = await import("@/gallery/root");
   try {
     await ensureRootAlbum();
   } catch (error) {

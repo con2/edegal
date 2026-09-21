@@ -5,7 +5,7 @@ import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
 import { resolvePath } from "./resolve";
-import { v4PublicPhotoCount, v4RandomPublicPhotoPath } from "./v4/provider";
+import { v4PublicPhotoCount, v4RandomPublicPhotoPath } from "./provider";
 import type { Viewer } from "./viewer";
 
 const anonymous: Viewer = { kind: "anonymous" };

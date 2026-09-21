@@ -1,5 +1,5 @@
 import { invalidateAlbum } from "@/gallery/cache";
-import { touchAlbum } from "@/gallery/v4/touch";
+import { touchAlbum } from "@/gallery/touch";
 import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 

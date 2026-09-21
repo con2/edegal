@@ -4,8 +4,8 @@ import { db } from "@/prisma/db";
 import { pathPrefixes } from "./paths";
 import { titleInPhotographerContext } from "./titles";
 import type { AlbumPageVM, CoverVM, SubalbumVM } from "./types";
-import { effectiveVisibilities } from "./v4/effective";
-import { buildMediaSet } from "./v4/provider";
+import { effectiveVisibilities } from "./effective";
+import { buildMediaSet } from "./provider";
 
 const photographersPath = "/photographers";
 

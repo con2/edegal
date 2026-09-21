@@ -1,8 +1,8 @@
 import { db } from "@/prisma/db";
 
 import type { AlbumPageVM, Crumb, SubalbumVM } from "./types";
-import { effectiveVisibilities } from "./v4/effective";
-import { buildMediaSet } from "./v4/provider";
+import { effectiveVisibilities } from "./effective";
+import { buildMediaSet } from "./provider";
 
 /** Newest first, unknown dates last; ties keep their input order. */
 export function orderSeriesMembers<T extends { date: string | null }>(
