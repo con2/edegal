@@ -49,8 +49,8 @@ workerConcurrency: 4
 # default args are a dry run, add "--apply" to write.
 mediaBackfill:
   enabled: true
-  runId: 1
-  args: []
+  runId: 2
+  args: ["--apply"]
 
 # Sized from production usage (node 140-530 MiB, worker 100-220 MiB idle, nginx mostly page cache).
 # An upload holds up to 100 MB of body plus the decoded image (about 4 bytes per pixel, capped at
