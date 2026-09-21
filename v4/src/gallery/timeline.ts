@@ -1,4 +1,5 @@
 import { db } from "@/prisma/db";
+import { defaultLanguage } from "@/i18n/locales";
 
 import { effectiveVisibilities } from "./effectiveVisibility";
 import type { CreditRow } from "./credit";
@@ -52,6 +53,7 @@ export async function loadTimelinePage(
   path: string,
   viewer: Viewer,
   timelineParam: string,
+  locale: string = defaultLanguage,
 ): Promise<GalleryPageResult> {
   const resolution = await resolvePath(path);
   if (!resolution) {
@@ -59,7 +61,7 @@ export async function loadTimelinePage(
     return target ? { kind: "redirect", to: target } : { kind: "not-found" };
   }
 
-  const shell = await loadResolved(resolution);
+  const shell = await loadResolved(resolution, locale);
   const photoPath = resolution.kind === "photo" ? resolution.photoPath : null;
   const fallback = () => finishGalleryPage(resolution, shell, viewer, path);
 
@@ -70,7 +72,7 @@ export async function loadTimelinePage(
     const rootResolution = await resolvePath(timelineParam);
     const rootShell =
       rootResolution && rootResolution.kind === "album"
-        ? await loadResolved(rootResolution)
+        ? await loadResolved(rootResolution, locale)
         : null;
     // A tampered or stale `?timeline=<root>` link (wrong path, or one that doesn't actually
     // contain the requested page) falls back to the normal page rather than guessing a root.

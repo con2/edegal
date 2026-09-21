@@ -68,6 +68,7 @@ function album(overrides: Partial<ClientAlbumPage> = {}): ClientAlbumPage {
     title: "Album title",
     description: "",
     body: "",
+    eventMetadataUrl: "",
     cover: null,
     date: "2020-01-01",
     layout: "simple",

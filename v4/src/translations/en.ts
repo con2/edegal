@@ -2,6 +2,15 @@ const translations = {
   AlbumView: {
     unknownYear: "Unknown year",
   },
+  LarpitBody: {
+    thisLarpInLarpit: "This larp in Larpit.fi",
+    homepage: "Home page of the larp",
+    photos: "Photos",
+    socialMedia: "Social media",
+    playerGuide: "Player guide",
+    signup: "Sign up",
+    other: "More information",
+  },
   BreadcrumbBar: {
     downloadAlbumLink: "Download whole album",
     aboutPhotographerLink: "About the photographer",

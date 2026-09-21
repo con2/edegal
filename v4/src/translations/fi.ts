@@ -4,6 +4,15 @@ const translations: Translations = {
   AlbumView: {
     unknownYear: "Tuntematon vuosi",
   },
+  LarpitBody: {
+    thisLarpInLarpit: "Tämä larppi Larpit.fi:ssä",
+    homepage: "Larpin kotisivu",
+    photos: "Kuvat",
+    socialMedia: "Sosiaalinen media",
+    playerGuide: "Pelaajan opas",
+    signup: "Ilmoittautuminen",
+    other: "Lisätietoa",
+  },
   BreadcrumbBar: {
     downloadAlbumLink: "Lataa albumi",
     aboutPhotographerLink: "Tietoja valokuvaajasta",

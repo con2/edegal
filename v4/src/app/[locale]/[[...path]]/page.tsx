@@ -30,12 +30,14 @@ function timelineParam(
 }
 
 /** One load per request, shared by generateMetadata and the page. */
-const getGalleryPage = cache(async (path: string, timeline: string | null) => {
-  const viewer = await getViewer();
-  return timeline !== null
-    ? loadTimelinePage(path, viewer, timeline)
-    : loadGalleryPage(path, viewer);
-});
+const getGalleryPage = cache(
+  async (path: string, timeline: string | null, locale: string) => {
+    const viewer = await getViewer();
+    return timeline !== null
+      ? loadTimelinePage(path, viewer, timeline, locale)
+      : loadGalleryPage(path, viewer, locale);
+  },
+);
 
 export async function generateMetadata({
   params,
@@ -47,7 +49,7 @@ export async function generateMetadata({
   const timeline = timelineParam(await searchParams);
   return galleryMetadata(
     locale,
-    await getGalleryPage(normalized.path, timeline),
+    await getGalleryPage(normalized.path, timeline, locale),
   );
 }
 
@@ -59,7 +61,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
   const resolvedSearchParams = await searchParams;
   const timeline = timelineParam(resolvedSearchParams);
-  const result = await getGalleryPage(normalized.path, timeline);
+  const result = await getGalleryPage(normalized.path, timeline, locale);
   if (result.kind === "redirect") redirect(result.to);
   if (result.kind === "not-found") notFound();
 

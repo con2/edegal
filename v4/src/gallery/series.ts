@@ -96,6 +96,7 @@ export async function loadSeriesPageBySlug(
     title: series.title,
     description: series.description || "",
     body: series.body,
+    eventMetadataUrl: "",
     cover: null,
     date: null,
     layout: "simple",

@@ -62,6 +62,7 @@ function timeline(photos: PhotoVM[]): AlbumPageVM {
     title: "Root",
     description: "",
     body: "",
+    eventMetadataUrl: "",
     cover: null,
     date: null,
     layout: "simple",

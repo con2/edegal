@@ -1,6 +1,9 @@
+import { defaultLanguage } from "@/i18n/locales";
+
 import { canView } from "./access";
 import { albumVersion, loadAlbum } from "./album";
 import { cachedAlbum } from "./cache";
+import { withEventMetadataBody } from "./larpit";
 import { lastSegment } from "./paths";
 import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
@@ -9,29 +12,38 @@ import type { AlbumPageVM, GalleryPageResult, Resolution } from "./types";
 import type { Viewer } from "./viewer";
 import { applyVisibility } from "./visibility";
 
+/**
+ * The cached, unfiltered album page, with a Larpit.fi-synthesized body applied afterwards - that
+ * synthesis has its own TTL, so it is not frozen into the cached VM itself (see `./larpit.ts`).
+ */
 export async function loadResolved(
   resolution: Resolution,
+  locale: string = defaultLanguage,
 ): Promise<AlbumPageVM | null> {
+  let vm: AlbumPageVM | null;
   if (resolution.kind === "series") {
     const slug = lastSegment(resolution.path);
     const version = await seriesVersion(slug);
-    return cachedAlbum(
+    vm = await cachedAlbum(
       `series:${slug}`,
       () => loadSeriesPageBySlug(slug),
       version,
     );
+  } else {
+    const { albumId } = resolution;
+    // One tiny query decides whether the cached page is still current; the media worker and every
+    // mutation bump updated_at.
+    const version = await albumVersion(albumId);
+    if (version === null) return null;
+    vm = await cachedAlbum(albumId, () => loadAlbum(albumId), version);
   }
-  const { albumId } = resolution;
-  // One tiny query decides whether the cached page is still current; the media worker and every
-  // mutation bump updated_at.
-  const version = await albumVersion(albumId);
-  if (version === null) return null;
-  return cachedAlbum(albumId, () => loadAlbum(albumId), version);
+  return vm ? withEventMetadataBody(vm, locale) : null;
 }
 
 export async function loadGalleryPage(
   path: string,
   viewer: Viewer,
+  locale: string = defaultLanguage,
 ): Promise<GalleryPageResult> {
   const resolution = await resolvePath(path);
   if (!resolution) {
@@ -39,7 +51,7 @@ export async function loadGalleryPage(
     return target ? { kind: "redirect", to: target } : { kind: "not-found" };
   }
 
-  const loaded = await loadResolved(resolution);
+  const loaded = await loadResolved(resolution, locale);
   return finishGalleryPage(resolution, loaded, viewer, path);
 }
 

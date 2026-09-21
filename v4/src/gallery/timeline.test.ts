@@ -37,6 +37,7 @@ function shell(overrides: Partial<AlbumPageVM> = {}): AlbumPageVM {
     title: "Root",
     description: "A description",
     body: "Some prose about the album",
+    eventMetadataUrl: "",
     cover: null,
     date: null,
     layout: "simple",

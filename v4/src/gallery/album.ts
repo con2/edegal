@@ -108,6 +108,7 @@ export async function loadAlbum(albumId: string): Promise<AlbumPageVM | null> {
     title: album.title,
     description: album.description,
     body: album.body,
+    eventMetadataUrl: album.eventMetadataUrl,
     cover: null,
     date: album.eventDate,
     layout: album.layout,

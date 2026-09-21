@@ -18,18 +18,18 @@ interface Props {
  * album under /photographers (new albums can't be created there, but one may predate that rule),
  * so fall back to the gallery resolution.
  */
-const getPage = cache(async (slug: string) => {
+const getPage = cache(async (slug: string, locale: string) => {
   const viewer = await getViewer();
   const path = `/photographers/${slug}`;
   if (!/^[a-z0-9-]+$/.test(slug)) return { kind: "not-found" as const };
   const photographer = await loadPhotographerPageBySlug(slug);
   if (photographer) return presentAlbumPage(photographer, viewer, path, null);
-  return loadGalleryPage(path, viewer);
+  return loadGalleryPage(path, viewer, locale);
 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  return galleryMetadata(locale, await getPage(slug));
+  return galleryMetadata(locale, await getPage(slug, locale));
 }
 
 export default async function PhotographerPage({
@@ -37,7 +37,7 @@ export default async function PhotographerPage({
   searchParams,
 }: Props) {
   const { locale, slug } = await params;
-  const result = await getPage(slug);
+  const result = await getPage(slug, locale);
   if (result.kind === "redirect") redirect(result.to);
   if (result.kind === "not-found") notFound();
   return (

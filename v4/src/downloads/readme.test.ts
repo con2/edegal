@@ -11,6 +11,7 @@ const album: ClientAlbumPage = {
   title: "Saturday",
   description: "",
   body: "",
+  eventMetadataUrl: "",
   date: "2026-09-05",
   layout: "simple",
   visibility: "public",
