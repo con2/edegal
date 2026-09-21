@@ -13,3 +13,14 @@ export function pgTimestampToIso(value: string): string {
 export function yearOf(isoDate: string | null): string | null {
   return isoDate ? isoDate.slice(0, 4) : null;
 }
+
+/** Newest first; an unknown date (a migrated album with no discoverable date) sorts last. */
+export function compareEventDateDesc(
+  a: string | null,
+  b: string | null,
+): number {
+  if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  return a < b ? 1 : -1;
+}

@@ -5,6 +5,7 @@ import {
   loadLegacyPhotographerPage,
 } from "@/legacy/provider";
 import { legacyAlbumByPath, legacyPhotographerIdBySlug } from "@/legacy/sql";
+import { compareEventDateDesc } from "@/lib/time";
 import { db } from "@/prisma/db";
 
 import { pathPrefixes } from "./paths";
@@ -45,7 +46,7 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
     const albums = photographer.credits
       .map((c) => c.album)
       .filter((a) => isPublic(a.path) && a.thumbnailPhoto)
-      .sort((a, b) => (a.eventDate < b.eventDate ? 1 : -1));
+      .sort((a, b) => compareEventDateDesc(a.eventDate, b.eventDate));
     const newest = albums[0];
     const thumbnail =
       (photographer.coverPhoto && isPublic(photographer.coverPhoto.album.path)
@@ -71,10 +72,13 @@ async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
 
 /** The /photographers index: v4 and legacy photographers merged by slug (v4 wins), sorted by name. */
 export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
-  const [v4, legacy, root, intro] = await Promise.all([
+  const [v4, legacy, root, v4Intro, legacyIntro] = await Promise.all([
     v4PhotographerSubalbums(),
     legacyEnabled ? legacyPhotographerSubalbums() : Promise.resolve([]),
     rootCrumb(),
+    db.orm.public.Album.where({ path: photographersPath })
+      .select("body")
+      .first(),
     legacyEnabled
       ? legacyAlbumByPath(photographersPath)
       : Promise.resolve(null),
@@ -91,7 +95,9 @@ export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
     path: photographersPath,
     title: "Photographers",
     description: "",
-    body: legacyHtmlBody(intro?.body),
+    body: v4Intro?.body
+      ? { kind: "markdown", text: v4Intro.body }
+      : legacyHtmlBody(legacyIntro?.body),
     cover: null,
     date: null,
     layout: "simple",
@@ -164,12 +170,10 @@ export async function loadV4PhotographerPage(
 
   const albums = photographer.credits
     .map((c) => c.album)
-    .sort((a, b) =>
-      a.ordering !== b.ordering
-        ? a.ordering - b.ordering
-        : a.eventDate < b.eventDate
-          ? 1
-          : -1,
+    .sort(
+      (a, b) =>
+        a.ordering - b.ordering ||
+        compareEventDateDesc(a.eventDate, b.eventDate),
     );
   const prefixes = new Set<string>();
   for (const album of albums)

@@ -132,7 +132,8 @@ export async function existingAlbumValues(
     values: {
       title: album.title,
       slug: album.slug,
-      eventDate: album.eventDate,
+      // Null only for a migrated legacy album with no discoverable date; the form requires one.
+      eventDate: album.eventDate ?? today(),
       visibility: album.visibility,
       isOpenForSubalbums: album.isOpenForSubalbums,
       isDownloadable: album.isDownloadable,

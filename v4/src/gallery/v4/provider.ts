@@ -14,7 +14,7 @@ import { lastSegment, pathPrefixes } from "@/gallery/paths";
 import { seriesNeighbours } from "@/gallery/series";
 import { formatPreference } from "@/media/specs";
 import { mediaUrl } from "@/media/url";
-import { pgTimestampToIso } from "@/lib/time";
+import { compareEventDateDesc, pgTimestampToIso } from "@/lib/time";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
@@ -125,7 +125,7 @@ export async function loadV4Album(
     .include("children", (children) =>
       children
         .include("thumbnailPhoto", (photo) => photo.include("media"))
-        .orderBy([(a) => a.ordering.asc(), (a) => a.eventDate.desc()]),
+        .orderBy((a) => a.ordering.asc()),
     )
     .include("photos", (photos) =>
       photos
@@ -186,17 +186,24 @@ export async function loadV4Album(
     ? await db.orm.public.Terms.where({ id: termsId }).first()
     : null;
 
-  const subalbums: SubalbumVM[] = album.children.map((child) => ({
-    path: child.path,
-    title: child.title,
-    date: child.eventDate,
-    visibility: child.visibility,
-    thumbnail: child.thumbnailPhoto
-      ? buildMediaSet(child.thumbnailPhoto.media, "thumbnail")
-      : null,
-    externalUrl: child.redirectUrl.includes("://") ? child.redirectUrl : null,
-    ownerId: child.ownerId,
-  }));
+  const subalbums: SubalbumVM[] = album.children
+    .slice()
+    .sort(
+      (a, b) =>
+        a.ordering - b.ordering ||
+        compareEventDateDesc(a.eventDate, b.eventDate),
+    )
+    .map((child) => ({
+      path: child.path,
+      title: child.title,
+      date: child.eventDate,
+      visibility: child.visibility,
+      thumbnail: child.thumbnailPhoto
+        ? buildMediaSet(child.thumbnailPhoto.media, "thumbnail")
+        : null,
+      externalUrl: child.redirectUrl.includes("://") ? child.redirectUrl : null,
+      ownerId: child.ownerId,
+    }));
 
   let photosProcessing = 0;
   const photos = album.photos.flatMap((photo): PhotoVM[] => {
@@ -213,7 +220,7 @@ export async function loadV4Album(
     parentId: album.parentId,
     path: album.path,
     title: album.title,
-    description: "",
+    description: album.description,
     body: { kind: "markdown", text: album.body },
     cover: null,
     date: album.eventDate,

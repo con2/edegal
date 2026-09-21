@@ -118,13 +118,15 @@ model Album {
   slug               String
   path               String                     @unique
   title              String
+  description        String                     @default("")
   body               String                     @default("")
   visibility         pg.enum(AlbumVisibility)   @default("public")
   layout             pg.enum(AlbumLayout)       @default("simple")
   isOpenForSubalbums Boolean                    @default(false) @map("is_open_for_subalbums")
   eventMetadataUrl   String                     @default("") @map("event_metadata_url")
   ordering           Int                        @default(0)
-  eventDate          DateString                 @default(dbgenerated("current_date")) @map("event_date")
+  // Null for a migrated legacy album whose date could not be determined; sorts last.
+  eventDate          DateString?                @default(dbgenerated("current_date")) @map("event_date")
   isDownloadable     Boolean                    @default(true) @map("is_downloadable")
   termsId            Uuid?                      @map("terms_id")
   terms              Terms?                     @relation(fields:[termsId], references:[id], onDelete: SetNull)

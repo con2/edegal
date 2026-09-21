@@ -47,12 +47,13 @@ export function galleryMetadata(
     representative?.thumbnail.fallback;
   return {
     title: documentTitle(album, photo, t.BreadcrumbBar),
-    // Neither an album nor a series reliably carries its own text description, and the album
-    // title alone tends to cut off a long photographer name in a link preview; the copyright
-    // statement (also shown at the foot of the picture view) says who actually made the photo.
+    // An album's own description, when the photographer wrote one, beats the fallbacks below.
+    // The copyright statement (also shown at the foot of the picture view) says who actually
+    // made the photo, and reads better in a link preview than the album title alone, which tends
+    // to cut off a long photographer name.
     description:
-      copyrightStatement(representative, album) ||
       album.description ||
+      copyrightStatement(representative, album) ||
       album.title,
     robots:
       album.effectiveVisibility === "public" && album.kind !== "timeline"
