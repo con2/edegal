@@ -65,6 +65,22 @@ resources:
   nginx:
     requests: { cpu: 20m, memory: 64Mi }
     limits: { cpu: "1", memory: 512Mi }
+  legacyMigration:
+    # Reads every legacy album, picture and media row into memory at once (see
+    # src/bin/migrate-legacy.ts); sized for ~50k pictures and ~300k media rows.
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1500Mi }
+
+# One-off Job for the legacy-to-v4 data migration (v4/docs/legacy-migration-plan.md). Disabled by
+# default so an ordinary `helm upgrade` never renders it; see chart/README.md for how an operator
+# runs it by hand, once per site.
+legacyMigration:
+  enabled: false
+  # Included in the Job's name so re-running (e.g. dry run, then --apply) does not collide with an
+  # already-finished Job of the same name, which Kubernetes refuses to recreate.
+  runId: manual
+  # Appended to the script's own default arguments; e.g. ["--apply"] to write instead of dry-run.
+  args: []
 
 # THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
 # DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET (and optionally

@@ -80,3 +80,24 @@ helm upgrade --install v4 v4/chart -n conikuvat-v4 -f v4/chart/values-conikuvat.
 ```
 
 CI does this on every push to `main` that touches `v4/`.
+
+## Legacy-to-v4 data migration (one-off, per site)
+
+`legacyMigration.enabled` (default `false`) renders a Job running
+`src/bin/migrate-legacy.ts` (v4/docs/legacy-migration-plan.md) on the `-worker` image, which has
+`tsx` and the full app; the small `-migrate` image used by the Deployment's init container does
+not. `helm upgrade`/CI never render it. Run by hand, dry run first:
+
+```sh
+helm template v4 v4/chart -n conikuvat-v4 -f v4/chart/values-conikuvat.yaml --set image.tag=<sha> \
+  --set legacyMigration.enabled=true --set legacyMigration.runId=$(date +%s) \
+  -s templates/job-legacy-migration.yaml | kubectl -n conikuvat-v4 apply -f -
+kubectl -n conikuvat-v4 wait --for=condition=complete --timeout=600s job -l component=legacy-migration
+kubectl -n conikuvat-v4 cp "$(kubectl -n conikuvat-v4 get pod -l component=legacy-migration -o name | tail -1 | cut -d/ -f2):/tmp/legacy-migration-report.txt" ./legacy-migration-report.txt
+```
+
+Read the report (every converted body's HTML next to its Markdown) and the pod's own logs
+(`kubectl -n conikuvat-v4 logs job/legacy-migration-<runId>` — the created/skipped counts). Take a
+database backup, then re-run with a new `runId` and `--set 'legacyMigration.args[0]=--apply'` to
+write. The Job is not idempotent-proof against concurrent runs, so only ever run one at a time per
+site.
