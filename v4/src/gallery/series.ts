@@ -1,8 +1,8 @@
 import { db } from "@/prisma/db";
 
+import { effectiveVisibilities } from "./effectiveVisibility";
+import { buildMediaSet } from "./media";
 import type { AlbumPageVM, Crumb, SubalbumVM } from "./types";
-import { effectiveVisibilities } from "./effective";
-import { buildMediaSet } from "./provider";
 
 /** Newest first, unknown dates last; ties keep their input order. */
 export function orderSeriesMembers<T extends { date: string | null }>(
@@ -81,26 +81,26 @@ export async function seriesVersion(slug: string): Promise<string | null> {
 export async function loadSeriesPageBySlug(
   slug: string,
 ): Promise<AlbumPageVM | null> {
-  const v4Series = await db.orm.public.Series.where({ slug }).first();
-  if (!v4Series) return null;
+  const series = await db.orm.public.Series.where({ slug }).first();
+  if (!series) return null;
   const [root, tiles] = await Promise.all([
     db.orm.public.Album.where({ path: "/" }).select("title").first(),
-    seriesMembersOf(v4Series.id),
+    seriesMembersOf(series.id),
   ]);
   const rootCrumb: Crumb[] = root ? [{ path: "/", title: root.title }] : [];
   return {
     kind: "series",
-    id: v4Series.id,
+    id: series.id,
     parentId: null,
     path: `/${slug}`,
-    title: v4Series.title,
-    description: v4Series.description || "",
-    body: v4Series.body,
+    title: series.title,
+    description: series.description || "",
+    body: series.body,
     cover: null,
     date: null,
     layout: "simple",
-    visibility: v4Series.visibility,
-    effectiveVisibility: v4Series.visibility,
+    visibility: series.visibility,
+    effectiveVisibility: series.visibility,
     contactable: false,
     ownerId: null,
     isOpenForSubalbums: false,

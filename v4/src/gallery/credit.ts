@@ -1,4 +1,42 @@
-import type { ClientAlbumPage, CreditVM, PhotoVM } from "./types";
+import type { ClientAlbumPage, CreditVM, PhotoVM, Visibility } from "./types";
+
+export interface CreditRow {
+  isCopyright: boolean;
+  description: string;
+  photographer: {
+    displayName: string;
+    slug: string;
+    email: string;
+    visibility: Visibility;
+    links: { href: string; title: string; ordering: number }[];
+  };
+}
+
+export function creditVM(credit: CreditRow): CreditVM {
+  return {
+    displayName: credit.photographer.displayName,
+    // A private profile's own page 404s for everyone but its owner and admins, so a link to it
+    // from someone else's page would just be broken for every other visitor.
+    path:
+      credit.photographer.visibility === "private"
+        ? null
+        : `/photographers/${credit.photographer.slug}`,
+    isCopyright: credit.isCopyright,
+    description: credit.description,
+    links: credit.photographer.links
+      .slice()
+      .sort((a, b) => a.ordering - b.ordering)
+      .map(({ href, title }) => ({ href, title })),
+  };
+}
+
+/** A copyright holder with a contact address makes the album (or photo) contactable. */
+export function isContactable(credits: CreditRow[]): boolean {
+  return credits.some((c) => c.isCopyright && c.photographer.email !== "");
+}
+
+// The above builds a CreditVM from a raw database row; the rest of this file derives a
+// copyright display string from already-built CreditVMs, for the client-facing page.
 
 export interface Copyright {
   /** Four-digit year, or "" when neither the photo nor the album has a date. */

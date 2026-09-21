@@ -1,9 +1,14 @@
+import { db } from "@/prisma/db";
+
+import { effectiveVisibilities } from "./effectiveVisibility";
+import type { CreditRow } from "./credit";
+import { creditVM, isContactable } from "./credit";
+import { photoVM } from "./media";
 import { isAncestorOrSelf } from "./paths";
 import { finishGalleryPage, loadResolved, presentAlbumPage } from "./load";
 import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
 import type { AlbumPageVM, GalleryPageResult, PhotoVM } from "./types";
-import { v4TimelinePhotos } from "./provider";
 import type { Viewer } from "./viewer";
 
 /**
@@ -83,11 +88,87 @@ export async function loadTimelinePage(
   // would scan the entire gallery at once.
   if (root.path === "/") return fallback();
 
-  const photos = await v4TimelinePhotos(root);
+  const photos = await timelinePhotos(root);
 
   if (photoPath !== null && !photos.some((p) => p.path === photoPath)) {
     return fallback();
   }
 
   return presentAlbumPage(timelineVM(root, photos), viewer, path, photoPath);
+}
+
+/**
+ * Every photo in an album's subtree (the album itself and all descendants, any depth),
+ * chronologically ordered. Each photo carries the effective visibility, owner, and
+ * credits/contact/download settings of the album that actually contains it, since a timeline
+ * flattens in photos from several albums that need not share any of those.
+ *
+ * The requested album's own direct photos are always treated as visible, matching how its normal
+ * page already works (an album's own effective visibility gates whether the *page* is reachable
+ * at all, not its own photos once you're on it) - only *descendants* pulled into the listing are
+ * gated by their own effective visibility, the same way a subalbum tile is.
+ */
+async function timelinePhotos(album: {
+  id: string;
+  path: string;
+  ownerId: string | null;
+  isDownloadable: boolean;
+}): Promise<PhotoVM[]> {
+  const descendants = await db.orm.public.Album.where((a) =>
+    a.path.like(`${album.path}/%`),
+  )
+    .select("id", "path", "ownerId", "isDownloadable")
+    .all();
+  const subtree = [
+    {
+      id: album.id,
+      path: album.path,
+      ownerId: album.ownerId,
+      isDownloadable: album.isDownloadable,
+    },
+    ...descendants,
+  ];
+  const albumById = new Map(subtree.map((a) => [a.id, a]));
+  const effective = await effectiveVisibilities(subtree.map((a) => a.path));
+
+  const creditRows = await db.orm.public.AlbumCredit.where((c) =>
+    c.albumId.in(subtree.map((a) => a.id)),
+  )
+    .include("photographer", (p) => p.include("links"))
+    .orderBy((c) => c.ordering.asc())
+    .all();
+  const creditsByAlbum = new Map<string, CreditRow[]>();
+  for (const credit of creditRows) {
+    const list = creditsByAlbum.get(credit.albumId) ?? [];
+    list.push(credit);
+    creditsByAlbum.set(credit.albumId, list);
+  }
+
+  const photos = await db.orm.public.Photo.where((p) =>
+    p.albumId.in(subtree.map((a) => a.id)),
+  )
+    .where((p) => p.takenAt.isNotNull())
+    .include("media")
+    .orderBy([(p) => p.takenAt.asc(), (p) => p.path.asc()])
+    .all();
+
+  return photos.flatMap((photo): PhotoVM[] => {
+    const owningAlbum = albumById.get(photo.albumId);
+    if (!owningAlbum) return [];
+    const visibility =
+      owningAlbum.path === album.path
+        ? "public"
+        : (effective.get(owningAlbum.path) ?? "private");
+    const vm = photoVM(photo, visibility, owningAlbum.ownerId);
+    if (!vm) return [];
+    const credits = creditsByAlbum.get(owningAlbum.id) ?? [];
+    return [
+      {
+        ...vm,
+        credits: credits.map(creditVM),
+        contactable: isContactable(credits),
+        isDownloadable: owningAlbum.isDownloadable,
+      },
+    ];
+  });
 }

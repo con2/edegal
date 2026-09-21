@@ -1,11 +1,11 @@
 import { compareEventDateDesc } from "@/lib/time";
 import { db } from "@/prisma/db";
 
+import { effectiveVisibilities } from "./effectiveVisibility";
+import { buildMediaSet } from "./media";
 import { pathPrefixes } from "./paths";
 import { titleInPhotographerContext } from "./titles";
 import type { AlbumPageVM, CoverVM, SubalbumVM } from "./types";
-import { effectiveVisibilities } from "./effective";
-import { buildMediaSet } from "./provider";
 
 const photographersPath = "/photographers";
 

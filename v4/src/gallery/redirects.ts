@@ -1,6 +1,6 @@
 import { db } from "@/prisma/db";
 
-import { effectiveVisibilities } from "./effective";
+import { effectiveVisibilities } from "./effectiveVisibility";
 
 export interface RedirectSource {
   path: string;

@@ -7,7 +7,7 @@ import { db } from "@/prisma/db";
 import { loadGalleryPage } from "./load";
 import { loadPhotographerPageBySlug } from "./photographers";
 import { touchSubtree } from "./touch";
-import { v4PublicPhotoCount } from "./provider";
+import { publicPhotoCount } from "./random";
 
 const anonymous = { kind: "anonymous" } as const;
 const admin: Viewer & { kind: "user" } = {
@@ -171,7 +171,7 @@ describe("effective visibility", () => {
   });
 
   it("does not sample embargoed photos for /random", async () => {
-    expect(await v4PublicPhotoCount()).toBe(1);
+    expect(await publicPhotoCount()).toBe(1);
   });
 
   it("closes a public album under a private parent to visitors", async () => {
@@ -193,6 +193,6 @@ describe("effective visibility", () => {
     );
     const camp = await page("/camp", anonymous);
     expect(camp.subalbums.map((s) => s.path)).toEqual(["/embargo/run"]);
-    expect(await v4PublicPhotoCount()).toBe(2);
+    expect(await publicPhotoCount()).toBe(2);
   });
 });

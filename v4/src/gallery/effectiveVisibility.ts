@@ -1,9 +1,10 @@
-import { mostRestrictive } from "@/gallery/access";
-import { pathPrefixes } from "@/gallery/paths";
-import type { Visibility } from "@/gallery/types";
 import { db } from "@/prisma/db";
 
-/** Effective visibility of each v4 album path, from one query over the paths and their ancestors. */
+import { mostRestrictive } from "./access";
+import { pathPrefixes } from "./paths";
+import type { Visibility } from "./types";
+
+/** Effective visibility of each album path, from one query over the paths and their ancestors. */
 export async function effectiveVisibilities(
   paths: string[],
 ): Promise<Map<string, Visibility>> {
@@ -33,6 +34,6 @@ export async function effectiveVisibilities(
 }
 
 /** SQL fragment: true when no ancestor of album `alias` is non-public. */
-export function v4AncestorsPublicSql(alias: string): string {
+export function ancestorsPublicSql(alias: string): string {
   return `not exists (select 1 from v4_album anc where anc.visibility <> 'public' and ${alias}.path like anc.path || '/%')`;
 }

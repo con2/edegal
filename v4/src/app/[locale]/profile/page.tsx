@@ -12,7 +12,7 @@ import Link from "next/link";
 import { AppBar } from "@/components/AppBar";
 import { Picture } from "@/components/Picture";
 import { LinksEditor } from "@/components/profile/LinksEditor";
-import { buildMediaSet } from "@/gallery/provider";
+import { buildMediaSet } from "@/gallery/media";
 import { getViewer } from "@/gallery/viewer";
 import { db } from "@/prisma/db";
 import { getTranslations } from "@/translations";

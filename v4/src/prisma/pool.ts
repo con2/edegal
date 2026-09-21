@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import { databaseUrl } from "@/config";
 
 declare global {
-  var v4Pool: Pool | undefined;
+  var pgPool: Pool | undefined;
 }
 
 function createPool(): Pool {
@@ -17,4 +17,4 @@ function createPool(): Pool {
 export const pool: Pool =
   process.env.NODE_ENV === "production"
     ? createPool()
-    : (globalThis.v4Pool ??= createPool());
+    : (globalThis.pgPool ??= createPool());

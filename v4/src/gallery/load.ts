@@ -1,11 +1,11 @@
 import { canView } from "./access";
+import { albumVersion, loadAlbum } from "./album";
 import { cachedAlbum } from "./cache";
 import { lastSegment } from "./paths";
 import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
 import { loadSeriesPageBySlug, seriesVersion } from "./series";
 import type { AlbumPageVM, GalleryPageResult, Resolution } from "./types";
-import { loadV4Album, v4AlbumVersion } from "./provider";
 import type { Viewer } from "./viewer";
 import { applyVisibility } from "./visibility";
 
@@ -24,9 +24,9 @@ export async function loadResolved(
   const { albumId } = resolution;
   // One tiny query decides whether the cached page is still current; the media worker and every
   // mutation bump updated_at.
-  const version = await v4AlbumVersion(albumId);
+  const version = await albumVersion(albumId);
   if (version === null) return null;
-  return cachedAlbum(albumId, () => loadV4Album(albumId), version);
+  return cachedAlbum(albumId, () => loadAlbum(albumId), version);
 }
 
 export async function loadGalleryPage(

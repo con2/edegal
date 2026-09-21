@@ -5,7 +5,7 @@ import { db } from "@/prisma/db";
 
 import { loadGalleryPage } from "./load";
 import { resolvePath } from "./resolve";
-import { v4PublicPhotoCount, v4RandomPublicPhotoPath } from "./provider";
+import { publicPhotoCount, randomPublicPhotoPath } from "./random";
 import type { Viewer } from "./viewer";
 
 const anonymous: Viewer = { kind: "anonymous" };
@@ -265,8 +265,8 @@ describe("visibility of redirects and random picks", () => {
   });
 
   it("counts and samples only photos in public albums", async () => {
-    expect(await v4PublicPhotoCount()).toBe(4);
-    const path = await v4RandomPublicPhotoPath();
+    expect(await publicPhotoCount()).toBe(4);
+    const path = await randomPublicPhotoPath();
     expect([
       "/shared/img-1",
       "/event/pic-1",
