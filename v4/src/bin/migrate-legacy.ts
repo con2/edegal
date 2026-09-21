@@ -475,10 +475,13 @@ interface PhotoStub {
 async function migratePicturesAndMedia(): Promise<{
   pictureMap: Map<number, string>;
   photosByAlbum: Map<string, PhotoStub[]>;
+  hiddenPictureIds: Set<number>;
 }> {
   const pictureMap = new Map<number, string>();
   const photosByAlbum = new Map<string, PhotoStub[]>();
-  if (!shouldRun("pictures")) return { pictureMap, photosByAlbum };
+  const hiddenPictureIds = new Set<number>();
+  if (!shouldRun("pictures"))
+    return { pictureMap, photosByAlbum, hiddenPictureIds };
 
   const [pictures, media] = await Promise.all([
     exportPictures(),
@@ -539,47 +542,51 @@ async function migratePicturesAndMedia(): Promise<{
       );
       continue;
     }
-    if (existingPhoto) {
-      pictureMap.set(picture.id, existingPhoto.id);
-      tally("pictures.skipped.existingV4Photo");
-      continue;
-    }
 
-    tally("pictures.created");
+    // Resolved below whether the picture is new or already migrated - either way it's a real v4
+    // photo the thumbnail fixup pass needs to know about, so photosByAlbum/pictureMap are
+    // populated in both branches, not just on create.
     let photoId: string;
-    if (!apply) {
-      photoId = `dry:photo:${picture.id}`;
+    if (existingPhoto) {
+      photoId = existingPhoto.id;
+      tally("pictures.skipped.existingV4Photo");
     } else {
-      photoId = (
-        await db.orm.public.Photo.create({
-          albumId: albumV4Id,
-          slug: picture.slug,
-          path: targetPath,
-          title: picture.title,
-          ordering: picture.ordering,
-          takenAt: picture.taken_at,
-          mediaKeyBase: picture.path,
-        })
-      ).id;
-      if (pictureMedia.length > 0) {
-        await db.orm.public.Media.createAll(
-          pictureMedia.map((m) => ({
-            photoId,
-            role: m.role as "original" | "preview" | "thumbnail",
-            format: m.format as "jpeg" | "webp" | "avif" | "png",
-            width: m.width,
-            height: m.height,
-            storageKey: m.src,
-          })),
-        );
+      tally("pictures.created");
+      if (!apply) {
+        photoId = `dry:photo:${picture.id}`;
+      } else {
+        photoId = (
+          await db.orm.public.Photo.create({
+            albumId: albumV4Id,
+            slug: picture.slug,
+            path: targetPath,
+            title: picture.title,
+            ordering: picture.ordering,
+            takenAt: picture.taken_at,
+            mediaKeyBase: picture.path,
+          })
+        ).id;
+        if (pictureMedia.length > 0) {
+          await db.orm.public.Media.createAll(
+            pictureMedia.map((m) => ({
+              photoId,
+              role: m.role as "original" | "preview" | "thumbnail",
+              format: m.format as "jpeg" | "webp" | "avif" | "png",
+              width: m.width,
+              height: m.height,
+              storageKey: m.src,
+            })),
+          );
+        }
+        if (hasOriginal && !hasThumbnail) {
+          await db.orm.public.MediaJob.create({ photoId });
+          tally("mediaJobs.queued");
+        }
       }
-      if (hasOriginal && !hasThumbnail) {
-        await db.orm.public.MediaJob.create({ photoId });
-        tally("mediaJobs.queued");
-      }
+      tally("media.migrated", pictureMedia.length);
     }
     pictureMap.set(picture.id, photoId);
-    tally("media.migrated", pictureMedia.length);
+    if (!picture.is_public) hiddenPictureIds.add(picture.id);
 
     const list = photosByAlbum.get(albumV4Id) ?? [];
     list.push({
@@ -592,7 +599,7 @@ async function migratePicturesAndMedia(): Promise<{
     photosByAlbum.set(albumV4Id, list);
   }
 
-  return { pictureMap, photosByAlbum };
+  return { pictureMap, photosByAlbum, hiddenPictureIds };
 }
 
 /** Same ordering as an album's own photo listing: ordering, then taken-at, then slug. */
@@ -609,13 +616,17 @@ function pickAutoThumbnail(photos: PhotoStub[]): string | null {
 
 /**
  * Sets a thumbnail on every album the migration touched that does not already have one. The
- * legacy cover picture wins when it migrated into the album itself (frozen, not auto); a cover
- * that turned out non-public - and so lives in the hidden sibling instead - must not leak there,
- * so albums fall back to the first migrated photo with a thumbnail, picked automatically.
+ * legacy cover picture wins whenever it migrated to a public path - it need not be one of the
+ * album's own direct photos: Django auto-picks a descendant's picture as the cover for a
+ * category album that only holds subalbums, and that cover is exactly as valid a thumbnail as a
+ * direct one. A cover that turned out non-public - and so lives in a hidden sibling instead -
+ * must not leak there, so those albums (and any with no usable cover at all) fall back to the
+ * first migrated *direct* photo with a thumbnail, picked automatically.
  */
 async function fixupAlbumThumbnails(
   pictureMap: Map<number, string>,
   photosByAlbum: Map<string, PhotoStub[]>,
+  hiddenPictureIds: Set<number>,
 ): Promise<void> {
   if (!shouldRun("pictures")) return;
 
@@ -631,21 +642,22 @@ async function fixupAlbumThumbnails(
       : null;
     if (current?.thumbnailPhotoId) return;
 
-    const ownPhotos = photosByAlbum.get(v4AlbumId) ?? [];
     const coverV4Id = coverPictureId ? pictureMap.get(coverPictureId) : null;
-    const coverMigratedHere = coverV4Id
-      ? ownPhotos.some((p) => p.id === coverV4Id && p.hasThumbnail)
-      : false;
+    const coverIsUsable =
+      coverV4Id !== null &&
+      coverV4Id !== undefined &&
+      !hiddenPictureIds.has(coverPictureId!);
 
-    const thumbnailPhotoId = coverMigratedHere
-      ? coverV4Id!
+    const ownPhotos = photosByAlbum.get(v4AlbumId) ?? [];
+    const thumbnailPhotoId = coverIsUsable
+      ? coverV4Id
       : pickAutoThumbnail(ownPhotos);
     if (!thumbnailPhotoId) return;
     tally("albums.thumbnailSet");
     if (apply) {
       await db.orm.public.Album.where({ id: v4AlbumId }).update({
         thumbnailPhotoId,
-        thumbnailIsAuto: !coverMigratedHere,
+        thumbnailIsAuto: !coverIsUsable,
       });
     }
   }
@@ -680,8 +692,9 @@ async function main(): Promise<void> {
   await migratePhotographers();
   await migrateSeries();
   await migrateAlbums();
-  const { pictureMap, photosByAlbum } = await migratePicturesAndMedia();
-  await fixupAlbumThumbnails(pictureMap, photosByAlbum);
+  const { pictureMap, photosByAlbum, hiddenPictureIds } =
+    await migratePicturesAndMedia();
+  await fixupAlbumThumbnails(pictureMap, photosByAlbum, hiddenPictureIds);
 
   if (apply) {
     await touchSubtree("/");
