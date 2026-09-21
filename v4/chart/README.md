@@ -101,3 +101,12 @@ Read the report (every converted body's HTML next to its Markdown) and the pod's
 database backup, then re-run with a new `runId` and `--set 'legacyMigration.args[0]=--apply'` to
 write. The Job is not idempotent-proof against concurrent runs, so only ever run one at a time per
 site.
+
+**Photographer profile visibility, once per site.** The first `--apply` run after this feature
+ships recovers each photographer's legacy profile photo (safe, ordinary enrichment, part of every
+run). Immediately after that run, once per site, also pass `--sync-photographer-visibility` to set
+starting visibility from legacy's own convention (public with a cover photo, hidden without) —
+add it as a second `args` entry: `--set 'legacyMigration.args[0]=--apply'
+--set 'legacyMigration.args[1]=--sync-photographer-visibility'`. Do this exactly once per site;
+every later run (this flag omitted) leaves visibility alone so photographers can manage it
+themselves from the `/profile` page afterward.

@@ -1009,6 +1009,16 @@
                   "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
+              },
+              "visibility": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "v4_album_visibility"
+                  }
+                }
               }
             },
             "relations": {
@@ -1119,6 +1129,9 @@
                 },
                 "userId": {
                   "column": "user_id"
+                },
+                "visibility": {
+                  "column": "visibility"
                 }
               },
               "namespaceId": "public",
@@ -2566,6 +2579,24 @@
                   "codecId": "pg/uuid@1",
                   "nativeType": "uuid",
                   "nullable": true
+                },
+                "visibility": {
+                  "codecId": "pg/enum@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "public"
+                  },
+                  "nativeType": "v4_album_visibility",
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "v4_album_visibility"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AlbumVisibility",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 }
               },
               "foreignKeys": [
@@ -3058,7 +3089,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "c65ac39ac33696af0da2fbe396148adb8566a0a95673e176b7bad7d1f586abbf"
+    "storageHash": "44db22cdc23509007d7c9368db8df7d3390616977a72b7a56e335f9b75804982"
   },
   "execution": {
     "executionHash": "4de61373a8bb18837777d69f3fc78addb7349f6fb48ac3b4e9660aca0d6bd51b",

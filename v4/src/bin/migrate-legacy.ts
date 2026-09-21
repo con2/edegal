@@ -28,9 +28,17 @@ import { db } from "@/prisma/db";
  * pictures, redirects) - later passes depend on the in-memory maps earlier ones build, so `--only`
  * on its own is for isolating one pass's own logic, not for running a subset of a fresh migration.
  * `--report=<path>` sets where the HTML->Markdown conversion report is written.
+ *
+ * `--sync-photographer-visibility` is a one-time deal, not a normal part of every run: it
+ * overwrites every migrated photographer's visibility to public-if-they-now-have-a-cover-photo,
+ * hidden otherwise (never touching one already set to private - a stronger, deliberate choice).
+ * Meant to be passed exactly once, right after this script starts recovering cover photos, to
+ * establish everyone's starting visibility from legacy's own convention (no photo, no listing);
+ * from then on photographers manage the setting themselves and ordinary runs never touch it.
  */
 
 const apply = process.argv.includes("--apply");
+const syncVisibility = process.argv.includes("--sync-photographer-visibility");
 const onlyArg = process.argv.find((a) => a.startsWith("--only="));
 const onlyPass = onlyArg ? onlyArg.slice("--only=".length) : null;
 const reportArg = process.argv.find((a) => a.startsWith("--report="));
@@ -106,6 +114,7 @@ async function migrateTerms(): Promise<void> {
 // ---- photographers ----
 
 const photographerMap = new Map<number, string>();
+const photographerCoverPictureId = new Map<number, number | null>();
 
 const socialFields: {
   field: keyof LegacyExportPhotographer;
@@ -210,6 +219,7 @@ async function migratePhotographers(): Promise<void> {
           ).id;
     }
     photographerMap.set(row.id, v4Id);
+    photographerCoverPictureId.set(row.id, row.cover_picture_id);
 
     const links = socialLinksFor(row);
     if (links.length === 0) continue;
@@ -693,6 +703,53 @@ async function fixupAlbumThumbnails(
   }
 }
 
+/**
+ * Recovers each migrated photographer's legacy profile photo, enrich-only (never overrides a
+ * cover the photographer already set in v4). Runs after pictures, since the legacy picture must
+ * already have a v4 photo to point `coverPhotoId` at. A cover that turned out non-public - and
+ * so lives in a hidden sibling album instead - is not usable here either, same as an album cover.
+ *
+ * With `--sync-photographer-visibility`, also sets visibility from the *final* cover-photo
+ * state (public with one, hidden without) - see the flag's own doc comment at the top of the
+ * file for why this is a one-time thing, not part of an ordinary run.
+ */
+async function fixupPhotographerCoverPhotos(
+  pictureMap: Map<number, string>,
+  hiddenPictureIds: Set<number>,
+): Promise<void> {
+  if (!shouldRun("photographers")) return;
+  for (const [legacyId, v4Id] of photographerMap) {
+    if (v4Id.startsWith("dry:")) continue;
+    const existing = await db.orm.public.Photographer.where({ id: v4Id })
+      .select("coverPhotoId", "visibility")
+      .first();
+    if (!existing) continue;
+
+    const legacyCoverId = photographerCoverPictureId.get(legacyId) ?? null;
+    const coverV4Id = legacyCoverId ? pictureMap.get(legacyCoverId) : undefined;
+    const coverIsUsable =
+      coverV4Id !== undefined && !hiddenPictureIds.has(legacyCoverId!);
+
+    const patch: Record<string, unknown> = {};
+    if (!existing.coverPhotoId && coverIsUsable) {
+      patch.coverPhotoId = coverV4Id;
+      tally("photographers.coverPhotoRecovered");
+    }
+    if (syncVisibility && existing.visibility !== "private") {
+      const hasCover =
+        patch.coverPhotoId !== undefined || existing.coverPhotoId;
+      const visibility = hasCover ? "public" : "hidden";
+      if (existing.visibility !== visibility) {
+        patch.visibility = visibility;
+        tally(`photographers.visibilitySetTo.${visibility}`);
+      }
+    }
+    if (Object.keys(patch).length > 0 && apply) {
+      await db.orm.public.Photographer.where({ id: v4Id }).update(patch);
+    }
+  }
+}
+
 // ---- redirect-only albums ----
 
 /**
@@ -772,6 +829,7 @@ async function main(): Promise<void> {
   const { pictureMap, photosByAlbum, hiddenPictureIds } =
     await migratePicturesAndMedia();
   await fixupAlbumThumbnails(pictureMap, photosByAlbum, hiddenPictureIds);
+  await fixupPhotographerCoverPhotos(pictureMap, hiddenPictureIds);
   await collapseRedirectOnlyAlbums();
 
   if (apply) {

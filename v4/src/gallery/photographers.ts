@@ -23,50 +23,37 @@ async function rootCrumb() {
   return root ? [{ path: root.path, title: root.title }] : [];
 }
 
-/** v4 photographers with a profile photo or a credited album with a thumbnail; the tile prefers the profile photo. */
+/**
+ * Public v4 photographers, one tile each: their own profile photo, or an empty tile when they
+ * have none - never guessed from a credited album, so an empty tile means exactly what it shows.
+ */
 async function v4PhotographerSubalbums(): Promise<SubalbumVM[]> {
-  const photographers = await db.orm.public.Photographer.include(
-    "credits",
-    (c) =>
-      c.include("album", (a) =>
-        a.include("thumbnailPhoto", (t) => t.include("media")),
-      ),
-  )
+  const photographers = await db.orm.public.Photographer.where({
+    visibility: "public",
+  })
     .include("coverPhoto", (p) => p.include("media").include("album"))
     .orderBy((p) => p.displayName.asc())
     .all();
   const effective = await effectiveVisibilities(
-    photographers.flatMap((p) => [
-      ...p.credits.map((c) => c.album.path),
-      ...(p.coverPhoto ? [p.coverPhoto.album.path] : []),
-    ]),
+    photographers.flatMap((p) =>
+      p.coverPhoto ? [p.coverPhoto.album.path] : [],
+    ),
   );
-  const isPublic = (path: string) => effective.get(path) === "public";
-  return photographers.flatMap((photographer) => {
-    const albums = photographer.credits
-      .map((c) => c.album)
-      .filter((a) => isPublic(a.path) && a.thumbnailPhoto)
-      .sort((a, b) => compareEventDateDesc(a.eventDate, b.eventDate));
-    const newest = albums[0];
+  return photographers.map((photographer) => {
     const thumbnail =
-      (photographer.coverPhoto && isPublic(photographer.coverPhoto.album.path)
+      photographer.coverPhoto &&
+      effective.get(photographer.coverPhoto.album.path) === "public"
         ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
-        : null) ??
-      (newest?.thumbnailPhoto
-        ? buildMediaSet(newest.thumbnailPhoto.media, "thumbnail")
-        : null);
-    if (!thumbnail) return [];
-    return [
-      {
-        path: `${photographersPath}/${photographer.slug}`,
-        title: photographer.displayName,
-        date: null,
-        visibility: "public" as const,
-        thumbnail,
-        externalUrl: null,
-        ownerId: null,
-      },
-    ];
+        : null;
+    return {
+      path: `${photographersPath}/${photographer.slug}`,
+      title: photographer.displayName,
+      date: null,
+      visibility: "public" as const,
+      thumbnail,
+      externalUrl: null,
+      ownerId: null,
+    };
   });
 }
 
@@ -83,10 +70,24 @@ export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
       ? legacyAlbumByPath(photographersPath)
       : Promise.resolve(null),
   ]);
-  const seen = new Set(v4.map((s) => s.path));
-  const subalbums = [...v4, ...legacy.filter((s) => !seen.has(s.path))].sort(
-    (a, b) => a.title.localeCompare(b.title, "fi"),
-  );
+  // Merged by path (one tile per photographer, never two): a v4 tile with its own thumbnail
+  // wins outright; otherwise the legacy tile fills in if it has one, so a v4 profile whose own
+  // cover photo is momentarily unusable (e.g. its album went private) still shows something
+  // real instead of the empty tile it would get on its own. Only when neither side has a usable
+  // photo does the (public) v4 tile's empty placeholder show through.
+  const legacyByPath = new Map(legacy.map((s) => [s.path, s]));
+  const v4Paths = new Set(v4.map((s) => s.path));
+  const subalbums = [
+    ...v4.map((tile) =>
+      tile.thumbnail
+        ? tile
+        : {
+            ...tile,
+            thumbnail: legacyByPath.get(tile.path)?.thumbnail ?? null,
+          },
+    ),
+    ...legacy.filter((s) => !v4Paths.has(s.path)),
+  ].sort((a, b) => a.title.localeCompare(b.title, "fi"));
   return {
     source: "v4",
     kind: "photographers",
@@ -147,7 +148,8 @@ export async function loadV4PhotographerPage(
     ...photographer.credits.map((c) => c.album.path),
     ...(photographer.coverPhoto ? [photographer.coverPhoto.album.path] : []),
   ]);
-  // The profile page is public, so a photo picked from a non-public album stays off it.
+  // The cover photo's own containing album's visibility gates it independently of the
+  // photographer's own profile visibility: a photo picked from a non-public album stays off it.
   const coverMedia =
     photographer.coverPhoto &&
     effective.get(photographer.coverPhoto.album.path) === "public"
@@ -223,10 +225,12 @@ export async function loadV4PhotographerPage(
     cover,
     date: null,
     layout: "yearly",
-    visibility: "public",
-    effectiveVisibility: "public",
+    // No ancestor chain to be the least visible of, unlike an album: the profile's own setting
+    // is already the effective one.
+    visibility: photographer.visibility,
+    effectiveVisibility: photographer.visibility,
     contactable: false,
-    ownerId: null,
+    ownerId: photographer.userId,
     isOpenForSubalbums: false,
     isDownloadable: false,
     photosProcessing: 0,

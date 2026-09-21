@@ -3,10 +3,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { pool } from "@/legacy/pool";
 import { db } from "@/prisma/db";
 
+import { presentAlbumPage } from "./load";
 import {
   loadPhotographerPageBySlug,
   loadPhotographersIndex,
 } from "./photographers";
+
+const anonymousViewer = { kind: "anonymous" } as const;
 
 /**
  * Legacy photographer "shared" also exists in v4 to prove the two are merged into one page.
@@ -117,6 +120,30 @@ async function insertV4Fixtures() {
   await db.orm.public.Photographer.where({ id: photographer.id }).update({
     coverPhotoId: photo.id,
   });
+
+  // Public with no cover photo and no legacy counterpart at all: nothing to guess from, so the
+  // index must show an empty tile rather than excluding them or picking an unrelated photo.
+  await db.orm.public.Photographer.create({
+    slug: "emptypublic",
+    displayName: "Empty Public",
+  });
+
+  await db.orm.public.Photographer.create({
+    slug: "hiddenone",
+    displayName: "Hidden One",
+    visibility: "hidden",
+  });
+
+  const privateOwner = await db.orm.public.User.create({
+    sub: "kompassi:private-owner",
+    displayName: "Private Owner",
+  });
+  await db.orm.public.Photographer.create({
+    slug: "privateone",
+    displayName: "Private One",
+    visibility: "private",
+    userId: privateOwner.id,
+  });
 }
 
 beforeAll(async () => {
@@ -137,14 +164,20 @@ afterAll(async () => {
 
 describe("loadPhotographersIndex", () => {
   // "Private Cover" picked a picture from a private legacy album, so it earns no tile.
-  it("tiles every photographer with a public cover once, sorted by name", async () => {
+  // "Hidden One" and "Private One" are v4 photographers excluded by their own visibility.
+  it("tiles every visible photographer once, sorted by name, with an empty tile for one with no cover photo", async () => {
     const index = await loadPhotographersIndex();
     expect(index.kind).toBe("photographers");
     expect(index.body).toEqual({ kind: "html", text: "<p>Meet them </p>" });
     expect(index.subalbums.map((s) => [s.path, s.title])).toEqual([
+      ["/photographers/emptypublic", "Empty Public"],
       ["/photographers/legacy-only", "Legacy Only"],
       ["/photographers/shared", "Shared Shooter"],
     ]);
+    const emptyTile = index.subalbums.find(
+      (s) => s.path === "/photographers/emptypublic",
+    );
+    expect(emptyTile?.thumbnail).toBeNull();
   });
 });
 
@@ -212,5 +245,56 @@ describe("loadPhotographerPageBySlug", () => {
 
   it("returns null for slugs no photographer has", async () => {
     expect(await loadPhotographerPageBySlug("nobody")).toBeNull();
+  });
+
+  it("carries a hidden profile's own visibility and owner, still reachable by slug", async () => {
+    const page = await loadPhotographerPageBySlug("hiddenone");
+    expect(page?.visibility).toBe("hidden");
+    expect(page?.effectiveVisibility).toBe("hidden");
+  });
+
+  it("carries a private profile's visibility and owner so presentAlbumPage 404s it for anyone else", async () => {
+    const page = await loadPhotographerPageBySlug("privateone");
+    expect(page?.visibility).toBe("private");
+    const owner = await db.orm.public.User.where({
+      sub: "kompassi:private-owner",
+    }).first();
+
+    expect(
+      presentAlbumPage(
+        page!,
+        anonymousViewer,
+        "/photographers/privateone",
+        null,
+      ).kind,
+    ).toBe("not-found");
+    expect(
+      presentAlbumPage(
+        page!,
+        {
+          kind: "user",
+          userId: owner!.id,
+          name: "",
+          isPhotographer: true,
+          isAdmin: false,
+        },
+        "/photographers/privateone",
+        null,
+      ).kind,
+    ).toBe("ok");
+    expect(
+      presentAlbumPage(
+        page!,
+        {
+          kind: "user",
+          userId: "someone-else",
+          name: "",
+          isPhotographer: true,
+          isAdmin: false,
+        },
+        "/photographers/privateone",
+        null,
+      ).kind,
+    ).toBe("not-found");
   });
 });

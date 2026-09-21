@@ -151,6 +151,48 @@ export default async function ProfilePage({ params, searchParams }: Props) {
               />
               <div className="form-text">{p.slugHelp}</div>
             </div>
+            <fieldset className="mb-3">
+              <legend className="form-label fs-6">{p.visibility}</legend>
+              {(
+                [
+                  {
+                    value: "public",
+                    label: p.visibilityPublic,
+                    help: p.visibilityPublicHelp,
+                  },
+                  {
+                    value: "hidden",
+                    label: p.visibilityHidden,
+                    help: p.visibilityHiddenHelp,
+                  },
+                  {
+                    value: "private",
+                    label: p.visibilityPrivate,
+                    help: p.visibilityPrivateHelp,
+                  },
+                ] as const
+              ).map((v) => (
+                <div className="form-check" key={v.value}>
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="visibility"
+                    id={`Profile-visibility-${v.value}`}
+                    value={v.value}
+                    defaultChecked={
+                      (photographer?.visibility ?? "public") === v.value
+                    }
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`Profile-visibility-${v.value}`}
+                  >
+                    <strong>{v.label}</strong>{" "}
+                    <span className="text-muted">– {v.help}</span>
+                  </label>
+                </div>
+              ))}
+            </fieldset>
             <div className="mb-3">
               <label className="form-label" htmlFor="Profile-email">
                 {p.email}

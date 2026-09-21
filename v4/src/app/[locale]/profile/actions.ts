@@ -37,6 +37,7 @@ export async function updatePhotographer(locale: string, formData: FormData) {
     await tx.orm.public.Photographer.where({ id: photographer.id }).update({
       displayName: form.displayName,
       slug: form.slug,
+      visibility: form.visibility,
       email: form.email,
       introduction: form.introduction,
       defaultTermsId: await usableTermsId(viewer, form.defaultTermsId),

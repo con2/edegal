@@ -65,6 +65,10 @@ model Photographer {
   displayName    String                     @map("display_name")
   email          String                     @default("")
   introduction   String                     @default("")
+  // Same three values as Album: hidden drops off the /photographers index but stays reachable
+  // by its own URL (what a missing profile photo did in legacy, before this became a switch the
+  // photographer controls themselves); private 404s the page itself, like a private album.
+  visibility     pg.enum(AlbumVisibility)   @default("public")
   userId         Uuid?                      @unique @map("user_id")
   user           User?                      @relation(fields:[userId], references:[id], onDelete: SetNull)
   defaultTermsId Uuid?                      @map("default_terms_id")

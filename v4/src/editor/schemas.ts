@@ -139,6 +139,7 @@ export const PhotographerFormSchema = z.object({
     .min(1)
     .max(255)
     .regex(/^[a-z0-9-]+$/, "slug"),
+  visibility: z.enum(["public", "hidden", "private"]),
   email: z
     .union([z.string().trim().email().max(254), z.literal("")])
     .default(""),

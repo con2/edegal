@@ -292,6 +292,15 @@ const translations = {
       "Part of your photographer page address (lowercase letters, digits and dashes). Changing it later breaks existing links to that page.",
     slugTaken: "This slug is already in use by another photographer.",
     displayName: "Display name",
+    visibility: "Visibility",
+    visibilityPublic: "Public",
+    visibilityPublicHelp:
+      "Listed on the photographers page and reachable by everyone.",
+    visibilityHidden: "Hidden",
+    visibilityHiddenHelp:
+      "Not listed on the photographers page, but anyone with the address can view it.",
+    visibilityPrivate: "Private",
+    visibilityPrivateHelp: "Only you and admins can view it.",
     email: "Email (not shown publicly)",
     introduction: "Introduction",
     links: "Links",
