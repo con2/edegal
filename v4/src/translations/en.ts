@@ -350,6 +350,43 @@ const translations = {
         "These conditions are used by albums you do not own and cannot be deleted.",
     },
   },
+  ManageIndex: {
+    title: "Administration",
+    photographers: "Photographer profiles",
+    photographersHelp:
+      "Connect migrated profiles to accounts, edit anyone's profile, and merge duplicates.",
+    redirects: "Redirects",
+    redirectsHelp: "Add or remove address redirects by hand.",
+    users: "Users",
+    usersHelp:
+      "Everyone who has signed in, and whether they have a linked profile.",
+  },
+  ManageRedirects: {
+    title: "Redirects",
+    intro:
+      "Visitors requesting “From” are sent to “To”. Moving or renaming an album, or merging profiles, adds these automatically; add one by hand for anything else, such as an old external link.",
+    from: "From",
+    to: "To",
+    created: "Added",
+    addTitle: "Add or replace a redirect",
+    fromHelp: "A gallery address starting with /.",
+    toHelp: "A gallery address starting with /, or a full https:// address.",
+    add: "Save",
+    delete: "Delete",
+    confirmDelete: "Delete this redirect?",
+    saved: "Redirect saved.",
+    deleted: "Redirect deleted.",
+    invalid: "Please check the addresses.",
+  },
+  ManageUsers: {
+    title: "Users",
+    intro:
+      "Everyone who has signed in through Kompassi. Accounts themselves are managed in Kompassi, not here.",
+    displayName: "Name",
+    email: "Email",
+    profile: "Photographer profile",
+    noProfile: "No profile",
+  },
   ManagePhotographers: {
     title: "Manage photographer profiles",
     intro:

@@ -39,7 +39,7 @@ export function UserMenu({ viewer, messages }: UserMenuProps) {
       ) : null}
       {viewer.isAdmin ? (
         <>
-          <NavDropdown.Item as={Link} href="/manage/photographers">
+          <NavDropdown.Item as={Link} href="/manage">
             {messages.AppBar.adminLink}
           </NavDropdown.Item>
           <NavDropdown.Divider />

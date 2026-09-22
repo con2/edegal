@@ -346,6 +346,43 @@ const translations: Translations = {
         "Näitä käyttöehtoja käyttävät albumit, joita et omista, eikä niitä voi poistaa.",
     },
   },
+  ManageIndex: {
+    title: "Ylläpito",
+    photographers: "Kuvaajaprofiilit",
+    photographersHelp:
+      "Yhdistä siirretyt profiilit tunnuksiin, muokkaa kenen tahansa profiilia ja yhdistä kaksoiskappaleet.",
+    redirects: "Uudelleenohjaukset",
+    redirectsHelp: "Lisää tai poista osoitteiden uudelleenohjauksia käsin.",
+    users: "Käyttäjät",
+    usersHelp:
+      "Kaikki sisäänkirjautuneet käyttäjät ja onko heillä yhdistetty profiili.",
+  },
+  ManageRedirects: {
+    title: "Uudelleenohjaukset",
+    intro:
+      "Kohdassa ”Mistä” vieraileva ohjataan kohtaan ”Mihin”. Albumin siirto tai uudelleennimeäminen sekä profiilien yhdistäminen lisäävät näitä automaattisesti; lisää käsin muita tapauksia varten, kuten vanhaa ulkoista linkkiä varten.",
+    from: "Mistä",
+    to: "Mihin",
+    created: "Lisätty",
+    addTitle: "Lisää tai korvaa uudelleenohjaus",
+    fromHelp: "Galleriaosoite, joka alkaa /-merkillä.",
+    toHelp: "Galleriaosoite, joka alkaa /-merkillä, tai täysi https://-osoite.",
+    add: "Tallenna",
+    delete: "Poista",
+    confirmDelete: "Poistetaanko tämä uudelleenohjaus?",
+    saved: "Uudelleenohjaus tallennettu.",
+    deleted: "Uudelleenohjaus poistettu.",
+    invalid: "Tarkista osoitteet.",
+  },
+  ManageUsers: {
+    title: "Käyttäjät",
+    intro:
+      "Kaikki Kompassin kautta sisäänkirjautuneet. Tunnuksia itseään hallitaan Kompassissa, ei täällä.",
+    displayName: "Nimi",
+    email: "Sähköposti",
+    profile: "Kuvaajaprofiili",
+    noProfile: "Ei profiilia",
+  },
   ManagePhotographers: {
     title: "Hallinnoi kuvaajaprofiileja",
     intro:

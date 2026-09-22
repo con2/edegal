@@ -170,3 +170,25 @@ export const TermsFormSchema = z.object({
 export const DeleteAlbumSchema = z.object({
   confirmSlug: z.string().trim(),
 });
+
+export const RedirectFormSchema = z.object({
+  /** Replaces any existing redirect from this path, so this doubles as "edit". */
+  fromPath: z
+    .string()
+    .trim()
+    .max(1023)
+    .regex(/^\/[a-z0-9/-]+$/, "fromPath"),
+  toPath: z
+    .string()
+    .trim()
+    .max(1023)
+    .refine(
+      (value) =>
+        /^https?:\/\/\S+$/.test(value) || /^\/[a-z0-9/-]+$/.test(value),
+      "toPath",
+    ),
+});
+
+export const DeleteRedirectSchema = z.object({
+  fromPath: z.string().trim().max(1023),
+});

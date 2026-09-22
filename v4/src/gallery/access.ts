@@ -96,15 +96,22 @@ export function canDeleteAlbum(
   return album.path !== "/" && canEditAlbum(viewer, album);
 }
 
-/** Series group albums across photographers, so only admins shape them. */
-export function canManageSeries(viewer: Viewer): boolean {
+/** Every /manage page (series, photographer profiles, redirects, users) is admin-only. */
+export function isAdmin(viewer: Viewer): boolean {
   return viewer.kind === "user" && viewer.isAdmin;
 }
+
+/** Series group albums across photographers, so only admins shape them. */
+export const canManageSeries = isAdmin;
 
 /**
  * The /photographers introduction has no owner of its own, and linking a migrated profile to an
  * account or merging duplicates is an admin-only operation touching other people's profiles.
  */
-export function canManagePhotographers(viewer: Viewer): boolean {
-  return viewer.kind === "user" && viewer.isAdmin;
-}
+export const canManagePhotographers = isAdmin;
+
+/** Redirects are a raw address mapping with nothing to own; admin-only like the other /manage pages. */
+export const canManageRedirects = isAdmin;
+
+/** Users come from Kompassi OIDC and are never edited here, only listed for admins. */
+export const canManageUsers = isAdmin;
