@@ -304,14 +304,17 @@ export async function moveTargets(
 }
 
 /**
- * Terms an album (or a profile default) may point at: the viewer's own and shared ones, or any
- * for admins. Mirrors the choices the form offers, so a forged id is rejected the same way.
+ * Terms an album (or a profile default) may point at: the viewer's own and shared ones, whatever
+ * is already set on the record (its owner may since have changed, e.g. a transferred album), or
+ * any for admins. Mirrors the choices the form offers, so a forged id is rejected the same way.
  */
 export async function usableTermsId(
   viewer: Viewer,
   termsId: string,
+  currentTermsId: string | null,
 ): Promise<string | null> {
   if (!termsId) return null;
+  if (termsId === currentTermsId) return termsId;
   const terms = await db.orm.public.Terms.where({ id: termsId })
     .select("id", "ownerId")
     .first();

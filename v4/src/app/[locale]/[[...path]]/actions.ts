@@ -149,7 +149,7 @@ export async function createAlbum(
     ordering: form.ordering,
     eventDate: form.eventDate,
     eventMetadataUrl: form.eventMetadataUrl,
-    termsId: await usableTermsId(viewer, form.termsId),
+    termsId: await usableTermsId(viewer, form.termsId, null),
     ownerId,
     redirectUrl: form.redirectUrl,
     seriesId: await requireSeriesId(form.seriesId),
@@ -257,7 +257,7 @@ export async function updateAlbum(
     ordering: form.ordering,
     eventDate: form.eventDate,
     eventMetadataUrl: form.eventMetadataUrl,
-    termsId: await usableTermsId(viewer, form.termsId),
+    termsId: await usableTermsId(viewer, form.termsId, album.termsId),
     ...(viewer.isAdmin && form.ownerId ? { ownerId: form.ownerId } : {}),
     ...(isRoot
       ? {}

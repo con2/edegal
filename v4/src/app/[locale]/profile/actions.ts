@@ -46,7 +46,11 @@ export async function updatePhotographer(locale: string, formData: FormData) {
       visibility: form.visibility,
       email: form.email,
       introduction: form.introduction,
-      defaultTermsId: await usableTermsId(viewer, form.defaultTermsId),
+      defaultTermsId: await usableTermsId(
+        viewer,
+        form.defaultTermsId,
+        photographer.defaultTermsId,
+      ),
     });
     await tx.orm.public.PhotographerLink.where({
       photographerId: photographer.id,

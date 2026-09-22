@@ -68,17 +68,26 @@ afterAll(async () => {
 
 describe("usableTermsId", () => {
   it("accepts the user's own and shared terms, and nothing for an empty choice", async () => {
-    expect(await usableTermsId(owner, own)).toBe(own);
-    expect(await usableTermsId(owner, shared)).toBe(shared);
-    expect(await usableTermsId(owner, "")).toBeNull();
+    expect(await usableTermsId(owner, own, null)).toBe(own);
+    expect(await usableTermsId(owner, shared, null)).toBe(shared);
+    expect(await usableTermsId(owner, "", null)).toBeNull();
   });
 
-  // The form never offers these, so reaching here means a forged request.
+  // Neither owned nor already set, so reaching here means a forged request.
   it("rejects another user's terms and unknown ids, but lets admins use any", async () => {
-    await expect(usableTermsId(owner, foreign)).rejects.toThrow();
+    await expect(usableTermsId(owner, foreign, null)).rejects.toThrow();
     await expect(
-      usableTermsId(owner, "00000000-0000-7000-8000-000000000000"),
+      usableTermsId(owner, "00000000-0000-7000-8000-000000000000", null),
     ).rejects.toThrow();
-    expect(await usableTermsId(admin, foreign)).toBe(foreign);
+    expect(await usableTermsId(admin, foreign, null)).toBe(foreign);
+  });
+
+  it("accepts a non-owned terms id when it's already the record's current one", async () => {
+    // E.g. an album whose ownership was transferred after its terms were set.
+    expect(await usableTermsId(owner, foreign, foreign)).toBe(foreign);
+  });
+
+  it("does not widen access to some other non-owned terms just because a current id is passed", async () => {
+    await expect(usableTermsId(owner, foreign, own)).rejects.toThrow();
   });
 });

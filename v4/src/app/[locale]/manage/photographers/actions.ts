@@ -66,7 +66,11 @@ export async function updatePhotographerAsAdmin(
       visibility: form.visibility,
       email: form.email,
       introduction: form.introduction,
-      defaultTermsId: await usableTermsId(viewer, form.defaultTermsId),
+      defaultTermsId: await usableTermsId(
+        viewer,
+        form.defaultTermsId,
+        photographer.defaultTermsId,
+      ),
       userId: form.userId || null,
     });
     await tx.orm.public.PhotographerLink.where({
