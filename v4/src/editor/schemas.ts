@@ -148,6 +148,10 @@ export const PhotographerFormSchema = z.object({
   defaultTermsId: z.union([uuid, z.literal("")]).default(""),
 });
 
+export const PhotographersIntroSchema = z.object({
+  body: z.string().max(100_000).default(""),
+});
+
 export const TermsFormSchema = z.object({
   title: z.string().trim().min(1).max(255),
   text: z.string().trim().min(1).max(20_000),

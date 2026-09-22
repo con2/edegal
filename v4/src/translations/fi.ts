@@ -154,6 +154,8 @@ const translations: Translations = {
     editSeriesTitle: "Muokkaa sarjaa",
     deleteSeries: "Poista sarja",
     createSeries: "Luo sarja",
+    editPhotographersIntro: "Muokkaa esittelyä",
+    editPhotographersIntroTitle: "Muokkaa esittelyä",
     fields: {
       parent: "Yläalbumi",
       parentHelp: "Uusi albumi luodaan tämän albumin alle.",
@@ -266,6 +268,7 @@ const translations: Translations = {
       albumDeleted: "Albumi poistettu.",
       seriesSaved: "Sarja tallennettu.",
       seriesDeleted: "Sarja poistettu.",
+      introSaved: "Esittely tallennettu.",
     },
   },
   Upload: {

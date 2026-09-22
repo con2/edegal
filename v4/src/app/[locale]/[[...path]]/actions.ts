@@ -28,6 +28,7 @@ import {
   AlbumFormSchema,
   DeleteAlbumSchema,
   FlickrImportSchema,
+  PhotographersIntroSchema,
   SeriesFormSchema,
 } from "@/editor/schemas";
 import {
@@ -36,6 +37,7 @@ import {
   canEditAlbum,
   canList,
   canManagePhoto,
+  canManagePhotographers,
   canManageSeries,
 } from "@/gallery/access";
 import { invalidateAlbum } from "@/gallery/cache";
@@ -537,4 +539,23 @@ export async function deleteSeries(
   invalidateAlbum(`series:${series.slug}`);
   revalidatePath(`/${locale}/`);
   return void redirect(withMessage("/", "success", "seriesDeleted"));
+}
+
+/** The /photographers page's intro text lives in a real Album row for `body` alone. */
+export async function updatePhotographersIntro(
+  locale: string,
+  formData: FormData,
+) {
+  const viewer = await requireUser();
+  if (!canManagePhotographers(viewer))
+    throw new Error("admin privileges required");
+  const { body } = PhotographersIntroSchema.parse(normalizeFormData(formData));
+  const album = await db.orm.public.Album.where({ path: "/photographers" })
+    .select("id")
+    .first();
+  if (!album) throw new Error("photographers album not found");
+  await db.orm.public.Album.where({ id: album.id }).update({ body });
+  await touchAlbum(album.id);
+  revalidatePath(`/${locale}/photographers`);
+  return void redirect(withMessage("/photographers", "success", "introSaved"));
 }

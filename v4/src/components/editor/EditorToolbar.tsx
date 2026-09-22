@@ -18,8 +18,11 @@ interface EditorToolbarProps {
   locale: string;
   albumId: string;
   albumPath: string;
-  /** Series pages have no photos or subalbums of their own, only edit and delete. */
-  kind: "album" | "series";
+  /**
+   * Series pages have no photos or subalbums of their own, only edit and delete. The
+   * photographers index has neither, and only edit.
+   */
+  kind: "album" | "series" | "photographers";
   rights: EditorRights;
   hasPhotos: boolean;
   hasManualOrdering: boolean;
@@ -61,7 +64,12 @@ export function EditorToolbar({
             </Link>
           ) : null}
           <Link className="btn btn-link btn-sm" href={href("edit")}>
-            {kind === "series" ? messages.editSeries : messages.editAlbum}…
+            {kind === "series"
+              ? messages.editSeries
+              : kind === "photographers"
+                ? messages.editPhotographersIntro
+                : messages.editAlbum}
+            …
           </Link>
           {hasPhotos ? (
             <SortPhotosMenu

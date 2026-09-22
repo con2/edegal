@@ -10,6 +10,7 @@ import {
   canCreateSubalbum,
   canDeleteAlbum,
   canEditAlbum,
+  canManagePhotographers,
   canManageSeries,
 } from "@/gallery/access";
 import type { AlbumPageVM } from "@/gallery/types";
@@ -25,12 +26,14 @@ import {
   deleteSeries,
   importFlickrAlbum,
   updateAlbum,
+  updatePhotographersIntro,
   updateSeries,
 } from "@/app/[locale]/[[...path]]/actions";
 
 import { AlbumForm } from "./AlbumForm";
 import { DeleteAlbumConfirm } from "./DeleteAlbumConfirm";
 import { FlickrImportForm } from "./FlickrImportForm";
+import { PhotographersIntroForm } from "./PhotographersIntroForm";
 import { SeriesForm } from "./SeriesForm";
 import { UploadPanel } from "./UploadPanel";
 
@@ -80,6 +83,18 @@ export async function EditorPanel({
         messages={messages.Editor}
       />
     );
+  if (album.kind === "photographers") {
+    if (mode !== "edit" || !canManagePhotographers(viewer)) return null;
+    return (
+      <PhotographersIntroForm
+        locale={locale}
+        action={updatePhotographersIntro.bind(null, locale)}
+        body={album.body}
+        cancelHref={album.path}
+        messages={messages.Editor}
+      />
+    );
+  }
   if (album.kind !== "album") return null;
   const guard = {
     ownerId: album.ownerId,

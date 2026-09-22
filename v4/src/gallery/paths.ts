@@ -67,6 +67,7 @@ export const reservedRootSlugs = new Set([
   "profile",
   "random",
   "photographers",
+  "manage",
   "favicon.ico",
 ]);
 

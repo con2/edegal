@@ -6,6 +6,7 @@ import {
   canDownload,
   canEditAlbum,
   canManagePhoto,
+  canManagePhotographers,
   canManageSeries,
 } from "@/gallery/access";
 import { thumbnailTargets } from "@/editor/albums";
@@ -54,10 +55,16 @@ export async function GalleryPage({
   };
   const isAlbum = unfiltered.kind === "album";
   const isSeries = unfiltered.kind === "series";
+  const isPhotographersIndex = unfiltered.kind === "photographers";
   const manageSeries = isSeries && canManageSeries(viewer);
+  const managePhotographersIndex =
+    isPhotographersIndex && canManagePhotographers(viewer);
   const rights = {
     canCreate: isAlbum && canCreateSubalbum(viewer, guard),
-    canEdit: (isAlbum && canEditAlbum(viewer, guard)) || manageSeries,
+    canEdit:
+      (isAlbum && canEditAlbum(viewer, guard)) ||
+      manageSeries ||
+      managePhotographersIndex,
     canDelete: (isAlbum && canDeleteAlbum(viewer, guard)) || manageSeries,
     canCreateSeries: isAlbum && album.path === "/" && canManageSeries(viewer),
   };
@@ -143,7 +150,13 @@ export async function GalleryPage({
                 locale={locale}
                 albumId={album.id}
                 albumPath={album.path}
-                kind={isSeries ? "series" : "album"}
+                kind={
+                  isPhotographersIndex
+                    ? "photographers"
+                    : isSeries
+                      ? "series"
+                      : "album"
+                }
                 rights={rights}
                 hasPhotos={album.photos.length > 0}
                 hasManualOrdering={album.hasManualOrdering}

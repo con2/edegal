@@ -100,3 +100,11 @@ export function canDeleteAlbum(
 export function canManageSeries(viewer: Viewer): boolean {
   return viewer.kind === "user" && viewer.isAdmin;
 }
+
+/**
+ * The /photographers introduction has no owner of its own, and linking a migrated profile to an
+ * account or merging duplicates is an admin-only operation touching other people's profiles.
+ */
+export function canManagePhotographers(viewer: Viewer): boolean {
+  return viewer.kind === "user" && viewer.isAdmin;
+}

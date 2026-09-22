@@ -156,6 +156,8 @@ const translations = {
     editSeriesTitle: "Edit series",
     deleteSeries: "Delete series",
     createSeries: "Create series",
+    editPhotographersIntro: "Edit introduction",
+    editPhotographersIntroTitle: "Edit introduction",
     fields: {
       parent: "Parent album",
       parentHelp: "The new album is created under this album.",
@@ -268,6 +270,7 @@ const translations = {
       albumDeleted: "Album deleted.",
       seriesSaved: "Series saved.",
       seriesDeleted: "Series deleted.",
+      introSaved: "Introduction saved.",
     },
   },
   Upload: {
