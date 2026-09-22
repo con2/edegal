@@ -3,10 +3,8 @@ name: v4
 on:
   push:
     branches: [main]
-    paths: ["v4/**", ".github/workflows/v4.yaml"]
   pull_request:
     branches: [main]
-    paths: ["v4/**", ".github/workflows/v4.yaml"]
 
 permissions:
   contents: read
@@ -17,9 +15,6 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: v4
     services:
       postgres:
         image: postgres:18
@@ -38,7 +33,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: v4/package-lock.json
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
@@ -72,7 +66,6 @@ jobs:
           tags: type=sha,prefix=,format=short
       - uses: docker/bake-action@v7
         with:
-          source: v4
           push: true
         env:
           IMAGE: ${{ env.IMAGE }}
@@ -94,9 +87,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: azure/setup-helm@v5
       - run: |
-          helm upgrade --install v4 v4/chart \
+          helm upgrade --install v4 chart \
             --namespace ${{ matrix.site.namespace }} \
-            -f v4/chart/${{ matrix.site.values }} \
+            -f chart/${{ matrix.site.values }} \
             --set image.repository=${{ env.IMAGE }} \
             --set image.tag=${{ needs.build.outputs.tag }} \
             --wait --timeout 300s

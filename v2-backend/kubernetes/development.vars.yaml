@@ -1,3 +1,0 @@
-edegal_secret_key: not a very secret key
-edegal_frontend_url: !Format http://{public_hostname}
-postgres_password: edegal

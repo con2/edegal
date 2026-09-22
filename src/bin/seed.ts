@@ -8,12 +8,12 @@ import { pool } from "@/prisma/pool";
 
 /**
  * Example v4 content for local development: a root album, a photographer and one event album tree
- * with photos generated from the legacy backend's example pictures. Re-running replaces the event
- * album; the root album is kept.
+ * with photos generated from the sample pictures in example_content/. Re-running replaces the
+ * event album; the root album is kept.
  */
 
 const siteTitle = process.env.SITE_TITLE || "Larppikuvat.fi (v4 dev)";
-const exampleDir = path.resolve(process.cwd(), "../v2-backend/example_content");
+const exampleDir = path.resolve(process.cwd(), "example_content");
 
 function slugify(filename: string): string {
   return filename

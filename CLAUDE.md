@@ -1,16 +1,14 @@
 # Conikuvat.fi / Larppikuvat.fi photo gallery v4 ("Edegal")
 
-Photo gallery behind conikuvat.fi and larppikuvat.fi. Two applications share one PostgreSQL
-database (`public` schema) and one media directory (NFS in production, owned by uid 1082):
+Photo gallery behind conikuvat.fi and larppikuvat.fi: Next.js 16 App Router + Prisma 8
+(prisma-next) + Auth.js v5, living at the repo root. The previous Django backend (`v2-backend/`,
+kept only for its admin at `/admin`) has been decommissioned now that the remaining editing
+features are in v4; it lives in git history, and `docs/legacy-migration-plan.md` records how its
+content was migrated.
 
-- `v4/` – the site: Next.js 16 App Router + Prisma 8 (prisma-next) + Auth.js v5. Serves everything
-  at the site root. Development happens here.
-- `v2-backend/` – the previous Django backend, kept only for its admin at `/admin` (uv project,
-  Python 3.14, Django 6). No feature work; it goes away once the remaining editing features are in v4.
-
-Deployment: `v4/chart/` (Helm, Gateway API, per-site values files) and `v2-backend/kubernetes/`
-(emskaffolden); workflows `.github/workflows/v4.yaml` and `v2-backend.yaml`. Media access moves to
-self-hosted S3 in con2/edegal#245; do not start that unprompted.
+Deployment: `chart/` (Helm, Gateway API, per-site values files); workflow `.github/workflows/v4.yaml`.
+The media directory is NFS in production, owned by uid 1082. Media access moves to self-hosted S3
+in con2/edegal#245; do not start that unprompted.
 
 ## Name of the application
 
@@ -24,7 +22,7 @@ the user in new places.
 - Never run anything against the production database from here. Locally, `edegal` holds a
   production dump plus the v4 tables and `edegal_test` is the integration-test database.
 
-## v4 commands (run in `v4/`)
+## Commands
 
 - `npm run dev` – dev server on http://localhost:3160 (no automatic migrations; run `npm run db:migrate:dev` first)
 - `npm run worker` – media worker; uploads become visible only when it runs
@@ -35,31 +33,32 @@ the user in new places.
 
 ## Prisma 8 is not Prisma 7
 
-Read `v4/node_modules/@prisma/orm-postgres/skills/prisma-8/SKILL.md` and its `references/` before
+Read `node_modules/@prisma/orm-postgres/skills/prisma-8/SKILL.md` and its `references/` before
 touching the contract, migrations or queries. Key points:
 
-- Contract source: `v4/src/prisma/contract.prisma`. After editing, `prisma contract emit` regenerates
+- Contract source: `src/prisma/contract.prisma`. After editing, `prisma contract emit` regenerates
   `contract.json` + `contract.d.ts` (committed, never hand-edited).
-- Queries: `db.orm.public.<Model>` and `db.sql.public.<table>` from `v4/src/prisma/db.ts`.
-- Migrations are TypeScript packages under `v4/migrations/app/`; `ops.json` is compiled by running the
+- Queries: `db.orm.public.<Model>` and `db.sql.public.<table>` from `src/prisma/db.ts`.
+- Migrations are TypeScript packages under `migrations/app/`; `ops.json` is compiled by running the
   migration file, never edited by hand.
-- Production applies migrations with `v4/src/bin/migrate.mjs` (ORM command family only) so the
+- Production applies migrations with `src/bin/migrate.mjs` (ORM command family only) so the
   migrator image stays small; local development uses the `prisma` CLI.
 - **Never run `prisma db update` or `prisma db init` against a database that holds legacy tables.**
   `db update` reconciles the whole database to the contract and plans `DROP TABLE` for every table it
   does not know about, i.e. all `edegal_*` and Django tables. Use `migration plan` + `db migrate` only.
   `db verify` (without `--strict`) tolerates unmanaged tables and is safe.
 - Prisma only appends native enum values: add new values at the end of the enum. Removing a value
-  needs a hand-authored migration (`npx prisma migration new`); see `v4/migrations/app/*drop_heif*`.
+  needs a hand-authored migration (`npx prisma migration new`); see `migrations/app/*drop_heif*`.
 - Production PostgreSQL is 17: ids use `@default(uuid(7))` generated at runtime, not `uuidv7()`.
 - `pg` and `@types/pg` stay pinned to the versions the Prisma runtime bundles.
 
 ## Legacy content
 
-v4 no longer reads the Django tables: all site content was migrated into `v4_*` tables and
-`LEGACY_ENABLED`/`v4/src/legacy/` are gone. The `edegal_*` tables and their media files are still
-in place (dropping them is a later phase) but nothing outside `v2-backend/` touches them anymore;
-leave existing legacy thumbnails and media files alone.
+v4 no longer reads the Django tables: all site content was migrated into `v4_*` tables, and
+`LEGACY_ENABLED` and the legacy data-merge code are gone. The `edegal_*`/`auth_*`/`django_*`/
+`larppikuvat_*` tables and their media files are still in the shared database and NFS mount
+(dropping the tables is Phase 6 of `docs/legacy-migration-plan.md`); nothing in this repo touches
+them anymore. Leave existing legacy thumbnails and media files alone.
 
 ## Auth
 
@@ -78,12 +77,12 @@ groups. Auth.js's optional nodemailer peer is `^7 || ^8`, so nodemailer 9 bumps 
 
 ## Conventions
 
-- Translations: `v4/src/translations/en.ts` defines the `Translations` type, `fi.ts` implements it.
+- Translations: `src/translations/en.ts` defines the `Translations` type, `fi.ts` implements it.
   Components take narrow `messages` props typed as `Translations["Namespace"]`. In Finnish, upload
   is lähettää/lähetä; ladata/lataa means download.
 - Bootstrap + SCSS (no Tailwind). Constants in lowerCamelCase.
-- Locale is negotiated by next-intl (`v4/src/proxy.ts`) without URL prefixes; pages live under
-  `v4/src/app/[locale]/`.
+- Locale is negotiated by next-intl (`src/proxy.ts`) without URL prefixes; pages live under
+  `src/app/[locale]/`.
 - Lowercase SQL keywords in hand-written SQL.
 - Containers must not set the `HOSTNAME` env var: with next-intl's prefixless routing every page
   redirect-loops. The server binds 0.0.0.0 without it.
@@ -91,5 +90,6 @@ groups. Auth.js's optional nodemailer peer is `^7 || ^8`, so nodemailer 9 bumps 
 ## Next.js
 
 Next 16 differs from older releases in APIs, conventions and file layout. Read the relevant guide in
-`v4/node_modules/next/dist/docs/` before writing Next code. `next dev` writes a note about this
-under `v4/` (an `AGENTS.md` or a marked block); commit it with your work instead of deleting it.
+`node_modules/next/dist/docs/` before writing Next code.
+
+@AGENTS.md

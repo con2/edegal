@@ -86,8 +86,8 @@ for the values and HTTPRoute rules involved.
 ## Deploy
 
 ```sh
-helm upgrade --install v4 v4/chart -n conikuvat-v4 -f v4/chart/values-conikuvat.yaml \
+helm upgrade --install v4 chart -n conikuvat-v4 -f chart/values-conikuvat.yaml \
   --set image.tag=<short sha> --wait --timeout 300s
 ```
 
-CI does this on every push to `main` that touches `v4/`.
+CI does this on every push to `main`.

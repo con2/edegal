@@ -1,29 +1,57 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-*.pyc
-*.sqlite3
-.bundle/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+# Unanchored: a package.json "name" of "v4" makes Turbopack's build cache mirror itself under a
+# nested v4/.next/ as well as the real top-level one.
+.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
-.sublime-*
-/media/
-/static/
-__pycache__
-build/
-node_modules/
-nohup.out
-npm-debug.log
-pip-log.txt
-public
-rev-manifest.json
-tmp/
-virtualenv/
-v2-backend/static/**
-*.log
-docker-compose.secret.yml
-.env
-*.sql
+*.pem
 .vscode
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# media
+/media/
+
+# local-only config overrides and secrets
 *.compiled.yaml
 *.local.yaml
-build.json
 .secrets
-.venv
+
+# production database dumps used for local rehearsal
+*.sql
