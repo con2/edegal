@@ -25,14 +25,20 @@ function done(locale: string, code: string) {
 export async function updatePhotographer(locale: string, formData: FormData) {
   const viewer = await requirePhotographer();
   const form = PhotographerFormSchema.parse(normalizeFormData(formData));
-  const photographer = await ensurePhotographer(viewer);
+  // Checked against the existing row, not one `ensurePhotographer` might create below: creating
+  // it first would mint a stray duplicate the moment someone types a slug that is already taken,
+  // for instance a migrated profile's own slug before an admin has linked it to their account.
+  const existing = await db.orm.public.Photographer.where({
+    userId: viewer.userId,
+  }).first();
   const slugOwner = await db.orm.public.Photographer.where({ slug: form.slug })
     .select("id")
     .first();
-  if (slugOwner && slugOwner.id !== photographer.id) {
+  if (slugOwner && slugOwner.id !== existing?.id) {
     revalidatePath(`/${locale}/profile`);
     return void redirect(`/profile?error=slugTaken`);
   }
+  const photographer = existing ?? (await ensurePhotographer(viewer));
   await db.transaction(async (tx) => {
     await tx.orm.public.Photographer.where({ id: photographer.id }).update({
       displayName: form.displayName,

@@ -299,6 +299,8 @@ const translations = {
     slugHelp:
       "Part of your photographer page address (lowercase letters, digits and dashes). Changing it later breaks existing links to that page.",
     slugTaken: "This slug is already in use by another photographer.",
+    legacyProfileHint:
+      "If you had a profile on the previous site, ask an admin to connect it to your account instead of creating a new one.",
     displayName: "Display name",
     visibility: "Visibility",
     visibilityPublic: "Public",

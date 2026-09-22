@@ -296,6 +296,8 @@ const translations: Translations = {
     slugHelp:
       "Osa kuvaajasivusi osoitetta (pieniä kirjaimia, numeroita ja viivoja). Muuttaminen jälkikäteen rikkoo vanhat linkit sivullesi.",
     slugTaken: "Tämä osoitetunnus on jo toisen kuvaajan käytössä.",
+    legacyProfileHint:
+      "Jos sinulla oli profiili vanhalla sivustolla, pyydä ylläpitäjää yhdistämään se tunnukseesi sen sijaan, että loisit uuden.",
     displayName: "Näyttönimi",
     visibility: "Näkyvyys",
     visibilityPublic: "Julkinen",

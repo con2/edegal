@@ -150,6 +150,9 @@ export default async function ProfilePage({ params, searchParams }: Props) {
                 }
               />
               <div className="form-text">{p.slugHelp}</div>
+              {!photographer ? (
+                <div className="form-text">{p.legacyProfileHint}</div>
+              ) : null}
             </div>
             <fieldset className="mb-3">
               <legend className="form-label fs-6">{p.visibility}</legend>
