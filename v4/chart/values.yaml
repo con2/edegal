@@ -28,7 +28,7 @@ mediaNfs:
 kompassi:
   baseUrl: https://kompassi.eu
   photographerGroup: conikuvat-staff
-  adminGroup: admins
+  adminGroup: conikuvat-admins
 
 # Outgoing mail for the contact form. An empty hostname makes the form report the service as
 # unavailable. SMTP_USERNAME and SMTP_PASSWORD, when the relay needs them, go in the Secret.

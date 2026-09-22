@@ -7,7 +7,7 @@ mediaNfs:
 kompassi:
   baseUrl: https://kompassi.eu
   photographerGroup: larppikuvat-staff
-  adminGroup: admins
+  adminGroup: larppikuvat-admins
 mail:
   smtpHostname: sr1.pahaip.fi
   smtpPort: 25

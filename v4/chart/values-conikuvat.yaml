@@ -7,7 +7,7 @@ mediaNfs:
 kompassi:
   baseUrl: https://kompassi.eu
   photographerGroup: conikuvat-staff
-  adminGroup: admins
+  adminGroup: conikuvat-admins
 mail:
   smtpHostname: sr1.pahaip.fi
   smtpPort: 25
