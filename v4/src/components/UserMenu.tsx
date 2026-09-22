@@ -37,6 +37,14 @@ export function UserMenu({ viewer, messages }: UserMenuProps) {
           <NavDropdown.Divider />
         </>
       ) : null}
+      {viewer.isAdmin ? (
+        <>
+          <NavDropdown.Item as={Link} href="/manage/photographers">
+            {messages.AppBar.adminLink}
+          </NavDropdown.Item>
+          <NavDropdown.Divider />
+        </>
+      ) : null}
       <NavDropdown.Item onClick={() => signOut()}>
         {messages.Auth.signOut}
       </NavDropdown.Item>

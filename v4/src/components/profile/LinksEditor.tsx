@@ -2,16 +2,22 @@
 
 import { useState } from "react";
 
-import type { Translations } from "@/translations";
-
 interface Link {
   title: string;
   href: string;
 }
 
+interface LinksEditorMessages {
+  linkTitle: string;
+  linkHref: string;
+  addLink: string;
+  removeLink: string;
+}
+
 interface LinksEditorProps {
   initial: Link[];
-  messages: Translations["Profile"];
+  /** Shared by the self-service profile form and the admin editor, each with their own copy. */
+  messages: LinksEditorMessages;
 }
 
 /** Rows of title / address, serialised into the hidden `links` field as JSON. */

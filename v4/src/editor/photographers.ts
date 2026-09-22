@@ -39,7 +39,8 @@ export async function linkPhotographerToUser(
     const owner = await db.orm.public.Photographer.where({ userId })
       .select("id")
       .first();
-    if (owner && owner.id !== photographerId) throw new UserAlreadyLinkedError();
+    if (owner && owner.id !== photographerId)
+      throw new UserAlreadyLinkedError();
   }
   await db.orm.public.Photographer.where({ id: photographerId }).update({
     userId,
@@ -67,8 +68,7 @@ export async function findLinkCandidates(
   ).all();
   return users.filter(
     (u) =>
-      u.email.toLowerCase() === email.toLowerCase() &&
-      !linkedUserIds.has(u.id),
+      u.email.toLowerCase() === email.toLowerCase() && !linkedUserIds.has(u.id),
   );
 }
 

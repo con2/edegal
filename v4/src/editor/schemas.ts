@@ -148,6 +148,15 @@ export const PhotographerFormSchema = z.object({
   defaultTermsId: z.union([uuid, z.literal("")]).default(""),
 });
 
+/** Empty string means "not linked to any account". */
+export const ManagePhotographerFormSchema = PhotographerFormSchema.extend({
+  userId: z.union([uuid, z.literal("")]).default(""),
+});
+
+export const MergePhotographersSchema = z.object({
+  loserId: uuid,
+});
+
 export const PhotographersIntroSchema = z.object({
   body: z.string().max(100_000).default(""),
 });
