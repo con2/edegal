@@ -2,7 +2,7 @@
 
 Deploys the v4 gallery: a Next.js Deployment (with a Prisma migration init container), an nginx
 Deployment serving `/media` from the shared NFS export, a per-namespace Gateway with HTTPRoutes,
-and a cert-manager Certificate. The Gateway also fronts the legacy Django admin (see below).
+and a cert-manager Certificate.
 
 ## Prerequisites per namespace (`conikuvat-v4`, `larppikuvat-v4`)
 
@@ -72,28 +72,16 @@ orientation tag, which the worker Deployment then re-renders. The Job mounts the
 3. Rerunning is safe: a row is inspected once, and only rows whose file was missing come back.
    Set `enabled: false` afterwards.
 
-## Legacy Django admin
-
-`legacy.namespace` (with `legacy.service` and `legacy.port`) routes `/admin` and `/static` on the
-same hostname to the legacy stack's Django Service in that namespace. Django serves its own static
-files through whitenoise, so no other backend is involved. The legacy namespace must hold a
-ReferenceGrant allowing this namespace's HTTPRoute to target the Service; the legacy manifests
-create one when `v4_namespace` is set. An empty `legacy.namespace` renders neither route.
-
 `additionalHostnames` adds dnsNames to the Certificate without adding Gateway listeners. The TLS
 Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` change.
 
-## Hostname cutover runbook (uusi.* -> apex, done 2026-09)
+## History: hostname cutover and legacy Django admin (done 2026-09)
 
-1. Values: `additionalHostnames: [<apex>]`, `legacy.namespace: <legacy ns>`; push. Check
-   `kubectl -n <ns> get certificate v4` is Ready with both names and
-   `kubectl -n <ns> get httproute app -o yaml` reports `ResolvedRefs=True`.
-   `curl -sI https://uusi.<apex>/static/admin/css/base.css` returns 200.
-2. Add `https://<apex>/api/auth/callback/kompassi` to the v4 OIDC client in Kompassi.
-3. Values: `hostname: <apex>`, `additionalHostnames: []`; push. Until step 4 the legacy Ingress
-   still claims the host too, and Traefik may hand `/` to either backend.
-4. In the legacy namespace, one resource per command since skaffold does not prune:
-   `kubectl delete ingress edegal`, `kubectl delete deployment nginx`, `kubectl delete service nginx`. Redirect `uusi.<apex>` to the apex in the [con2/redirects](https://github.com/con2/redirects) repo.
+Until the v2 decommission, this chart also routed `/admin` and `/static` on the site hostname to
+the legacy Django admin's Service in its own namespace via `legacy.namespace`/`legacy.service`/
+`legacy.port` values and a ReferenceGrant created by the legacy manifests. That routing, and the
+hostname cutover from `uusi.*` to the apex domain that preceded it, are both done; see git history
+for the values and HTTPRoute rules involved.
 
 ## Deploy
 

@@ -1,6 +1,4 @@
 hostname: larppikuvat.fi
-legacy:
-  namespace: larppikuvat
 mediaNfs:
   server: 91.105.252.80
   path: /opt/conikuvat/larppikuvat

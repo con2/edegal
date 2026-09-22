@@ -12,15 +12,8 @@ hostname: v4.example.com
 # hostname flip has no TLS gap.
 additionalHostnames: []
 
-# The Django admin proxy: /admin and its static files at /static route to this Service in
-# `namespace`. An empty namespace disables both routes. The legacy namespace must grant the
-# HTTPRoute access to the Service with a ReferenceGrant (v2-backend/kubernetes/referencegrant.in.yaml).
-legacy:
-  namespace: ""
-  service: edegal
-  port: 8000
-
-# The legacy stack's media directory, shared read-write with this app (uid 1082 owns the files).
+# Production media directory, holding both v4 uploads and the legacy Django admin's originals from
+# before it was decommissioned (uid 1082 owns the files).
 mediaNfs:
   server: 91.105.252.80
   path: /opt/conikuvat
