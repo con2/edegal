@@ -19,6 +19,8 @@ function params(path: string[]) {
   return { params: Promise.resolve({ path }) };
 }
 
+const larpUrl = "https://larpit.fi/larp/019c1910-828b-7147-86c5-bf110d208138";
+
 let eventPath: string;
 let subalbumPath: string;
 
@@ -43,6 +45,7 @@ beforeAll(async () => {
     slug: "sub",
     path: "/event/sub",
     title: "Sub",
+    eventMetadataUrl: larpUrl,
   });
   subalbumPath = sub.path;
   const photo = await db.orm.public.Photo.create({
@@ -88,13 +91,14 @@ afterAll(async () => {
 });
 
 describe("GET /api/v3/[[...path]]", () => {
-  it("returns an album's subalbums with both thumbnail and preview media", async () => {
+  it("returns an album's subalbums with both thumbnail and preview media and their event metadata urls", async () => {
     const response = await GET(request("/event"), params(["event"]));
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body).toEqual({
       path: eventPath,
       title: "Event",
+      eventMetadataUrl: "",
       subalbums: [
         {
           path: subalbumPath,
@@ -109,6 +113,7 @@ describe("GET /api/v3/[[...path]]", () => {
             width: 2000,
             height: 1333,
           },
+          eventMetadataUrl: larpUrl,
         },
       ],
     });

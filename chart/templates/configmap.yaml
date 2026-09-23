@@ -15,3 +15,6 @@ data:
   SMTP_PORT: {{ .Values.mail.smtpPort | quote }}
   MAIL_SENDER: {{ .Values.mail.sender | quote }}
   FORMATTED_MAIL_FROM: {{ .Values.mail.from | quote }}
+  {{- with .Values.larpitSync.apiUrl }}
+  LARPIT_SYNC_API_URL: {{ . | quote }}
+  {{- end }}

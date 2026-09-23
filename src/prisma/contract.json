@@ -20,6 +20,10 @@
       "model": "MediaJob",
       "namespace": "public"
     },
+    "v4_periodic_task": {
+      "model": "PeriodicTask",
+      "namespace": "public"
+    },
     "v4_photo": {
       "model": "Photo",
       "namespace": "public"
@@ -734,6 +738,47 @@
               },
               "namespaceId": "public",
               "table": "v4_media_job"
+            }
+          },
+          "PeriodicTask": {
+            "fields": {
+              "claimedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastSuccessClaimedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "claimedAt": {
+                  "column": "claimed_at"
+                },
+                "lastSuccessClaimedAt": {
+                  "column": "last_success_claimed_at"
+                },
+                "name": {
+                  "column": "name"
+                }
+              },
+              "namespaceId": "public",
+              "table": "v4_periodic_task"
             }
           },
           "Photo": {
@@ -2363,6 +2408,33 @@
               },
               "uniques": []
             },
+            "v4_periodic_task": {
+              "columns": {
+                "claimed_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "last_success_claimed_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "name"
+                ]
+              },
+              "uniques": []
+            },
             "v4_photo": {
               "columns": {
                 "album_id": {
@@ -3089,7 +3161,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "44db22cdc23509007d7c9368db8df7d3390616977a72b7a56e335f9b75804982"
+    "storageHash": "10a95046bdeb172460e489936e4b116a2b7d0c8596c21e833c1b88aefc7776ac"
   },
   "execution": {
     "executionHash": "4de61373a8bb18837777d69f3fc78addb7349f6fb48ac3b4e9660aca0d6bd51b",

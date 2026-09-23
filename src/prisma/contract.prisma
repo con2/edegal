@@ -253,3 +253,14 @@ model MediaJob {
   @@index([status, createdAt])
   @@map("v4_media_job")
 }
+
+// One row per scheduled worker task. Workers claim a run by moving claimedAt forward, so a task
+// runs once per interval however many worker processes there are.
+model PeriodicTask {
+  name                 String             @id
+  claimedAt            TimestamptzString  @map("claimed_at")
+  // claimedAt of the latest run that completed; incremental tasks resume from here.
+  lastSuccessClaimedAt TimestamptzString? @map("last_success_claimed_at")
+
+  @@map("v4_periodic_task")
+}

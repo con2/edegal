@@ -100,7 +100,7 @@ export interface AlbumPageVM {
   title: string;
   description: string;
   body: string;
-  /** Source for a synthesized body when `body` is empty; see `gallery/larpit.ts`. */
+  /** Source for a synthesized body when `body` is empty; see `integrations/larpit/body.ts`. */
   eventMetadataUrl: string;
   /** A photographer page's cover picture. */
   cover: CoverVM | null;

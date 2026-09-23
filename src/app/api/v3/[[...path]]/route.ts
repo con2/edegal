@@ -8,10 +8,11 @@ import { getViewer } from "@/gallery/viewer";
 import { db } from "@/prisma/db";
 
 /**
- * Minimal shim for the legacy Django `/api/v3/<path>` endpoint, kept for the one known external
- * consumer (desucon.fi's `FakeAlbum`, which reads only `subalbums[].{path,title,thumbnail.src}`).
- * Not an attempt to reproduce every field of the old API - extend it if another real consumer
- * turns up needing more. `preview` is included alongside `thumbnail` (legacy never exposed a
+ * Minimal shim for the legacy Django `/api/v3/<path>` endpoint, kept for its known external
+ * consumers: desucon.fi's `FakeAlbum`, which reads only `subalbums[].{path,title,thumbnail.src}`,
+ * and Larpit.fi, which reads the root album's `subalbums[].{path,eventMetadataUrl}` to link larps
+ * to their photos. Not an attempt to reproduce every field of the old API - extend it if another
+ * real consumer turns up needing more. `preview` is included alongside `thumbnail` (legacy never exposed a
  * subalbum's preview) so a client can be updated to use it directly instead of the old hack of
  * regex-swapping ".thumbnail." for ".preview." in the thumbnail URL, which does not work against
  * v4-native photos: v4 encodes the role as a storage directory prefix, not a filename infix.
@@ -34,11 +35,16 @@ function mediaJson(variant: MediaVariant | undefined): MediaJson | null {
     : null;
 }
 
-/** An album's children's preview media, keyed by path; empty for a non-album page or a childless one. */
-async function previewsByPath(
+interface ChildJson {
+  preview: MediaJson | null;
+  eventMetadataUrl: string;
+}
+
+/** An album's children's fields not in `ClientSubalbum`, keyed by path; empty for a non-album page or a childless one. */
+async function childrenByPath(
   kind: string,
   albumId: string,
-): Promise<Map<string, MediaJson | null>> {
+): Promise<Map<string, ChildJson>> {
   if (kind !== "album") return new Map();
   const children = await db.orm.public.Album.where({ parentId: albumId })
     .include("thumbnailPhoto", (t) => t.include("media"))
@@ -46,22 +52,29 @@ async function previewsByPath(
   return new Map(
     children.map((c) => [
       c.path,
-      c.thumbnailPhoto
-        ? mediaJson(buildMediaSet(c.thumbnailPhoto.media, "preview")?.fallback)
-        : null,
+      {
+        preview: c.thumbnailPhoto
+          ? mediaJson(
+              buildMediaSet(c.thumbnailPhoto.media, "preview")?.fallback,
+            )
+          : null,
+        eventMetadataUrl: c.eventMetadataUrl,
+      },
     ]),
   );
 }
 
 function subalbumJson(
   subalbum: ClientSubalbum,
-  previews: Map<string, MediaJson | null>,
+  children: Map<string, ChildJson>,
 ) {
+  const child = children.get(subalbum.path);
   return {
     path: subalbum.path,
     title: subalbum.title,
     thumbnail: mediaJson(subalbum.thumbnail?.fallback),
-    preview: previews.get(subalbum.path) ?? null,
+    preview: child?.preview ?? null,
+    eventMetadataUrl: child?.eventMetadataUrl ?? "",
   };
 }
 
@@ -89,14 +102,15 @@ export async function GET(
   if (result.photo !== null) return notFound();
 
   const { album } = result;
-  const previews = await previewsByPath(
+  const children = await childrenByPath(
     result.unfiltered.kind,
     result.unfiltered.id,
   );
   return NextResponse.json({
     path: album.path,
     title: album.title,
-    subalbums: album.subalbums.map((s) => subalbumJson(s, previews)),
+    eventMetadataUrl: album.eventMetadataUrl,
+    subalbums: album.subalbums.map((s) => subalbumJson(s, children)),
   });
 }
 

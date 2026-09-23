@@ -1,9 +1,9 @@
 import { defaultLanguage } from "@/i18n/locales";
+import { withEventMetadataBody } from "@/integrations/larpit/body";
 
 import { canView } from "./access";
 import { albumVersion, loadAlbum } from "./album";
 import { cachedAlbum } from "./cache";
-import { withEventMetadataBody } from "./larpit";
 import { lastSegment } from "./paths";
 import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
@@ -14,7 +14,7 @@ import { applyVisibility } from "./visibility";
 
 /**
  * The cached, unfiltered album page, with a Larpit.fi-synthesized body applied afterwards - that
- * synthesis has its own TTL, so it is not frozen into the cached VM itself (see `./larpit.ts`).
+ * synthesis has its own TTL, so it is not frozen into the cached VM itself (see `@/integrations/larpit/body.ts`).
  */
 export async function loadResolved(
   resolution: Resolution,

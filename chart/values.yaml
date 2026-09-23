@@ -31,6 +31,11 @@ mail:
   sender: edegal@localhost
   from: Edegal <edegal@localhost>
 
+# Larpit.fi larp listing the media worker polls hourly to fill in albums' event metadata URLs from
+# larps' photo links. Empty turns the sync off; only Larppikuvat.fi sets it.
+larpitSync:
+  apiUrl: ""
+
 # Media worker: `replicas` processes with `workerConcurrency` parallel conversions each. Any number
 # of processes may run at once; jobs are claimed with SKIP LOCKED and a job whose process died is
 # requeued after 15 minutes.

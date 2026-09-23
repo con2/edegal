@@ -5,90 +5,13 @@
  */
 
 import { LRUCache } from "lru-cache";
-import { z } from "zod";
 
 import { publicUrl } from "@/config";
+import type { AlbumPageVM } from "@/gallery/types";
 import { getTranslations } from "@/translations";
 import type { Translations } from "@/translations";
 
-import type { AlbumPageVM } from "./types";
-
-const larpPathRegex =
-  /^\/larp\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i;
-
-/** `https://larpit.fi/larp/<uuid>` (optionally `www.`, a trailing slash, a query) to its API URL. */
-export function larpitApiUrl(eventMetadataUrl: string): string | null {
-  let url: URL;
-  try {
-    url = new URL(eventMetadataUrl);
-  } catch {
-    return null;
-  }
-  if (url.protocol !== "https:") return null;
-  if (url.hostname !== "larpit.fi" && url.hostname !== "www.larpit.fi")
-    return null;
-  const match = url.pathname.match(larpPathRegex);
-  return match ? `https://larpit.fi/api/larp/${match[1]}` : null;
-}
-
-const linkTypes = [
-  "HOMEPAGE",
-  "PHOTOS",
-  "SOCIAL_MEDIA",
-  "PLAYER_GUIDE",
-  "SIGNUP",
-  "OTHER",
-] as const;
-type LarpLinkType = (typeof linkTypes)[number];
-const linkTypeSet: Set<string> = new Set(linkTypes);
-
-const LarpLinkSchema = z.object({
-  href: z.string(),
-  // Unknown link types (a Larpit.fi addition this code does not know about yet) fall back to the
-  // generic label rather than failing the whole page.
-  type: z.preprocess(
-    (value) => (linkTypeSet.has(String(value)) ? value : "OTHER"),
-    z.enum(linkTypes),
-  ),
-  title: z.string().nullable(),
-});
-
-const LarpSchema = z.object({
-  name: z.string(),
-  fluffText: z.string().nullable(),
-  description: z.string().nullable(),
-  links: z.array(LarpLinkSchema),
-});
-
-export type Larp = z.infer<typeof LarpSchema>;
-
-const userAgent = "Edegal/4 (+https://github.com/con2/edegal)";
-const fetchTimeoutMs = 5_000;
-
-/** `null` on any non-OK response, network error, timeout or body that does not match `Larp`. */
-export async function fetchLarp(
-  apiUrl: string,
-  fetchImpl: typeof fetch = fetch,
-): Promise<Larp | null> {
-  let response: Response;
-  try {
-    response = await fetchImpl(apiUrl, {
-      headers: { "user-agent": userAgent, accept: "application/json" },
-      signal: AbortSignal.timeout(fetchTimeoutMs),
-    });
-  } catch {
-    return null;
-  }
-  if (!response.ok) return null;
-  let json: unknown;
-  try {
-    json = await response.json();
-  } catch {
-    return null;
-  }
-  const parsed = LarpSchema.safeParse(json);
-  return parsed.success ? parsed.data : null;
-}
+import { fetchLarp, larpitApiUrl, type Larp, type LarpLinkType } from "./api";
 
 const successTtlMs = 3_600_000;
 // An outage or a bogus id is retried after five minutes rather than on every page view.

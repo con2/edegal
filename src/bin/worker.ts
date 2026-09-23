@@ -1,5 +1,8 @@
 import "dotenv/config";
 
+import { larpitSyncApiUrl, publicUrl } from "@/config";
+import { syncFromLarpit } from "@/integrations/larpit/sync";
+import { runPeriodicTask } from "@/lib/periodicTask";
 import {
   claimJob,
   cleanupFinishedJobs,
@@ -17,6 +20,9 @@ const concurrency = Number(process.env.WORKER_CONCURRENCY || 2);
 const idleSleepMs = 2000;
 const strandedCheckIntervalMs = 5 * 60 * 1000;
 const cleanupIntervalMs = 60 * 60 * 1000;
+const larpitSyncIntervalMs = 60 * 60 * 1000;
+// Incremental Larpit.fi syncs overlap by this much so clock skew between the hosts loses no larps.
+const larpitSyncOverlapMs = 10 * 60 * 1000;
 let stopping = false;
 
 function sleep(ms: number) {
@@ -50,6 +56,20 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
   });
 }
 
+async function syncLarpit(lastSuccessClaimedAt: Date | null) {
+  const { updated, mismatched } = await syncFromLarpit({
+    apiUrl: larpitSyncApiUrl,
+    siteUrl: publicUrl,
+    updatedAfter: lastSuccessClaimedAt
+      ? new Date(lastSuccessClaimedAt.getTime() - larpitSyncOverlapMs)
+      : undefined,
+  });
+  if (updated > 0 || mismatched > 0)
+    console.log(
+      `maintenance: larpit sync updated ${updated} album(s), ${mismatched} mismatch(es)`,
+    );
+}
+
 /** Housekeeping shared by all worker processes; every statement is safe to run concurrently. */
 async function maintenance() {
   let sinceCleanupMs = cleanupIntervalMs;
@@ -70,6 +90,15 @@ async function maintenance() {
       console.error(
         `maintenance failed: ${error instanceof Error ? error.message : error}`,
       );
+    }
+    if (larpitSyncApiUrl) {
+      try {
+        await runPeriodicTask("larpit-sync", larpitSyncIntervalMs, syncLarpit);
+      } catch (error) {
+        console.error(
+          `larpit sync failed: ${error instanceof Error ? error.message : error}`,
+        );
+      }
     }
     for (
       let waited = 0;
