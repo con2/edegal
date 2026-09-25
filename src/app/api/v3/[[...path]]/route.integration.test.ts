@@ -45,6 +45,7 @@ beforeAll(async () => {
     slug: "sub",
     path: "/event/sub",
     title: "Sub",
+    eventDate: "2026-05-01",
     eventMetadataUrl: larpUrl,
   });
   subalbumPath = sub.path;
@@ -91,7 +92,7 @@ afterAll(async () => {
 });
 
 describe("GET /api/v3/[[...path]]", () => {
-  it("returns an album's subalbums with both thumbnail and preview media and their event metadata urls", async () => {
+  it("returns an album's subalbums with event dates, both thumbnail and preview media and their event metadata urls", async () => {
     const response = await GET(request("/event"), params(["event"]));
     expect(response.status).toBe(200);
     const body = await response.json();
@@ -103,6 +104,7 @@ describe("GET /api/v3/[[...path]]", () => {
         {
           path: subalbumPath,
           title: "Sub",
+          eventDate: "2026-05-01",
           thumbnail: {
             src: "/media/thumbnails/event/sub/photo.jpeg",
             width: 360,

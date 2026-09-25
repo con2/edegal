@@ -12,7 +12,8 @@ import { db } from "@/prisma/db";
  * consumers: desucon.fi's `FakeAlbum`, which reads only `subalbums[].{path,title,thumbnail.src}`,
  * and Larpit.fi, which reads the root album's `subalbums[].{path,eventMetadataUrl}` to link larps
  * to their photos. Not an attempt to reproduce every field of the old API - extend it if another
- * real consumer turns up needing more. `preview` is included alongside `thumbnail` (legacy never exposed a
+ * real consumer turns up needing more. `eventDate` is YYYY-MM-DD, or null for an album whose date is
+ * unknown. `preview` is included alongside `thumbnail` (legacy never exposed a
  * subalbum's preview) so a client can be updated to use it directly instead of the old hack of
  * regex-swapping ".thumbnail." for ".preview." in the thumbnail URL, which does not work against
  * v4-native photos: v4 encodes the role as a storage directory prefix, not a filename infix.
@@ -72,6 +73,7 @@ function subalbumJson(
   return {
     path: subalbum.path,
     title: subalbum.title,
+    eventDate: subalbum.date,
     thumbnail: mediaJson(subalbum.thumbnail?.fallback),
     preview: child?.preview ?? null,
     eventMetadataUrl: child?.eventMetadataUrl ?? "",
