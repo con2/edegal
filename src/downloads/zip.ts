@@ -2,7 +2,7 @@ import type { Readable } from "node:stream";
 import yazl from "yazl";
 
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
-import type { MediaStorage } from "@/media/storage";
+import { storageFor } from "@/media/storage";
 
 import { zipEntryName } from "./names";
 
@@ -21,7 +21,6 @@ export function zipEntries(album: ClientAlbumPage): PhotoVM[] {
 export async function createAlbumZip(
   album: ClientAlbumPage,
   readme: string,
-  storage: MediaStorage,
   signal?: AbortSignal,
 ): Promise<Readable> {
   const zip = new yazl.ZipFile();
@@ -29,13 +28,14 @@ export async function createAlbumZip(
   zip.addBuffer(Buffer.from(readme, "utf8"), "README.txt", { compress: false });
   let missing = 0;
   for (const photo of zipEntries(album)) {
-    const key = photo.original!.storageKey;
+    const { storageKey: key, backend } = photo.original!;
+    const storage = storageFor(backend);
     const stat = await storage.stat(key);
     if (!stat) {
       missing++;
       continue;
     }
-    const source = storage.getStream(key);
+    const source = await storage.getStream(key);
     sources.push(source);
     zip.addReadStream(source, zipEntryName(photo), {
       compress: false,

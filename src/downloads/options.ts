@@ -1,7 +1,16 @@
-import type { MediaVariant, PhotoVM } from "@/gallery/types";
+import type { MediaFormat, MediaVariant, PhotoVM } from "@/gallery/types";
 import { formatPreference } from "@/media/specs";
 
 import { extensions } from "./names";
+
+/** `dsc-0001.jpg` for the original, `dsc-0001-preview.avif` for a preview rendition. */
+export function downloadFileName(
+  slug: string,
+  kind: "original" | "preview",
+  format: MediaFormat,
+): string {
+  return `${slug}${kind === "preview" ? "-preview" : ""}.${extensions[format]}`;
+}
 
 export interface DownloadOption {
   kind: "original" | "preview";
@@ -20,7 +29,7 @@ export function downloadOptions(photo: PhotoVM): DownloadOption[] {
     options.push({
       kind: "original",
       variant: photo.original,
-      fileName: `${slug}.${extensions[photo.original.format]}`,
+      fileName: downloadFileName(slug, "original", photo.original.format),
     });
   }
   if (photo.preview) {
@@ -31,7 +40,7 @@ export function downloadOptions(photo: PhotoVM): DownloadOption[] {
       options.push({
         kind: "preview",
         variant,
-        fileName: `${slug}-preview.${extensions[variant.format]}`,
+        fileName: downloadFileName(slug, "preview", variant.format),
       });
     }
   }

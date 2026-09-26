@@ -8,11 +8,16 @@ import { filenameStem, slugifyFilename } from "./naming";
 import {
   inspectUpload,
   maxInputPixels,
+  type OriginalSource,
   storageKeyFor,
   storeOriginal,
   takenAtOf,
+  type UploadInfo,
 } from "./pipeline";
-import { mediaStorage } from "./storage";
+import { mediaStorage, storageFor } from "./storage";
+
+/** The bytes to add: in memory (proxy upload, importers) or already in storage under `uploads/`. */
+export type PhotoSource = Buffer | { uploadKey: string };
 
 export type AddPhotoError = "unsupported" | "tooManyPixels" | "exists";
 
@@ -27,11 +32,53 @@ export type AddPhotoResult =
  */
 async function clearPhotoMedia(photoId: string): Promise<void> {
   const media = await db.orm.public.Media.where({ photoId })
-    .select("storageKey")
+    .select("storageKey", "backend")
     .all();
   await db.orm.public.Media.where({ photoId }).deleteAndCount();
   await db.orm.public.MediaJob.where({ photoId }).deleteAndCount();
-  for (const m of media) await mediaStorage.delete(m.storageKey);
+  for (const m of media) await storageFor(m.backend).delete(m.storageKey);
+}
+
+/**
+ * A JPEG's dimensions and EXIF sit in its first segments, so this prefix is enough for almost
+ * every camera file; sharp throws on a prefix that stops short, and the whole object is read then.
+ */
+const headerBytes = 256 * 1024;
+
+async function readObject(key: string, end?: number): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of await mediaStorage.getStream(key, end === undefined ? undefined : { end })) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+interface Inspected {
+  info: UploadInfo;
+  takenAt: string | null;
+  original: OriginalSource;
+}
+
+/** Decodes what is needed to add the photo, reading a stored object only as far as necessary. */
+async function inspect(source: PhotoSource): Promise<Inspected | AddPhotoError> {
+  if (Buffer.isBuffer(source)) {
+    const info = await inspectUpload(source);
+    if (!info) return "unsupported";
+    if (info.width * info.height > maxInputPixels) return "tooManyPixels";
+    return { info, takenAt: await takenAtOf(source), original: source };
+  }
+  const stat = await mediaStorage.stat(source.uploadKey);
+  if (!stat) return "unsupported";
+  const decode = async (data: Buffer) => {
+    const info = await inspectUpload(data);
+    return info ? { info, takenAt: await takenAtOf(data) } : null;
+  };
+  const decoded =
+    (await decode(await readObject(source.uploadKey, headerBytes - 1)).catch(() => null)) ??
+    (await decode(await readObject(source.uploadKey)).catch(() => null));
+  if (!decoded) return "unsupported";
+  if (decoded.info.width * decoded.info.height > maxInputPixels) return "tooManyPixels";
+  return { ...decoded, original: { uploadKey: source.uploadKey, byteSize: stat.size } };
 }
 
 /**
@@ -47,16 +94,28 @@ export async function addPhotoToAlbum(
   album: { id: string; path: string; parentId: string | null },
   createdById: string,
   filename: string,
-  data: Buffer,
+  source: PhotoSource,
 ): Promise<AddPhotoResult> {
-  const info = await inspectUpload(data);
-  if (!info) return { ok: false, error: "unsupported" };
-  if (info.width * info.height > maxInputPixels)
-    return { ok: false, error: "tooManyPixels" };
+  try {
+    return await addInspected(album, createdById, filename, await inspect(source));
+  } finally {
+    // The temp object has either been copied to its canonical key or is unusable; either way
+    // it is not wanted under `uploads/` any more.
+    if (!Buffer.isBuffer(source)) await mediaStorage.delete(source.uploadKey);
+  }
+}
+
+async function addInspected(
+  album: { id: string; path: string; parentId: string | null },
+  createdById: string,
+  filename: string,
+  inspected: Inspected | AddPhotoError,
+): Promise<AddPhotoResult> {
+  if (typeof inspected === "string") return { ok: false, error: inspected };
+  const { info, takenAt, original: data } = inspected;
 
   const slug = slugifyFilename(filename);
   const title = filenameStem(filename);
-  const takenAt = await takenAtOf(data);
 
   const existing = await db.orm.public.Photo.where({
     albumId: album.id,

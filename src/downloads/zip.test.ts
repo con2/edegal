@@ -6,6 +6,8 @@ import { zipEntryName, zipFileName } from "./names";
 
 const variant = (format: PhotoVM["thumbnail"]["fallback"]["format"]) => ({
   src: "/media/x",
+  downloadSrc: "/media/x",
+  backend: "fs" as const,
   storageKey: "x",
   width: 1,
   height: 1,

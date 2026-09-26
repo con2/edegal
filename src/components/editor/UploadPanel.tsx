@@ -27,7 +27,27 @@ interface Item {
 const concurrency = 3;
 const maxBytes = 100 * 1024 * 1024;
 
-function upload(
+type Presigned =
+  | { mode: "proxy" }
+  | {
+      mode: "direct";
+      uploadKey: string;
+      url: string;
+      headers: Record<string, string>;
+    };
+
+function errorOf(status: number, responseText: string): ErrorCode | null {
+  if (status === 201) return null;
+  try {
+    const { error } = JSON.parse(responseText) as { error?: string };
+    return (error as ErrorCode) ?? "network";
+  } catch {
+    return "network";
+  }
+}
+
+/** Uploads the file through the server, which stores it and adds the photo in one request. */
+function uploadViaServer(
   albumId: string,
   file: File,
   onProgress: (fraction: number) => void,
@@ -44,17 +64,63 @@ function upload(
       if (event.lengthComputable) onProgress(event.loaded / event.total);
     };
     xhr.onerror = () => resolve("network");
-    xhr.onload = () => {
-      if (xhr.status === 201) return resolve(null);
-      try {
-        const { error } = JSON.parse(xhr.responseText) as { error?: string };
-        resolve((error as ErrorCode) ?? "network");
-      } catch {
-        resolve("network");
-      }
-    };
+    xhr.onload = () => resolve(errorOf(xhr.status, xhr.responseText));
     xhr.send(file);
   });
+}
+
+/** PUTs the file straight to storage; the signed headers must be sent exactly as given. */
+function putDirect(
+  target: { url: string; headers: Record<string, string> },
+  file: File,
+  onProgress: (fraction: number) => void,
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", target.url);
+    for (const [name, value] of Object.entries(target.headers))
+      xhr.setRequestHeader(name, value);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress(event.loaded / event.total);
+    };
+    xhr.onerror = () => resolve(false);
+    xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300);
+    xhr.send(file);
+  });
+}
+
+/**
+ * Asks the server where the file goes. With S3 storage the browser PUTs it there directly and
+ * then tells the server to add the photo; otherwise the file goes through the server.
+ */
+async function upload(
+  albumId: string,
+  file: File,
+  onProgress: (fraction: number) => void,
+): Promise<ErrorCode | null> {
+  const contentType = file.type || "application/octet-stream";
+  const presign = await fetch(`/api/albums/${albumId}/photos/presign`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filename: file.name, contentType, size: file.size }),
+  }).catch(() => null);
+  if (!presign) return "network";
+  if (!presign.ok) return errorOf(presign.status, await presign.text());
+  const target = (await presign.json()) as Presigned;
+  if (target.mode === "proxy")
+    return uploadViaServer(albumId, file, onProgress);
+
+  const put = await putDirect(target, file, (fraction) =>
+    onProgress(fraction * 0.95),
+  );
+  if (!put) return "network";
+  const complete = await fetch(`/api/albums/${albumId}/photos/complete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uploadKey: target.uploadKey, filename: file.name }),
+  }).catch(() => null);
+  if (!complete) return "network";
+  return errorOf(complete.status, await complete.text());
 }
 
 /** Queue of files uploaded three at a time, then a poll until the worker has processed them. */

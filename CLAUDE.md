@@ -7,8 +7,9 @@ features are in v4; it lives in git history, and `docs/legacy-migration-plan.md`
 content was migrated.
 
 Deployment: `chart/` (Helm, Gateway API, per-site values files); workflow `.github/workflows/v4.yaml`.
-The media directory is NFS in production, owned by uid 1082. Media access moves to self-hosted S3
-in con2/edegal#245; do not start that unprompted.
+New uploads go to S3 (the cluster's Garage) and are served with presigned URLs; the NFS media
+export (uid 1082) stays mounted for rows still on it until the stage 2 migration in
+`chart/README.md` ("Migrating media to S3") has run per site.
 
 ## Name of the application
 

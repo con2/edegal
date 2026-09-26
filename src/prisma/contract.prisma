@@ -43,6 +43,14 @@ native_enum MediaFormat {
   @@map("v4_media_format")
 }
 
+// Where a media file lives: the media directory (NFS in production) or the S3 bucket.
+native_enum MediaBackend {
+  fs = "fs"
+  s3 = "s3"
+
+  @@map("v4_media_backend")
+}
+
 model User {
   id           Uuid                       @id @default(uuid(7))
   sub          String                     @unique
@@ -231,6 +239,7 @@ model Media {
   width      Int
   height     Int
   storageKey String               @unique @map("storage_key")
+  backend    pg.enum(MediaBackend) @default("fs")
   byteSize   Int?                 @map("byte_size")
   createdAt  TimestamptzString    @default(now()) @map("created_at")
 

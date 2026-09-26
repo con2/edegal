@@ -1,0 +1,18 @@
+# Local Garage (S3) for development and the S3 integration tests; see README.md, "Media in Garage".
+services:
+  garage:
+    image: dxflrs/garage:v2.4.1
+    ports:
+      - "3900:3900"
+      - "3903:3903"
+    volumes:
+      - ./garage.toml:/etc/garage.toml:ro
+      - garage:/var/lib/garage
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  garage:

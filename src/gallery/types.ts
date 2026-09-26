@@ -1,12 +1,21 @@
 /** View-model the gallery pages render from. */
 
+import type { MediaBackend } from "@/media/storage";
+
 export type Visibility = "public" | "hidden" | "private";
 export type MediaFormat = "jpeg" | "png" | "webp" | "avif";
 
 export interface MediaVariant {
   src: string;
-  /** Path relative to the media root; lets server code read the file through MediaStorage. */
+  /**
+   * Where a browser saves the file under its download name: the same URL as `src` on the
+   * filesystem backend (the `download` attribute works same-origin), a presigned URL carrying a
+   * content disposition on S3, where the attribute is ignored cross-origin.
+   */
+  downloadSrc: string;
+  /** Key within `backend`'s storage; lets server code read the file through MediaStorage. */
   storageKey: string;
+  backend: MediaBackend;
   width: number;
   height: number;
   format: MediaFormat;

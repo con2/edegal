@@ -8,7 +8,7 @@ import { mediaRoot } from "@/config";
 import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
-import { backfillMedia } from "./backfill";
+import { backfillMedia, inspectStoredOriginal } from "./backfill";
 import { claimJob, processMediaJob } from "./jobs";
 import { mediaStorage } from "./storage";
 
@@ -89,6 +89,7 @@ describe("legacy media backfill", () => {
     const applied = await backfillMedia({ apply: true });
     expect(applied).toEqual(dryRun);
 
+    expect(await inspectStoredOriginal(mediaStorage, tagged.files.original.key)).toEqual({ width: 60, height: 90, orientation: 6 });
     const taggedOriginal = (await mediaOf(tagged.photo.id)).find((m) => m.role === "original")!;
     expect(taggedOriginal).toMatchObject({ width: 60, height: 90, byteSize: tagged.files.original.data.byteLength });
     const plainMedia = await mediaOf(plain.photo.id);

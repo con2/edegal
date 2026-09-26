@@ -13,6 +13,8 @@ import { db } from "@/prisma/db";
 import { albumJobCounts, claimJob, cleanupFinishedJobs, processMediaJob, requeueStrandedJobs } from "./jobs";
 import { mediaStorage } from "./storage";
 
+const { POST: presign } = await import("@/app/api/albums/[albumId]/photos/presign/route");
+
 vi.mock("@/gallery/viewer", () => ({
   getViewer: async () => ({ kind: "user", userId: process.env.TEST_USER_ID, name: "Admin", isPhotographer: true, isAdmin: true }),
 }));
@@ -59,6 +61,7 @@ describe("photo upload and processing", () => {
     const photo = await db.orm.public.Photo.where({ id: photoId }).include("media").first();
     expect(photo?.ordering).toBe(0);
     expect(photo?.media.map((m) => m.role)).toEqual(["original"]);
+    expect(photo?.media[0].backend).toBe("fs");
     expect(await mediaStorage.stat(photo!.media[0].storageKey)).not.toBeNull();
     expect(await albumJobCounts(albumId)).toEqual({ processing: 1, failed: 0 });
 
@@ -168,6 +171,23 @@ describe("photo upload and processing", () => {
     await db.orm.public.Album.create({ parentId: albumId, slug: "shadow", path: "/uploads/shadow", title: "Shadow" });
     expect((await POST(request(albumId, "shadow.jpg", await jpeg(10, 10)), { params: Promise.resolve({ albumId }) })).status).toBe(409);
     expect(await db.orm.public.Photo.where({ path: "/uploads/shadow" }).first()).toBeNull();
+  });
+
+  // Filesystem storage has no direct uploads, so the browser is told to send the file through the server.
+  it("answers presign requests with proxy mode on filesystem storage", async () => {
+    const ask = (body: unknown) =>
+      presign(
+        new Request(`http://test/api/albums/${albumId}/photos/presign`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }),
+        { params: Promise.resolve({ albumId }) },
+      );
+    const response = await ask({ filename: "IMG_0009.JPG", contentType: "image/jpeg", size: 1234 });
+    expect(await response.json()).toEqual({ mode: "proxy" });
+    expect((await ask({ filename: "notes.txt", contentType: "text/plain", size: 5 })).status).toBe(415);
+    expect((await ask({ filename: "big.jpg", contentType: "image/jpeg", size: 101 * 1024 * 1024 })).status).toBe(413);
   });
 
   it("rejects unsupported files and oversized declarations", async () => {

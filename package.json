@@ -12,6 +12,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:integration:s3": "vitest run --config vitest.integration.s3.config.ts",
     "contract:emit": "prisma contract emit",
     "db:plan": "prisma contract emit && prisma migration plan --name",
     "db:migrate": "prisma db migrate",
@@ -21,9 +22,14 @@
     "prepare": "husky",
     "worker": "tsx src/bin/worker.ts",
     "media:backfill": "tsx src/bin/backfill-media.ts",
+    "media:migrate-s3": "tsx src/bin/migrate-media-to-s3.ts",
+    "s3:setup": "tsx src/bin/s3-setup.ts",
     "photos:move-top-level": "tsx src/bin/move-top-level-photos.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
+    "@aws-sdk/lib-storage": "^3.1141.0",
+    "@aws-sdk/s3-request-presigner": "^3.1141.0",
     "@con2/components": "github:con2/components#v5.1.0",
     "@prisma/orm-postgres": "8.0.0-rc.9",
     "bootstrap": "5.3.8",
@@ -44,6 +50,9 @@
   "devDependencies": {
     "@prisma/cli-engine": "0.3.0",
     "@prisma/orm-toolchain": "8.0.0-rc.9",
+    "@smithy/protocol-http": "^5.6.2",
+    "@smithy/signature-v4": "^5.7.4",
+    "@smithy/types": "^4.19.0",
     "@types/node": "24.13.4",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "8.20.4",

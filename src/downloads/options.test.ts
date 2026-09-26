@@ -10,6 +10,8 @@ const variant = (
   byteSize: number | null,
 ): MediaVariant => ({
   src: `/media/${format}`,
+  downloadSrc: `/media/${format}`,
+  backend: "fs",
   storageKey: format,
   width,
   height: Math.round((width * 2) / 3),

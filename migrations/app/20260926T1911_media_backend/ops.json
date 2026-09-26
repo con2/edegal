@@ -1,0 +1,66 @@
+[
+  {
+    "id": "createNativeEnumType.v4_media_backend",
+    "label": "Create enum type \"v4_media_backend\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "v4_media_backend"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"v4_media_backend\"",
+        "sql": "CREATE TYPE \"public\".\"v4_media_backend\" AS ENUM ('fs', 's3')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "column.public.v4_media.backend",
+    "label": "Add column \"backend\" to \"v4_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "backend",
+        "table": "v4_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"backend\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_media",
+          "backend"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"backend\"",
+        "sql": "ALTER TABLE \"public\".\"v4_media\" ADD COLUMN \"backend\" \"v4_media_backend\" DEFAULT 'fs'::\"v4_media_backend\" NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"backend\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "v4_media",
+          "backend"
+        ]
+      }
+    ]
+  }
+]

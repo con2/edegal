@@ -1,5 +1,5 @@
 # Generates previews and thumbnails for uploaded photos. Same image family, same NFS media volume
-# (read-write), same configuration as the web Deployment.
+# (read-write, while enabled), same configuration as the web Deployment.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -61,14 +61,18 @@ spec:
             capabilities:
               drop: [ALL]
           volumeMounts:
+            {{- if .Values.mediaNfs.enabled }}
             - name: media
               mountPath: /usr/src/app/media
+            {{- end }}
             - name: tmp
               mountPath: /tmp
       volumes:
+        {{- if .Values.mediaNfs.enabled }}
         - name: media
           nfs:
             server: {{ .Values.mediaNfs.server }}
             path: {{ .Values.mediaNfs.path }}
+        {{- end }}
         - name: tmp
           emptyDir: {}

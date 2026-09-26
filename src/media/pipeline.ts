@@ -3,7 +3,7 @@ import sharp, { type Sharp } from "sharp";
 import type { MediaFormat } from "@/gallery/types";
 
 import { type ScaledMediaSpec, scaledMediaSpecs } from "./specs";
-import { mediaStorage } from "./storage";
+import { type MediaBackend, mediaStorage } from "./storage";
 
 export interface ProducedMedia {
   role: "original" | "preview" | "thumbnail";
@@ -11,8 +11,12 @@ export interface ProducedMedia {
   width: number;
   height: number;
   storageKey: string;
+  backend: MediaBackend;
   byteSize: number;
 }
+
+/** An original either arrives in memory or already sits in storage as a browser's direct upload. */
+export type OriginalSource = Buffer | { uploadKey: string; byteSize: number };
 
 export interface UploadInfo {
   format: MediaFormat;
@@ -68,13 +72,21 @@ function decode(original: Buffer): Sharp {
  * format: photographers want their files untouched, and originals are only ever downloaded, never
  * shown. `info` is the result of `inspectUpload` for the same bytes.
  */
-export async function storeOriginal(photoPath: string, original: Buffer, info: UploadInfo): Promise<ProducedMedia> {
+export async function storeOriginal(photoPath: string, original: OriginalSource, info: UploadInfo): Promise<ProducedMedia> {
   // Recorded as displayed: an orientation tag of 5 or above rotates the stored pixels by a quarter turn.
   const displayed =
     info.orientation >= 5 ? { width: info.height, height: info.width } : { width: info.width, height: info.height };
   const storageKey = storageKeyFor(photoPath, "original", info.format);
-  await mediaStorage.put(storageKey, original, `image/${info.format}`);
-  return { role: "original", format: info.format, ...displayed, storageKey, byteSize: original.byteLength };
+  const contentType = `image/${info.format}`;
+  let byteSize: number;
+  if (Buffer.isBuffer(original)) {
+    await mediaStorage.put(storageKey, original, contentType);
+    byteSize = original.byteLength;
+  } else {
+    await mediaStorage.copy(original.uploadKey, storageKey, contentType);
+    byteSize = original.byteSize;
+  }
+  return { role: "original", format: info.format, ...displayed, storageKey, backend: mediaStorage.backend, byteSize };
 }
 
 async function encode(image: Sharp, spec: ScaledMediaSpec): Promise<Buffer> {
@@ -104,7 +116,15 @@ export async function generateScaledMedia(photoPath: string, original: Buffer): 
     const { width = 0, height = 0 } = await sharp(buffer).metadata();
     const storageKey = storageKeyFor(photoPath, spec.role, spec.format);
     await mediaStorage.put(storageKey, buffer, `image/${spec.format}`);
-    produced.push({ role: spec.role, format: spec.format, width, height, storageKey, byteSize: buffer.byteLength });
+    produced.push({
+      role: spec.role,
+      format: spec.format,
+      width,
+      height,
+      storageKey,
+      backend: mediaStorage.backend,
+      byteSize: buffer.byteLength,
+    });
   }
   return produced;
 }

@@ -30,6 +30,8 @@ const otherOwner: Viewer = {
 const media: MediaSet = {
   fallback: {
     src: "/photo.jpg",
+    downloadSrc: "/photo.jpg",
+    backend: "fs",
     storageKey: "photo.jpg",
     width: 100,
     height: 100,

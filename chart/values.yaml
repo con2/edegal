@@ -13,10 +13,28 @@ hostname: v4.example.com
 additionalHostnames: []
 
 # Production media directory, holding both v4 uploads and the legacy Django admin's originals from
-# before it was decommissioned (uid 1082 owns the files).
+# before it was decommissioned (uid 1082 owns the files). Stays mounted until every media row has
+# been migrated to S3 (chart/README.md, "Migrating media to S3"); then set `enabled: false`.
 mediaNfs:
+  enabled: true
   server: 91.105.252.80
   path: /opt/conikuvat
+
+# S3-compatible media storage (the cluster's Garage). An empty bucket keeps media on the NFS
+# export. `endpoint` is what the pods call; `publicEndpoint` is what browsers reach for presigned
+# URLs (defaults to `endpoint`). The access keys go in the Secret (S3_ACCESS_KEY_ID,
+# S3_SECRET_ACCESS_KEY). See chart/README.md, "Media in S3 (Garage)".
+s3:
+  endpoint: ""
+  publicEndpoint: ""
+  region: garage
+  bucket: ""
+  forcePathStyle: true
+
+# nginx serving `/media/` straight from the NFS export without authorization. Set `enabled: false`
+# once media has moved to S3: `/media/` then falls through to the app, which authorizes each file.
+nginx:
+  enabled: true
 
 kompassi:
   baseUrl: https://kompassi.eu
@@ -43,12 +61,15 @@ worker:
   replicas: 4
 workerConcurrency: 4
 
-# One-off media backfill Job (chart/README.md, "Media backfill"). Bump `runId` for every run; the
-# default args are a dry run, add "--apply" to write.
-mediaBackfill:
+# One-off media maintenance Job running one of the src/bin scripts with the worker image
+# (chart/README.md, "Media backfill" and "Migrating media to S3"). Bump `runId` for every run;
+# the scripts default to a dry run, add "--apply" to write. `nfs` mounts the export read-only.
+mediaTask:
   enabled: false
-  runId: 2
-  args: ["--apply"]
+  runId: 1
+  script: src/bin/backfill-media.ts
+  args: []
+  nfs: true
 
 # Job that files photos lying directly in a top-level album under a subalbum named after the
 # credited photographers (chart/README.md, "Moving top-level photos"). Bump `runId` for every
@@ -73,7 +94,7 @@ resources:
   migrate:
     requests: { cpu: 50m, memory: 128Mi }
     limits: { cpu: "1", memory: 512Mi }
-  mediaBackfill:
+  mediaTask:
     requests: { cpu: 100m, memory: 256Mi }
     limits: { cpu: "1", memory: 1Gi }
   moveTopLevelPhotos:
@@ -85,10 +106,13 @@ resources:
 
 # THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
 # DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET (and optionally
-# SMTP_USERNAME, SMTP_PASSWORD) and the chart skips creating its own.
+# SMTP_USERNAME, SMTP_PASSWORD, and S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY when `s3.bucket` is set)
+# and the chart skips creating its own.
 existingSecretName: ""
 secret:
   databaseUrl: postgresql://changeme:changeme@postgres:5432/changeme
   authSecret: changeme
   kompassiClientId: changeme
   kompassiClientSecret: changeme
+  s3AccessKeyId: ""
+  s3SecretAccessKey: ""

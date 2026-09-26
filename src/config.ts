@@ -34,9 +34,33 @@ export const testDatabaseUrl = env(
   "postgresql://edegal:photos@localhost:5432/edegal_test",
 );
 
+/** Set in every environment once it is set at all: a bucket without keys is a misconfiguration, not a development default. */
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} must be set when S3_BUCKET is set`);
+  return value;
+}
+
 export const mediaRoot = env("MEDIA_ROOT", "./media");
 /** URL prefix under which media storage keys are served, without trailing slash. */
 export const mediaBaseUrl = env("MEDIA_BASE_URL", "/media").replace(/\/$/, "");
+
+/**
+ * S3-compatible media storage (Garage in production). An empty bucket keeps media on the
+ * filesystem under `mediaRoot`. The server calls `endpoint`, which may be an in-cluster address;
+ * browsers follow presigned URLs to `publicEndpoint`.
+ */
+const s3Bucket = env("S3_BUCKET", "");
+const s3Endpoint = s3Bucket ? requiredEnv("S3_ENDPOINT") : "";
+export const s3 = {
+  bucket: s3Bucket,
+  endpoint: s3Endpoint,
+  publicEndpoint: env("S3_PUBLIC_ENDPOINT", "") || s3Endpoint,
+  region: env("S3_REGION", "garage"),
+  forcePathStyle: env("S3_FORCE_PATH_STYLE", "true") !== "false",
+  accessKeyId: s3Bucket ? requiredEnv("S3_ACCESS_KEY_ID") : "",
+  secretAccessKey: s3Bucket ? requiredEnv("S3_SECRET_ACCESS_KEY") : "",
+};
 
 export const publicUrl = env("AUTH_URL", "http://localhost:3160");
 export const authSecret = secretEnv("AUTH_SECRET", "insecure-dev-secret");

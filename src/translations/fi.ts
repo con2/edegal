@@ -289,6 +289,7 @@ const translations: Translations = {
       unsupported: "Ei JPEG-, PNG-, WebP- tai AVIF-kuva (HEIC ei ole tuettu)",
       exists: "Jokin muu kuin kuva käyttää jo tätä nimeä",
       forbidden: "Ei sallittu",
+      badRequest: "Lähetys ei tallentunut; yritä uudelleen",
       network: "Verkkovirhe",
     },
   },

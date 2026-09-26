@@ -15,6 +15,8 @@ import { galleryMetadata } from "./metadata";
 const media = (key: string): MediaSet => ({
   fallback: {
     src: `/${key}.jpg`,
+    downloadSrc: `/${key}.jpg`,
+    backend: "fs",
     storageKey: `${key}.jpg`,
     width: 10,
     height: 10,
@@ -176,7 +178,11 @@ describe("galleryMetadata Open Graph image", () => {
       ),
     );
     expect(meta.openGraph).toMatchObject({
-      images: [expect.objectContaining({ url: "/subalbum-thumbnail.jpg" })],
+      images: [
+        expect.objectContaining({
+          url: "http://localhost:3160/media/subalbum-thumbnail.jpg",
+        }),
+      ],
     });
   });
 
@@ -187,7 +193,11 @@ describe("galleryMetadata Open Graph image", () => {
       ok(album({ kind: "timeline", photos: [photo()] })),
     );
     expect(meta.openGraph).toMatchObject({
-      images: [expect.objectContaining({ url: "/preview.jpg" })],
+      images: [
+        expect.objectContaining({
+          url: "http://localhost:3160/media/preview.jpg",
+        }),
+      ],
     });
   });
 });

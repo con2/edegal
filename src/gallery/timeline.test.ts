@@ -6,6 +6,8 @@ import type { AlbumPageVM, MediaSet, PhotoVM } from "./types";
 const media: MediaSet = {
   fallback: {
     src: "/photo.jpg",
+    downloadSrc: "/photo.jpg",
+    backend: "fs",
     storageKey: "photo.jpg",
     width: 100,
     height: 100,

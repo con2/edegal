@@ -4,7 +4,7 @@ import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
 import { generateScaledMedia, type ProducedMedia } from "./pipeline";
-import { mediaStorage } from "./storage";
+import { type MediaBackend, mediaStorage, storageFor } from "./storage";
 
 export interface ClaimedJob {
   id: string;
@@ -27,9 +27,9 @@ export async function claimJob(): Promise<ClaimedJob | null> {
   return row ? { id: row.id, photoId: row.photo_id } : null;
 }
 
-async function readAll(key: string): Promise<Buffer> {
+async function readAll(backend: MediaBackend, key: string): Promise<Buffer> {
   const chunks: Buffer[] = [];
-  for await (const chunk of mediaStorage.getStream(key)) chunks.push(Buffer.from(chunk));
+  for await (const chunk of await storageFor(backend).getStream(key)) chunks.push(Buffer.from(chunk));
   return Buffer.concat(chunks);
 }
 
@@ -74,6 +74,7 @@ async function replaceScaledMedia(
         width: m.width,
         height: m.height,
         storageKey: m.storageKey,
+        backend: m.backend,
         byteSize: m.byteSize,
       });
     } else {
@@ -106,7 +107,7 @@ export async function processMediaJob(job: ClaimedJob): Promise<void> {
     // by a renamed-away album) and picked a disambiguated base instead. Using `photo.path` here
     // would put this photo's own derivatives at that unrelated file's key.
     const keyBase = photo.mediaKeyBase || photo.path;
-    const produced = await generateScaledMedia(keyBase, await readAll(original.storageKey));
+    const produced = await generateScaledMedia(keyBase, await readAll(original.backend, original.storageKey));
     await replaceScaledMedia(photo.id, photo.media, produced);
 
     const { album } = photo;
@@ -174,6 +175,24 @@ export async function requeueStrandedJobs(): Promise<{ requeued: number; failed:
     requeued: rows.filter((r) => r.status === "pending").length,
     failed: rows.filter((r) => r.status === "failed").length,
   };
+}
+
+/** How long a browser's direct upload may sit under `uploads/` before it counts as abandoned. */
+const staleUploadMs = 24 * 60 * 60 * 1000;
+
+/**
+ * Deletes direct uploads whose `complete` call never came (a closed tab, a failed request). A
+ * completed upload is copied to its canonical key and deleted right away, so anything older than a
+ * day under `uploads/` is garbage. Returns the number deleted.
+ */
+export async function cleanupStaleUploads(olderThan: Date = new Date(Date.now() - staleUploadMs)): Promise<number> {
+  let deleted = 0;
+  for await (const object of mediaStorage.listPrefix("uploads/")) {
+    if (object.lastModified >= olderThan) continue;
+    await mediaStorage.delete(object.key);
+    deleted++;
+  }
+  return deleted;
 }
 
 /**

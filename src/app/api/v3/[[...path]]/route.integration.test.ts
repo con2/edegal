@@ -106,12 +106,12 @@ describe("GET /api/v3/[[...path]]", () => {
           title: "Sub",
           eventDate: "2026-05-01",
           thumbnail: {
-            src: "/media/thumbnails/event/sub/photo.jpeg",
+            src: "http://localhost:3160/media/thumbnails/event/sub/photo.jpeg",
             width: 360,
             height: 240,
           },
           preview: {
-            src: "/media/previews/event/sub/photo.jpeg",
+            src: "http://localhost:3160/media/previews/event/sub/photo.jpeg",
             width: 2000,
             height: 1333,
           },

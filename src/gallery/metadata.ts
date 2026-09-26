@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { publicUrl } from "@/config";
 import { documentTitle } from "@/components/breadcrumb";
 import { getTranslations } from "@/translations";
 
@@ -52,7 +53,13 @@ export function galleryMetadata(
     openGraph: image
       ? {
           images: [
-            { url: image.src, width: image.width, height: image.height },
+            // The stable authorized route rather than `src`: a presigned URL would expire
+            // while link previews are cached.
+            {
+              url: `${publicUrl}/media/${image.storageKey}`,
+              width: image.width,
+              height: image.height,
+            },
           ],
         }
       : undefined,

@@ -73,7 +73,7 @@ migration copied those rows verbatim with `byte_size = null`. v4 sizes the photo
 album grid from the rows, so such photos rendered stretched or sideways.
 
 Fix: `npm run media:backfill` (`src/media/backfill.ts`, Job template
-`chart/templates/job-media-backfill.yaml`) treats `byte_size is null` as "never inspected", fills
+`chart/templates/job-media-task.yaml`) treats `byte_size is null` as "never inspected", fills
 sizes and displayed dimensions from the files, and queues a media job for every tagged original.
 `processMediaJob` now replaces a photo's scaled rows instead of adding missing ones, so the worker
 repoints them at freshly rendered upright files under v4 keys. The legacy files stay in place.
@@ -361,3 +361,6 @@ exact commands in the runbook. Afterward `prisma db verify --strict` should pass
    support (§1.1); may need a raw-SQL order clause if the builder can't express it.
 5. Hidden-picture sibling albums change those pictures' v4 paths; check during rehearsal whether
    any admin tooling assumed the old path.
+
+Media files themselves move from the NFS export to S3 separately: see `chart/README.md`,
+"Migrating media to S3" (con2/edegal#245).

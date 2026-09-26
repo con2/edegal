@@ -15,6 +15,8 @@ const messages: Translations["BreadcrumbBar"] = {
 const media: MediaSet = {
   fallback: {
     src: "/photo.jpg",
+    downloadSrc: "/photo.jpg",
+    backend: "fs",
     storageKey: "photo.jpg",
     width: 10,
     height: 10,

@@ -27,6 +27,29 @@ npm run dev                           # http://localhost:3160
 To develop against real content locally, restore a production dump into the database before
 running the migrations and point `MEDIA_BASE_URL` at the production media host.
 
+### Media in Garage
+
+Without `S3_BUCKET`, media files live under `MEDIA_ROOT` and are served by the app at `/media`.
+Production stores new uploads in an S3 bucket on the cluster's Garage instead: browsers upload
+straight to the bucket with presigned URLs and fetch every image through presigned URLs, so the
+bucket never needs public access. The same setup runs locally with Docker:
+
+```sh
+docker compose up -d                  # Garage v2.4.1 on localhost:3900 (S3) and :3903 (admin)
+scripts/garage-init.sh                # layout, buckets `edegal` and `edegal-test`, keys
+```
+
+Copy the printed `S3_*` lines into `.env`, run `npm run s3:setup` once so the bucket allows
+browser uploads from `AUTH_URL` (CORS), and restart `npm run dev` and `npm run worker`. The
+`TEST_S3_*` lines drive the S3 integration suite:
+
+```sh
+eval "$(scripts/garage-init.sh | grep ^export)"
+npm run test:integration:s3           # src/**/*.s3.test.ts against the edegal-test bucket
+```
+
+Rows record which backend holds their file, so a database with both kinds keeps working.
+
 ## Photographers
 
 Signed-in members of the photographer group (and admins) get album management links in the
@@ -101,7 +124,7 @@ production reports the form as unavailable.
 
 ## Downloads
 
-`GET /api/zip/<album path>` streams the album's originals as a zip after the same visibility checks as the album page. A single photo's download menu offers the original and every preview rendition with its dimensions and size, all served straight from `/media`. The download dialog shows the album's terms (`v4_terms`, inherited from ancestors) and credit instructions before either.
+`GET /api/zip/<album path>` streams the album's originals as a zip after the same visibility checks as the album page. A single photo's download menu offers the original and every preview rendition with its dimensions and size, served from `/media` or, for files in S3, through a presigned URL that sets the download filename. The download dialog shows the album's terms (`v4_terms`, inherited from ancestors) and credit instructions before either.
 
 ## Schema changes
 
@@ -117,8 +140,10 @@ Never use `prisma db update` here: it drops every table the contract does not de
 Runs on Kubernetes behind Traefik with the Gateway API, deployed from `chart/` by
 `.github/workflows/v4.yaml` on every push to `main`. See `chart/README.md`.
 
-Media lives on a shared NFS export. `/media/pictures` holds the originals: back them up. Previews
-and thumbnails under `/media/previews` can be regenerated.
+New media lives in a per-site S3 bucket on the cluster's Garage; legacy media stays on the shared
+NFS export until the migration in `chart/README.md` ("Migrating media to S3") has run. The
+`pictures/` prefix (bucket or export) holds the originals: back them up. Previews and thumbnails
+can be regenerated.
 
 ## Want to use it for your own picture gallery?
 

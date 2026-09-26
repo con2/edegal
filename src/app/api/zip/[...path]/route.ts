@@ -7,7 +7,6 @@ import { canDownload } from "@/gallery/access";
 import { loadGalleryPage } from "@/gallery/load";
 import { normalizeGalleryPath } from "@/gallery/paths";
 import { getViewer } from "@/gallery/viewer";
-import { mediaStorage } from "@/media/storage";
 
 /**
  * Streams an album's originals as a store-mode zip. Authorization is the same as for viewing the
@@ -27,7 +26,7 @@ export async function GET(
   if (!canDownload(album) || zipEntries(album).length === 0) return notFound();
 
   const readme = albumReadme(album, `${publicUrl}${album.path}`);
-  const zip = await createAlbumZip(album, readme, mediaStorage, request.signal);
+  const zip = await createAlbumZip(album, readme, request.signal);
   const fileName = zipFileName(album);
   return new Response(Readable.toWeb(zip) as ReadableStream, {
     headers: {

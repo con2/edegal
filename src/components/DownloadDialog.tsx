@@ -38,7 +38,10 @@ const platformHeading: Record<Platform, keyof DownloadDialogMessages> = {
   bluesky: "blueskyCredit",
 };
 
-/** Saves a same-origin file instead of navigating to it. */
+/**
+ * Saves a file instead of navigating to it. The `download` attribute only takes effect for
+ * same-origin URLs; an S3 `downloadSrc` carries the file name in its content disposition instead.
+ */
 function saveFile(href: string, fileName: string) {
   const anchor = document.createElement("a");
   anchor.href = href;
@@ -166,7 +169,9 @@ export function DownloadDialog({
                     <Dropdown.Item
                       key={option.variant.src}
                       as="button"
-                      onClick={() => save(option.variant.src, option.fileName)}
+                      onClick={() =>
+                        save(option.variant.downloadSrc, option.fileName)
+                      }
                     >
                       {option.kind === "original" ? t.original : t.preview}{" "}
                       {describeVariant(option.variant)}

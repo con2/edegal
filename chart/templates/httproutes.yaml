@@ -32,6 +32,7 @@ spec:
   hostnames:
     - {{ .Values.hostname | quote }}
   rules:
+    {{- if .Values.nginx.enabled }}
     - matches:
         - path:
             type: PathPrefix
@@ -39,6 +40,7 @@ spec:
       backendRefs:
         - name: nginx
           port: 8080
+    {{- end }}
     - matches:
         - path:
             type: PathPrefix

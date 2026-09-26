@@ -6,6 +6,7 @@ import { runPeriodicTask } from "@/lib/periodicTask";
 import {
   claimJob,
   cleanupFinishedJobs,
+  cleanupStaleUploads,
   processMediaJob,
   requeueStrandedJobs,
 } from "@/media/jobs";
@@ -84,6 +85,11 @@ async function maintenance() {
         const deleted = await cleanupFinishedJobs();
         if (deleted > 0)
           console.log(`maintenance: removed ${deleted} finished job(s)`);
+        const staleUploads = await cleanupStaleUploads();
+        if (staleUploads > 0)
+          console.log(
+            `maintenance: removed ${staleUploads} abandoned upload(s)`,
+          );
         sinceCleanupMs = 0;
       }
     } catch (error) {

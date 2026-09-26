@@ -22,7 +22,8 @@ spec:
       enableServiceLinks: false
       automountServiceAccountToken: false
       securityContext:
-        # Matches the owner of the existing media files on the NFS export.
+        # Matches the owner of the existing media files on the NFS export; kept after the move to
+        # S3 so a re-enabled mount still works.
         runAsUser: 1082
         runAsGroup: 1082
         fsGroup: 1082
@@ -84,17 +85,21 @@ spec:
                   value: {{ .Values.hostname | quote }}
             periodSeconds: 30
           volumeMounts:
+            {{- if .Values.mediaNfs.enabled }}
             - name: media
               mountPath: /usr/src/app/media
+            {{- end }}
             - name: next-cache
               mountPath: /usr/src/app/.next/cache
             - name: tmp
               mountPath: /tmp
       volumes:
+        {{- if .Values.mediaNfs.enabled }}
         - name: media
           nfs:
             server: {{ .Values.mediaNfs.server }}
             path: {{ .Values.mediaNfs.path }}
+        {{- end }}
         - name: next-cache
           emptyDir: {}
         - name: tmp

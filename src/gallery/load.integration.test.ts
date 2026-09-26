@@ -326,7 +326,9 @@ describe("loadGalleryPage", () => {
     expect(result.photo?.thumbnail.alternates).toEqual([
       {
         src: "/media/previews/event/pic-1.thumbnail.webp",
+        downloadSrc: "/media/previews/event/pic-1.thumbnail.webp",
         storageKey: "previews/event/pic-1.thumbnail.webp",
+        backend: "fs",
         width: 360,
         height: 240,
         format: "webp",

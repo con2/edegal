@@ -1,6 +1,10 @@
 import { Readable } from "node:stream";
 
-import { mediaStorage } from "@/media/storage";
+import { canView } from "@/gallery/access";
+import { effectiveVisibilities } from "@/gallery/effectiveVisibility";
+import { getViewer } from "@/gallery/viewer";
+import { storageFor } from "@/media/storage";
+import { db } from "@/prisma/db";
 
 const contentTypes: Record<string, string> = {
   jpeg: "image/jpeg",
@@ -12,20 +16,57 @@ const contentTypes: Record<string, string> = {
   zip: "application/zip",
 };
 
+function notFound() {
+  return new Response("Not found", { status: 404 });
+}
+
 /**
- * Serves media from MEDIA_ROOT. In production the same path prefix is routed to nginx before it
- * reaches Next.js; this handler covers development and acts as a fallback.
+ * The stable, authorized address of a media file: `/media/<storage key>`. A file is served only
+ * to viewers who may see its album. Filesystem files stream from here; S3 files redirect to a
+ * presigned URL. Open Graph images and the v3 API point here because a presigned URL expires
+ * while their consumers still cache it.
  */
-export async function GET(_request: Request, { params }: { params: Promise<{ key: string[] }> }) {
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ key: string[] }> },
+) {
   const { key } = await params;
   const storageKey = key.map(decodeURIComponent).join("/");
   if (storageKey.split("/").some((segment) => segment === "..")) {
-    return new Response("Not found", { status: 404 });
+    return notFound();
   }
-  const stat = await mediaStorage.stat(storageKey);
-  if (!stat) return new Response("Not found", { status: 404 });
+  const media = await db.orm.public.Media.where({ storageKey })
+    .include("photo", (p) => p.include("album"))
+    .first();
+  if (!media) return notFound();
+  const { album } = media.photo;
+  const visibility = (await effectiveVisibilities([album.path])).get(
+    album.path,
+  );
+  if (
+    !visibility ||
+    !canView(await getViewer(), { visibility, ownerId: album.ownerId })
+  ) {
+    return notFound();
+  }
+
+  const storage = storageFor(media.backend);
+  if (media.backend === "s3") {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: storage.url(storageKey),
+        "Cache-Control": "private, max-age=3600",
+      },
+    });
+  }
+
+  const stat = await storage.stat(storageKey);
+  if (!stat) return notFound();
   const extension = storageKey.split(".").pop()?.toLowerCase() ?? "";
-  const stream = Readable.toWeb(mediaStorage.getStream(storageKey)) as ReadableStream;
+  const stream = Readable.toWeb(
+    await storage.getStream(storageKey),
+  ) as ReadableStream;
   return new Response(stream, {
     headers: {
       "Content-Type": contentTypes[extension] ?? "application/octet-stream",

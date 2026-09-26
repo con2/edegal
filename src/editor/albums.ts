@@ -10,7 +10,7 @@ import { recordMove } from "@/gallery/redirects";
 import { resolvePath } from "@/gallery/resolve";
 import type { Viewer } from "@/gallery/viewer";
 import { parseOrderingNumber } from "@/media/naming";
-import { mediaStorage } from "@/media/storage";
+import { type MediaBackend, storageFor } from "@/media/storage";
 import { db } from "@/prisma/db";
 
 import type { CreditInput } from "./schemas";
@@ -133,13 +133,16 @@ export async function moveAlbumPath(
     const photos = await tx.orm.public.Photo.where((p) =>
       p.path.like(`${oldPath}/%`),
     )
-      .select("id", "path")
+      .select("id", "path", "mediaKeyBase")
       .all();
     for (const photo of photos) {
       const target = newPath + photo.path.slice(oldPath.length);
       await recordMove(tx, photo.path, target);
       await tx.orm.public.Photo.where({ id: photo.id }).update({
         path: target,
+        // Derivatives are stored under the path the photo had when its original was written;
+        // an empty base means "use `path`", which is about to change.
+        mediaKeyBase: photo.mediaKeyBase || photo.path,
       });
     }
   });
@@ -179,21 +182,25 @@ export async function deleteAlbumSubtree(
     for (const album of subtree)
       await tx.orm.public.Album.where({ id: album.id }).delete();
   });
-  await deleteStorageKeys(
-    photos.flatMap((p) => p.media.map((m) => m.storageKey)),
-  );
+  await deleteStorageKeys(photos.flatMap((p) => p.media));
   return { albums: subtree.length, photos: photos.length };
 }
 
-export async function photoStorageKeys(photoId: string): Promise<string[]> {
-  const media = await db.orm.public.Media.where({ photoId })
-    .select("storageKey")
-    .all();
-  return media.map((m) => m.storageKey);
+export interface StoredMedia {
+  storageKey: string;
+  backend: MediaBackend;
 }
 
-export async function deleteStorageKeys(keys: string[]): Promise<void> {
-  for (const key of keys) await mediaStorage.delete(key);
+export async function photoStorageKeys(
+  photoId: string,
+): Promise<StoredMedia[]> {
+  return db.orm.public.Media.where({ photoId })
+    .select("storageKey", "backend")
+    .all();
+}
+
+export async function deleteStorageKeys(media: StoredMedia[]): Promise<void> {
+  for (const m of media) await storageFor(m.backend).delete(m.storageKey);
 }
 
 export type PhotoSort = "takenAt" | "filename";

@@ -1,31 +1,9 @@
-import { canUpload } from "@/gallery/access";
-import { getViewer } from "@/gallery/viewer";
 import { addPhotoToAlbum } from "@/media/addPhoto";
 import { uniqueSlug } from "@/media/naming";
-import { db } from "@/prisma/db";
 
-export const maxUploadBytes = 100 * 1024 * 1024;
+import { authorizeUpload, fail, maxUploadBytes } from "./shared";
 
-type UploadError =
-  | "tooLarge"
-  | "tooManyPixels"
-  | "unsupported"
-  | "exists"
-  | "forbidden"
-  | "notFound";
-
-const statusOf: Record<UploadError, number> = {
-  tooLarge: 413,
-  tooManyPixels: 413,
-  unsupported: 415,
-  exists: 409,
-  forbidden: 403,
-  notFound: 404,
-};
-
-function fail(error: UploadError) {
-  return Response.json({ error }, { status: statusOf[error] });
-}
+export { maxUploadBytes };
 
 /**
  * Reads the body while counting, so a chunked or misdeclared request cannot buffer more than the
@@ -52,21 +30,17 @@ async function readBodyCapped(
   return Buffer.concat(chunks, total);
 }
 
-/** Receives one original per request: raw body, filename in X-File-Name. */
+/**
+ * Receives one original per request: raw body, filename in X-File-Name. The fallback for a
+ * storage backend without direct uploads, and the path importers take.
+ */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ albumId: string }> },
 ) {
   const { albumId } = await params;
-  const viewer = await getViewer();
-  const album = await db.orm.public.Album.where({ id: albumId }).first();
-  if (!album) return fail("notFound");
-  if (
-    viewer.kind !== "user" ||
-    !canUpload(viewer, { ownerId: album.ownerId })
-  ) {
-    return fail("forbidden");
-  }
+  const uploader = await authorizeUpload(albumId);
+  if (uploader instanceof Response) return uploader;
 
   const declaredLength = Number(request.headers.get("content-length") ?? 0);
   if (declaredLength > maxUploadBytes) return fail("tooLarge");
@@ -76,7 +50,12 @@ export async function POST(
   const filename = decodeURIComponent(
     request.headers.get("x-file-name") ?? "photo.jpg",
   );
-  const added = await addPhotoToAlbum(album, viewer.userId, filename, data);
+  const added = await addPhotoToAlbum(
+    uploader.album,
+    uploader.userId,
+    filename,
+    data,
+  );
   if (!added.ok) return fail(added.error);
   return Response.json(
     { photoId: added.photo.id, path: added.photo.path },

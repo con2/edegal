@@ -509,6 +509,16 @@
           },
           "Media": {
             "fields": {
+              "backend": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "v4_media_backend"
+                  }
+                }
+              },
               "byteSize": {
                 "nullable": true,
                 "type": {
@@ -598,6 +608,9 @@
             },
             "storage": {
               "fields": {
+                "backend": {
+                  "column": "backend"
+                },
                 "byteSize": {
                   "column": "byte_size"
                 },
@@ -1706,6 +1719,14 @@
               ],
               "typeName": "v4_album_visibility"
             },
+            "v4_media_backend": {
+              "kind": "postgres-enum",
+              "members": [
+                "fs",
+                "s3"
+              ],
+              "typeName": "v4_media_backend"
+            },
             "v4_media_format": {
               "kind": "postgres-enum",
               "members": [
@@ -2178,6 +2199,24 @@
             },
             "v4_media": {
               "columns": {
+                "backend": {
+                  "codecId": "pg/enum@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "fs"
+                  },
+                  "nativeType": "v4_media_backend",
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "v4_media_backend"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "MediaBackend",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "byte_size": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
@@ -3129,6 +3168,13 @@
                 "private"
               ]
             },
+            "MediaBackend": {
+              "kind": "valueSet",
+              "values": [
+                "fs",
+                "s3"
+              ]
+            },
             "MediaFormat": {
               "kind": "valueSet",
               "values": [
@@ -3161,7 +3207,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "10a95046bdeb172460e489936e4b116a2b7d0c8596c21e833c1b88aefc7776ac"
+    "storageHash": "ada10a727c518d291261ba2ddf9d1f259ff3b16f20ea1c4bf6bbba5584818696"
   },
   "execution": {
     "executionHash": "4de61373a8bb18837777d69f3fc78addb7349f6fb48ac3b4e9660aca0d6bd51b",

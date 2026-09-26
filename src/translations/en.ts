@@ -292,6 +292,7 @@ const translations = {
         "Not a JPEG, PNG, WebP or AVIF image (HEIC is not supported)",
       exists: "Something other than a photo already uses this name here",
       forbidden: "Not allowed",
+      badRequest: "The upload did not reach storage; try again",
       network: "Network error",
     },
   },

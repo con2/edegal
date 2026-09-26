@@ -24,6 +24,8 @@ function photo(overrides: Partial<PhotoVM> = {}): PhotoVM {
     thumbnail: {
       fallback: {
         src: "/photo.jpg",
+        downloadSrc: "/photo.jpg",
+        backend: "fs",
         storageKey: "photo.jpg",
         width: 10,
         height: 10,

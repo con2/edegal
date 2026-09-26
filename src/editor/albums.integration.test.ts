@@ -132,7 +132,7 @@ describe("album helpers", () => {
     ]);
   });
 
-  it("moves an album with its descendants and photos to a new path", async () => {
+  it("moves an album with its descendants and photos to a new path, pinning key bases to the old paths", async () => {
     await moveAlbumPath(eventId, "/event", "/tapahtuma");
     const paths = (await db.orm.public.Album.select("path").all())
       .map((a) => a.path)
@@ -142,6 +142,11 @@ describe("album helpers", () => {
       (p) => p.path,
     );
     expect(photoPaths.every((p) => p.startsWith("/tapahtuma/day/"))).toBe(true);
+    // Files stay where they are, so regeneration must keep writing under the pre-move path.
+    const keyBases = (
+      await db.orm.public.Photo.select("mediaKeyBase").all()
+    ).map((p) => p.mediaKeyBase);
+    expect(keyBases.every((b) => b.startsWith("/event/day/"))).toBe(true);
     await moveAlbumPath(eventId, "/tapahtuma", "/event");
   });
 

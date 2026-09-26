@@ -18,3 +18,14 @@ data:
   {{- with .Values.larpitSync.apiUrl }}
   LARPIT_SYNC_API_URL: {{ . | quote }}
   {{- end }}
+  {{- with .Values.s3 }}
+  {{- if .bucket }}
+  S3_ENDPOINT: {{ .endpoint | quote }}
+  {{- with .publicEndpoint }}
+  S3_PUBLIC_ENDPOINT: {{ . | quote }}
+  {{- end }}
+  S3_REGION: {{ .region | quote }}
+  S3_BUCKET: {{ .bucket | quote }}
+  S3_FORCE_PATH_STYLE: {{ .forcePathStyle | quote }}
+  {{- end }}
+  {{- end }}

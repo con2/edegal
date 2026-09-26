@@ -1,8 +1,9 @@
 # v4 Helm chart
 
-Deploys the v4 gallery: a Next.js Deployment (with a Prisma migration init container), an nginx
-Deployment serving `/media` from the shared NFS export, a per-namespace Gateway with HTTPRoutes,
-and a cert-manager Certificate.
+Deploys the v4 gallery: a Next.js Deployment (with a Prisma migration init container), the media
+worker Deployment, an nginx Deployment serving `/media` from the shared NFS export (until the
+media has moved to S3, see "Media in S3 (Garage)"), a per-namespace Gateway with HTTPRoutes, and a
+cert-manager Certificate.
 
 ## Prerequisites per namespace (`conikuvat-v4`, `larppikuvat-v4`)
 
@@ -17,7 +18,8 @@ kubectl -n conikuvat-v4 create secret generic v4 \
 
 The Kompassi OIDC client must allow the redirect URI `https://<hostname>/api/auth/callback/kompassi`.
 All four keys are mandatory: the server refuses to start without them rather than falling back
-to development defaults.
+to development defaults. `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` join them once `s3.bucket`
+is set (see "Media in S3 (Garage)").
 
 `sslmode=verify-full` (not `require`) since siilo.tracon.fi has a proper TLS certificate: `pg`
 only warns on `require`/`prefer`/`verify-ca` today because it treats them as aliases for
@@ -38,6 +40,57 @@ does not know about. The migration init container only ever runs `migration chec
 `SMTP_PASSWORD` added to the Secret; the containers load every key of it. With an empty hostname the
 form tells visitors that sending is unavailable.
 
+## Media in S3 (Garage)
+
+New uploads go to an S3 bucket on the cluster's own Garage (`infrastructure/kubernetes/garage.README.md`):
+browsers PUT originals straight to the bucket with presigned URLs and fetch every image through
+presigned URLs, so nothing in the bucket is public. One bucket and key per site, created from a
+Garage pod:
+
+```sh
+kubectl -n garage exec garage-0 -- /garage bucket create conikuvat
+kubectl -n garage exec garage-0 -- /garage key create conikuvat        # prints key ID and secret
+kubectl -n garage exec garage-0 -- /garage bucket allow --read --write --owner conikuvat --key conikuvat
+```
+
+Add the key to the site's out-of-band `v4` Secret as `S3_ACCESS_KEY_ID` and
+`S3_SECRET_ACCESS_KEY`, then set the stage 1 values:
+
+```yaml
+s3:
+  endpoint: http://garage.garage.svc.cluster.local:3900 # in-cluster, plain HTTP
+  publicEndpoint: https://garage.con2.fi # what browsers reach
+  region: garage
+  bucket: conikuvat
+  forcePathStyle: true
+```
+
+Once per bucket, allow browser uploads from the site's origin (CORS) by running `npm run s3:setup`
+with the same `S3_*` settings and `AUTH_URL=https://<hostname>` in the environment, for example
+from a shell in a `node` pod, or locally against `https://garage.con2.fi` as the endpoint.
+
+With the bucket set, new originals and every regenerated preview land in S3 while rows still on
+the export keep being served from it; `mediaNfs` and `nginx` stay enabled until the migration
+below has run.
+
+## Migrating media to S3
+
+`src/bin/migrate-media-to-s3.ts` copies every original still on the export to its canonical key
+in the bucket, repoints the row and queues a media job so the worker renders fresh previews into
+S3; legacy files are never changed or deleted. It runs through `mediaTask` with the export mounted
+read-only:
+
+1. Values: `mediaTask: { enabled: true, runId: 1, script: src/bin/migrate-media-to-s3.ts, args: [], nfs: true }`;
+   push. Read the tally at the end of `kubectl -n <ns> logs job/media-task-1`.
+2. Values: `runId: 2`, `args: ["--apply"]`; push. Watch the worker drain the queue:
+   `select status, count(*) from v4_media_job group by 1`. Rerunning is safe: an original already
+   in the bucket with the same size is skipped.
+3. Verify `select backend, count(*) from v4_media group by 1` shows no `fs`, and spot-check album
+   pages.
+4. Values: `mediaNfs.enabled: false`, `nginx.enabled: false`, `mediaTask.enabled: false`; delete
+   `mediaNfs.server`/`mediaNfs.path` from the site values file; push. `/media/<key>` now reaches
+   the app, which authorizes the request and redirects to a presigned URL.
+
 ## Resources
 
 `resources.*` in values sets requests and limits per container. The defaults were sized from
@@ -55,22 +108,28 @@ out of attempts), and the album thumbnail choice tolerates two jobs of one album
 Each conversion needs about one CPU for libvips plus libaom's threads for AVIF and up to 400 MB for
 a 100 megapixel input, which is what `resources.worker` is sized for.
 
-## Media backfill
+## Media tasks
+
+`mediaTask` runs one of the `src/bin` media scripts once as a Job with the worker image:
+`script` names the script, `args` its arguments (every script is a dry run without `--apply`),
+`nfs` mounts the export read-only, and `runId` names the Job, so bump it for every run. Set
+`enabled: false` afterwards.
+
+### Media backfill
 
 The legacy migration copied media rows from the Django tables without opening the files: no file
 size, and for camera portrait shots the original's dimensions in stored-pixel (landscape) order,
-with previews that were rendered without applying the EXIF orientation tag. `mediaBackfill` runs
-`src/bin/backfill-media.ts` once as a Job against every row still lacking a size; it fills sizes
-and displayed dimensions and queues a media job for each photo whose original carries an
-orientation tag, which the worker Deployment then re-renders. The Job mounts the export read-only.
+with previews that were rendered without applying the EXIF orientation tag.
+`src/bin/backfill-media.ts` (the default `script`) inspects every row still lacking a size; it
+fills sizes and displayed dimensions and queues a media job for each photo whose original carries
+an orientation tag, which the worker Deployment then re-renders.
 
-1. Values: `mediaBackfill.enabled: true`, `runId: 1`, `args: []`; push. Read the tally at the end
-   of `kubectl -n <ns> logs job/media-backfill-1`: rows scanned should be about the site's media
+1. Values: `mediaTask.enabled: true`, `runId: 1`, `args: []`; push. Read the tally at the end
+   of `kubectl -n <ns> logs job/media-task-1`: rows scanned should be about the site's media
    row count and rotated originals a fraction of the photos.
 2. Values: `runId: 2`, `args: ["--apply"]`; push. Then watch the worker drain the queue:
    `select status, count(*) from v4_media_job group by 1`.
 3. Rerunning is safe: a row is inspected once, and only rows whose file was missing come back.
-   Set `enabled: false` afterwards.
 
 ## Moving top-level photos
 

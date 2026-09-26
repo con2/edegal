@@ -1,6 +1,7 @@
 import { formatPreference } from "@/media/specs";
-import { mediaUrl } from "@/media/url";
+import { type MediaBackend, storageFor } from "@/media/storage";
 import { pgTimestampToIso } from "@/lib/time";
+import { downloadFileName } from "@/downloads/options";
 
 import type {
   MediaFormat,
@@ -16,13 +17,22 @@ export interface MediaRow {
   width: number;
   height: number;
   storageKey: string;
+  backend: MediaBackend;
   byteSize: number | null;
 }
 
-function toVariant(m: MediaRow): MediaVariant {
+/** A photo's slug names its downloads; thumbnails are never offered for download. */
+function toVariant(m: MediaRow, slug?: string): MediaVariant {
+  const storage = storageFor(m.backend);
+  const downloadName =
+    slug && m.role !== "thumbnail"
+      ? downloadFileName(slug, m.role, m.format)
+      : undefined;
   return {
-    src: mediaUrl(m.storageKey),
+    src: storage.url(m.storageKey),
+    downloadSrc: storage.url(m.storageKey, { downloadName }),
     storageKey: m.storageKey,
+    backend: m.backend,
     width: m.width,
     height: m.height,
     format: m.format,
@@ -33,8 +43,11 @@ function toVariant(m: MediaRow): MediaVariant {
 export function buildMediaSet(
   media: MediaRow[],
   role: MediaRow["role"],
+  slug?: string,
 ): MediaSet | null {
-  const variants = media.filter((m) => m.role === role).map(toVariant);
+  const variants = media
+    .filter((m) => m.role === role)
+    .map((m) => toVariant(m, slug));
   if (variants.length === 0) return null;
   const fallback = variants.find((v) => v.format === "jpeg") ?? variants[0];
   const alternates = variants
@@ -65,6 +78,7 @@ export function photoVM(
 ): PhotoVM | null {
   const thumbnail = buildMediaSet(photo.media, "thumbnail");
   if (!thumbnail) return null;
+  const slug = photo.path.split("/").pop() || "photo";
   const original = photo.media.find((m) => m.role === "original");
   return {
     id: photo.id,
@@ -73,8 +87,8 @@ export function photoVM(
     visibility,
     takenAt: photo.takenAt ? pgTimestampToIso(photo.takenAt) : null,
     thumbnail,
-    preview: buildMediaSet(photo.media, "preview"),
-    original: original ? toVariant(original) : null,
+    preview: buildMediaSet(photo.media, "preview", slug),
+    original: original ? toVariant(original, slug) : null,
     ownerId,
   };
 }

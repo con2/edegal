@@ -4,7 +4,7 @@ import { db } from "@/prisma/db";
 import { pool } from "@/prisma/pool";
 
 import { maxInputPixels } from "./pipeline";
-import { mediaStorage } from "./storage";
+import { type MediaBackend, type MediaStorage, storageFor } from "./storage";
 
 export interface BackfillOptions {
   /** Without this, every file is still read but nothing is written. */
@@ -34,6 +34,7 @@ interface PendingRow {
   album_id: string;
   role: "original" | "preview" | "thumbnail";
   storage_key: string;
+  backend: MediaBackend;
   width: number;
   height: number;
 }
@@ -52,9 +53,9 @@ interface OriginalInfo {
 const headerBytes = 256 * 1024;
 const batchSize = 500;
 
-async function readPrefix(key: string, end?: number): Promise<Buffer> {
+async function readPrefix(storage: MediaStorage, key: string, end?: number): Promise<Buffer> {
   const chunks: Buffer[] = [];
-  for await (const chunk of mediaStorage.getStream(key, end === undefined ? undefined : { end })) {
+  for await (const chunk of await storage.getStream(key, end === undefined ? undefined : { end })) {
     chunks.push(Buffer.from(chunk));
   }
   return Buffer.concat(chunks);
@@ -70,12 +71,12 @@ async function metadataOf(data: Buffer): Promise<OriginalInfo | null> {
 }
 
 /** Displayed dimensions and orientation tag of a stored original, or null if it cannot be decoded. */
-export async function inspectStoredOriginal(key: string): Promise<OriginalInfo | null> {
+export async function inspectStoredOriginal(storage: MediaStorage, key: string): Promise<OriginalInfo | null> {
   try {
-    return await metadataOf(await readPrefix(key, headerBytes - 1));
+    return await metadataOf(await readPrefix(storage, key, headerBytes - 1));
   } catch {
     try {
-      return await metadataOf(await readPrefix(key));
+      return await metadataOf(await readPrefix(storage, key));
     } catch {
       return null;
     }
@@ -84,7 +85,7 @@ export async function inspectStoredOriginal(key: string): Promise<OriginalInfo |
 
 async function pendingRows(afterId: string | null, limit: number): Promise<PendingRow[]> {
   const { rows } = await pool.query<PendingRow>(
-    `select m.id, m.photo_id, p.album_id, m.role, m.storage_key, m.width, m.height
+    `select m.id, m.photo_id, p.album_id, m.role, m.storage_key, m.backend, m.width, m.height
      from v4_media m join v4_photo p on p.id = m.photo_id
      where m.byte_size is null and ($1::uuid is null or m.id > $1::uuid)
      order by m.id
@@ -94,7 +95,7 @@ async function pendingRows(afterId: string | null, limit: number): Promise<Pendi
   return rows;
 }
 
-async function queueJobUnlessPending(photoId: string): Promise<boolean> {
+export async function queueJobUnlessPending(photoId: string): Promise<boolean> {
   const open = await db.orm.public.MediaJob.where({ photoId }).all();
   if (open.some((j) => j.status === "pending" || j.status === "running")) return false;
   await db.orm.public.MediaJob.create({ photoId });
@@ -135,7 +136,8 @@ export async function backfillMedia(options: BackfillOptions): Promise<BackfillT
 
   const processRow = async (row: PendingRow) => {
     tally.rowsScanned++;
-    const stat = await mediaStorage.stat(row.storage_key);
+    const storage = storageFor(row.backend);
+    const stat = await storage.stat(row.storage_key);
     if (!stat) {
       tally.missingFiles++;
       log(`missing: ${row.storage_key}`);
@@ -147,7 +149,7 @@ export async function backfillMedia(options: BackfillOptions): Promise<BackfillT
       return;
     }
 
-    const info = await inspectStoredOriginal(row.storage_key);
+    const info = await inspectStoredOriginal(storage, row.storage_key);
     if (!info) {
       tally.unreadableFiles++;
       log(`unreadable: ${row.storage_key}`);

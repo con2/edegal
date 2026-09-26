@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { publicUrl } from "@/config";
 import { loadGalleryPage } from "@/gallery/load";
 import { normalizeGalleryPath } from "@/gallery/paths";
 import type { ClientSubalbum, MediaVariant } from "@/gallery/types";
@@ -30,9 +31,14 @@ interface MediaJson {
   height: number;
 }
 
+/** Through the stable authorized `/media` route: consumers cache these URLs longer than a presigned one lives. */
 function mediaJson(variant: MediaVariant | undefined): MediaJson | null {
   return variant
-    ? { src: variant.src, width: variant.width, height: variant.height }
+    ? {
+        src: `${publicUrl}/media/${variant.storageKey}`,
+        width: variant.width,
+        height: variant.height,
+      }
     : null;
 }
 

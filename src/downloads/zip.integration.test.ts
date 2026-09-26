@@ -1,11 +1,8 @@
-import { mkdtemp, writeFile, mkdir } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import yauzl from "yauzl";
 import { describe, expect, it } from "vitest";
 
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
-import { LocalMediaStorage } from "@/media/storage";
+import { storageFor } from "@/media/storage";
 
 import { createAlbumZip } from "./zip";
 
@@ -51,6 +48,8 @@ async function collect(stream: NodeJS.ReadableStream): Promise<Buffer> {
 function photo(slug: string, key: string): PhotoVM {
   const variant = {
     src: `/media/${key}`,
+    downloadSrc: `/media/${key}`,
+    backend: "fs" as const,
     storageKey: key,
     width: 10,
     height: 10,
@@ -71,11 +70,17 @@ function photo(slug: string, key: string): PhotoVM {
 
 describe("createAlbumZip", () => {
   it("streams README.txt and each original as stored entries in album order", async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), "v4-zip-"));
-    await mkdir(path.join(root, "pictures/event"), { recursive: true });
-    await writeFile(path.join(root, "pictures/event/pic-1.jpeg"), "first");
-    await writeFile(path.join(root, "pictures/event/pic-2.jpeg"), "second");
-    const storage = new LocalMediaStorage(root);
+    const storage = storageFor("fs");
+    await storage.put(
+      "pictures/event/pic-1.jpeg",
+      Buffer.from("first"),
+      "image/jpeg",
+    );
+    await storage.put(
+      "pictures/event/pic-2.jpeg",
+      Buffer.from("second"),
+      "image/jpeg",
+    );
 
     const album = {
       path: "/event",
@@ -88,9 +93,7 @@ describe("createAlbumZip", () => {
     } as unknown as ClientAlbumPage;
 
     const entries = await readZip(
-      await collect(
-        await createAlbumZip(album, "Event\nhttps://x/event\n", storage),
-      ),
+      await collect(await createAlbumZip(album, "Event\nhttps://x/event\n")),
     );
     expect(entries.map((e) => e.fileName)).toEqual([
       "README.txt",

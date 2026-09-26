@@ -42,6 +42,12 @@ jobs:
       - run: npm test
       - run: psql "postgresql://postgres:postgres@localhost/postgres" -c 'create database v4_test'
       - run: npm run test:integration
+      # The S3 suite runs against a throwaway single-node Garage (docker-compose.yaml).
+      - run: docker compose up -d garage
+      - run: timeout 60 sh -c 'until curl -sf localhost:3903/health; do sleep 1; done'
+      - run: |
+          eval "$(scripts/garage-init.sh | grep ^export)"
+          npm run test:integration:s3
 
   build:
     runs-on: ubuntu-latest
