@@ -15,3 +15,7 @@ mail:
   from: Larppikuvat.fi <root@tracon.fi>
 # Secret `v4` in namespace larppikuvat-v4 is managed out of band.
 existingSecretName: v4
+moveTopLevelPhotos:
+  enabled: true
+  runId: 1
+  args: ["--apply"]
