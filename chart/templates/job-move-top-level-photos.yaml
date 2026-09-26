@@ -1,0 +1,57 @@
+{{- if .Values.moveTopLevelPhotos.enabled }}
+# Files photos found directly in a top-level album under a subalbum named after the credited
+# photographers (chart/README.md, "Moving top-level photos"). Uses the `-worker` image because the
+# script is app code (tsx, src/). It only rewrites database rows; media files stay where they are,
+# so no media mount.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: move-top-level-photos-{{ .Values.moveTopLevelPhotos.runId }}
+  labels:
+    {{- include "v4.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      labels:
+        stack: v4
+        component: move-top-level-photos
+    spec:
+      enableServiceLinks: false
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 1082
+        runAsGroup: 1082
+        fsGroup: 1082
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: move-top-level-photos
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-worker"
+          command:
+            - node_modules/.bin/tsx
+            - src/bin/move-top-level-photos.ts
+          args:
+            {{- toYaml .Values.moveTopLevelPhotos.args | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: v4
+            - secretRef:
+                name: {{ include "v4.secretName" . }}
+          resources:
+            {{- toYaml .Values.resources.moveTopLevelPhotos | nindent 12 }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

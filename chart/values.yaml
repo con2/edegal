@@ -50,6 +50,14 @@ mediaBackfill:
   runId: 2
   args: ["--apply"]
 
+# Job that files photos lying directly in a top-level album under a subalbum named after the
+# credited photographers (chart/README.md, "Moving top-level photos"). Bump `runId` for every
+# run; the default args are a dry run, add "--apply" to write. Only Larppikuvat.fi enables it.
+moveTopLevelPhotos:
+  enabled: false
+  runId: 1
+  args: []
+
 # Sized from production usage (node 140-530 MiB, worker 100-220 MiB idle, nginx mostly page cache).
 # An upload holds up to 100 MB of body plus the decoded image (about 4 bytes per pixel, capped at
 # 100 megapixels), and the worker decodes `workerConcurrency` images at once. Each AVIF encode
@@ -66,6 +74,9 @@ resources:
     requests: { cpu: 50m, memory: 128Mi }
     limits: { cpu: "1", memory: 512Mi }
   mediaBackfill:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  moveTopLevelPhotos:
     requests: { cpu: 100m, memory: 256Mi }
     limits: { cpu: "1", memory: 1Gi }
   nginx:

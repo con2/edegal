@@ -72,6 +72,22 @@ orientation tag, which the worker Deployment then re-renders. The Job mounts the
 3. Rerunning is safe: a row is inspected once, and only rows whose file was missing come back.
    Set `enabled: false` afterwards.
 
+## Moving top-level photos
+
+Larppikuvat.fi keeps one top-level album per larp, with each photographer's photos in a subalbum
+named after them. Photos uploaded straight into a top-level album break that. `moveTopLevelPhotos`
+runs `src/bin/move-top-level-photos.ts` as a Job: for every top-level album holding photos it
+creates a subalbum titled after the album's credited photographers, moves the photos, credits and
+terms there (leaving redirects from the old photo paths) and keeps the album's other fields. An
+album crediting no photographer is only warned about, as is one whose photographer subalbum
+already exists. The Job needs no media mount: files never move.
+
+1. Values: `moveTopLevelPhotos.enabled: true`, `runId: 1`, `args: []`; push. Read the plan in
+   `kubectl -n larppikuvat-v4 logs job/move-top-level-photos-1`.
+2. Values: `runId: 2`, `args: ["--apply"]`; push.
+3. Rerunning is safe: an emptied top-level album is skipped. Set `enabled: false` afterwards, or
+   leave it enabled and bump `runId` whenever photos land in a top-level album again.
+
 `additionalHostnames` adds dnsNames to the Certificate without adding Gateway listeners. The TLS
 Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` change.
 

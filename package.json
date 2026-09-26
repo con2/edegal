@@ -20,7 +20,8 @@
     "db:seed": "tsx src/bin/seed.ts",
     "prepare": "husky",
     "worker": "tsx src/bin/worker.ts",
-    "media:backfill": "tsx src/bin/backfill-media.ts"
+    "media:backfill": "tsx src/bin/backfill-media.ts",
+    "photos:move-top-level": "tsx src/bin/move-top-level-photos.ts"
   },
   "dependencies": {
     "@con2/components": "github:con2/components#v5.1.0",
