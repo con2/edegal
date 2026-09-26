@@ -51,6 +51,9 @@ touching the contract, migrations or queries. Key points:
   needs a hand-authored migration (`npx prisma migration new`); see `migrations/app/*drop_heif*`.
 - Production PostgreSQL is 17: ids use `@default(uuid(7))` generated at runtime, not `uuidv7()`.
 - `pg` and `@types/pg` stay pinned to the versions the Prisma runtime bundles.
+- The CLI's "Prisma agent skills are out of date" warning is expected: skills are read from
+  `node_modules`, and `prisma skills sync` (which copies them into four harness directories) is
+  not used here.
 
 ## Legacy content
 
