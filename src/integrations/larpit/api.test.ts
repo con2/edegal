@@ -53,6 +53,10 @@ describe("fetchLarp", () => {
       name: "Korpkvädet",
       fluffText: "Fluff",
       description: null,
+      startsAt: "2026-06-02",
+      endsAt: "2026-06-05",
+      locationText: "Piilopirtti",
+      municipality: "Tampere",
       links: [{ href: "https://x.example/", type: "HOMEPAGE", title: null }],
     };
     const larp = await fetchLarp(apiUrl, async () => jsonResponse(body));

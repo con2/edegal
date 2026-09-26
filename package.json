@@ -23,7 +23,7 @@
     "media:backfill": "tsx src/bin/backfill-media.ts"
   },
   "dependencies": {
-    "@con2/components": "github:con2/components#v5.0.0",
+    "@con2/components": "github:con2/components#v5.1.0",
     "@prisma/orm-postgres": "8.0.0-rc.9",
     "bootstrap": "5.3.8",
     "lru-cache": "11.5.2",

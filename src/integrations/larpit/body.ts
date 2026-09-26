@@ -4,12 +4,13 @@
  * fetched data lives only in the in-process cache below.
  */
 
+import { formatDateRange } from "@con2/components/helpers";
 import { LRUCache } from "lru-cache";
 
 import { publicUrl } from "@/config";
 import type { AlbumPageVM } from "@/gallery/types";
-import { getTranslations } from "@/translations";
 import type { Translations } from "@/translations";
+import { getTranslations } from "@/translations";
 
 import { fetchLarp, larpitApiUrl, type Larp, type LarpLinkType } from "./api";
 
@@ -88,6 +89,15 @@ function isOwnPhotosLink(href: string): boolean {
   return ownHosts.has(hostname);
 }
 
+/** Eg. "2.–5.6.2026 Piilopirtti, Tampere" in `fi`. */
+function larpDateAndLocation(larp: Larp, locale: string): string {
+  const dates = formatDateRange(larp.startsAt, larp.endsAt, locale);
+  const location = [larp.locationText, larp.municipality]
+    .filter(Boolean)
+    .join(", ");
+  return [dates, location].filter(Boolean).join(" ");
+}
+
 function larpLinkLines(
   larp: Larp,
   eventMetadataUrl: string,
@@ -107,8 +117,13 @@ export function larpBody(
   larp: Larp,
   eventMetadataUrl: string,
   t: Translations["LarpitBody"],
+  locale: string,
 ): string {
   const blocks = [`# ${escapeMarkdownText(larp.name)}`];
+  const dateAndLocation = larpDateAndLocation(larp, locale);
+  if (dateAndLocation) {
+    blocks.push(`**${escapeMarkdownText(dateAndLocation)}**`);
+  }
   for (const paragraph of splitFluff(larp.fluffText)) {
     blocks.push(`*${escapeMarkdownText(paragraph)}*`);
   }
@@ -132,5 +147,5 @@ export async function withEventMetadataBody(
   const larp = await cachedLarp(apiUrl);
   if (!larp) return vm;
   const t = getTranslations(locale).LarpitBody;
-  return { ...vm, body: larpBody(larp, vm.eventMetadataUrl, t) };
+  return { ...vm, body: larpBody(larp, vm.eventMetadataUrl, t, locale) };
 }

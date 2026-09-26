@@ -56,6 +56,10 @@ const LarpSchema = z.object({
   name: z.string(),
   fluffText: z.string().nullable(),
   description: z.string().nullable(),
+  startsAt: z.string().nullable(),
+  endsAt: z.string().nullable(),
+  locationText: z.string().nullable(),
+  municipality: z.string().nullable(),
   links: z.array(LarpLinkSchema),
 });
 
