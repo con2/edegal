@@ -16,7 +16,7 @@ mail:
 # Secret `v4` in namespace larppikuvat-v4 is managed out of band.
 existingSecretName: v4
 moveTopLevelPhotos:
-  enabled: true
+  enabled: false
   runId: 1
   args: ["--apply"]
 s3:
