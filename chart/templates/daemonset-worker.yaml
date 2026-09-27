@@ -1,13 +1,17 @@
 # Generates previews and thumbnails for uploaded photos. Same image family, same NFS media volume
-# (read-write, while enabled), same configuration as the web Deployment.
+# (read-write, while enabled), same configuration as the web Deployment. One worker per node: two
+# on one node would compete for its cores, and a node that is down should mean one worker fewer.
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: worker
   labels:
     {{- include "v4.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.worker.replicas }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   selector:
     matchLabels:
       stack: v4
@@ -23,15 +27,6 @@ spec:
       enableServiceLinks: false
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 120
-      # One worker per node when possible, so the encodes do not compete for the same cores.
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              stack: v4
-              component: worker
       securityContext:
         runAsUser: 1082
         runAsGroup: 1082

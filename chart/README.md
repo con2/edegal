@@ -1,7 +1,7 @@
 # v4 Helm chart
 
 Deploys the v4 gallery: a Next.js Deployment (with a Prisma migration init container), the media
-worker Deployment, an nginx Deployment serving `/media` from the shared NFS export (until the
+worker DaemonSet, an nginx Deployment serving `/media` from the shared NFS export (until the
 media has moved to S3, see "Media in S3 (Garage)"), a per-namespace Gateway with HTTPRoutes, and a
 cert-manager Certificate.
 
@@ -100,11 +100,14 @@ page cache from the NFS export.
 
 ## Worker
 
-The `worker` Deployment (image tag `<sha>-worker`) generates previews for uploaded photos. It shares
-the ConfigMap, Secret and NFS mount with the web Deployment. `worker.replicas` processes run
-`workerConcurrency` conversions each; the pods spread across nodes. Scaling is safe: jobs are
-claimed with `SKIP LOCKED`, a job whose process died is requeued after 15 minutes (and failed once
-out of attempts), and the album thumbnail choice tolerates two jobs of one album finishing together.
+The `worker` DaemonSet (image tag `<sha>-worker`) generates previews for uploaded photos. It shares
+the ConfigMap, Secret and NFS mount with the web Deployment. Each node runs one worker process with
+`workerConcurrency` conversions; a node that is down means one worker fewer rather than two on
+another node competing for its cores. Any number of workers is safe: jobs are claimed with
+`SKIP LOCKED`, a job whose process died is requeued after 15 minutes (and failed once out of
+attempts), and the album thumbnail choice tolerates two jobs of one album finishing together.
+The worker also runs on a cordoned node, and `kubectl drain --ignore-daemonsets` leaves it there
+until the node shuts down; a job the reboot interrupts waits out those 15 minutes.
 Each conversion needs about one CPU for libvips plus libaom's threads for AVIF and up to 400 MB for
 a 100 megapixel input, which is what `resources.worker` is sized for.
 
@@ -122,7 +125,7 @@ size, and for camera portrait shots the original's dimensions in stored-pixel (l
 with previews that were rendered without applying the EXIF orientation tag.
 `src/bin/backfill-media.ts` (the default `script`) inspects every row still lacking a size; it
 fills sizes and displayed dimensions and queues a media job for each photo whose original carries
-an orientation tag, which the worker Deployment then re-renders.
+an orientation tag, which the worker then re-renders.
 
 1. Values: `mediaTask.enabled: true`, `runId: 1`, `args: []`; push. Read the tally at the end
    of `kubectl -n <ns> logs job/media-task-1`: rows scanned should be about the site's media
