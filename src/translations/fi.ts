@@ -272,6 +272,7 @@ const translations: Translations = {
     },
   },
   Upload: {
+    processedSuffix: "käsiteltyä kuvaa tässä albumissa",
     processingSuffix: "kuvaa käsitellään; ne ilmestyvät pian…",
     title: "Lähetä kuvia tähän albumiin",
     help: "JPEG, PNG, WebP tai AVIF, enintään 100 Mt per tiedosto. Tiedosto tallennetaan sellaisenaan. Esikatselukuvat tehdään taustalla lähetyksen jälkeen. Kuvat järjestetään kuvausajan mukaan.",

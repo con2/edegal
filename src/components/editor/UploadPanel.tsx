@@ -7,6 +7,8 @@ import type { Translations } from "@/translations";
 
 interface UploadPanelProps {
   albumId: string;
+  /** Photos in the album that have been processed and are visible there. */
+  processed: number;
   processing: number;
   /** Bound server action returning the album's job counts. */
   status: () => Promise<{ processing: number; failed: number }>;
@@ -126,6 +128,7 @@ async function upload(
 /** Queue of files uploaded three at a time, then a poll until the worker has processed them. */
 export function UploadPanel({
   albumId,
+  processed,
   processing,
   status,
   messages,
@@ -318,6 +321,9 @@ export function UploadPanel({
           </table>
         ) : null}
 
+        <p>
+          <strong>{processed}</strong> {messages.processedSuffix}
+        </p>
         {pending > 0 ? (
           <p>
             <span

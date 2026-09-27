@@ -274,6 +274,7 @@ const translations = {
     },
   },
   Upload: {
+    processedSuffix: "processed photos in this album",
     processingSuffix: "photos are being processed and will appear shortly…",
     title: "Upload photos to this album",
     help: "JPEG, PNG, WebP or AVIF, at most 100 MB per file. The file is stored as uploaded. Previews are generated in the background after upload. Photos are ordered by the time they were taken.",

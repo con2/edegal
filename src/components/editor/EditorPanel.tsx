@@ -184,6 +184,7 @@ export async function EditorPanel({
     return (
       <UploadPanel
         albumId={album.id}
+        processed={album.photos.length}
         processing={album.photosProcessing}
         status={albumProcessingStatus.bind(null, album.id)}
         messages={messages.Upload}
