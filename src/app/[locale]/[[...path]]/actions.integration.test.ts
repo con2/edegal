@@ -20,6 +20,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 const { createAlbum } = await import("./actions");
+const { newAlbumDefaults } = await import("@/editor/formData");
 
 let eventId: string;
 let guestId: string;
@@ -76,21 +77,48 @@ async function creditsOf(path: string) {
 }
 
 describe("createAlbum under another photographer's open event", () => {
-  it("credits a first-time photographer and creates their profile when no credit is given", async () => {
+  it("saves an empty credit list when the creator left it empty", async () => {
     await expect(
       createAlbum("fi", eventId, albumForm("First", "[]")),
     ).rejects.toThrow("redirect:/event/first?success=albumSaved");
-    const profile = await db.orm.public.Photographer.where({
-      userId: guestId,
-    }).first();
-    expect(profile?.slug).toBe("guest");
-    expect(await creditsOf("/event/first")).toEqual([profile!.id]);
+    expect(await creditsOf("/event/first")).toEqual([]);
   });
 
-  it("keeps the credit list empty when a photographer with a profile removed themselves", async () => {
+  it("saves the credits the form sent", async () => {
+    const photographer = await db.orm.public.Photographer.create({
+      slug: "guest",
+      displayName: "Guest",
+      userId: guestId,
+    });
+    const credits = JSON.stringify([
+      { photographerId: photographer.id, isCopyright: true, description: "" },
+    ]);
     await expect(
-      createAlbum("fi", eventId, albumForm("Second", "[]")),
+      createAlbum("fi", eventId, albumForm("Second", credits)),
     ).rejects.toThrow("redirect:/event/second?success=albumSaved");
-    expect(await creditsOf("/event/second")).toEqual([]);
+    expect(await creditsOf("/event/second")).toEqual([photographer.id]);
+  });
+});
+
+describe("newAlbumDefaults", () => {
+  it("creates the profile of a first-time photographer so the form can credit them", async () => {
+    const newcomer = await db.orm.public.User.create({
+      sub: "test:newcomer",
+      displayName: "New Comer",
+    });
+    const defaults = await newAlbumDefaults({
+      kind: "user",
+      userId: newcomer.id,
+      name: "New Comer",
+      isPhotographer: true,
+      isAdmin: false,
+    });
+    const profile = await db.orm.public.Photographer.where({
+      userId: newcomer.id,
+    }).first();
+    expect(profile?.slug).toBe("new-comer");
+    expect(defaults.credits).toEqual([
+      { photographerId: profile!.id, isCopyright: true, description: "" },
+    ]);
   });
 });

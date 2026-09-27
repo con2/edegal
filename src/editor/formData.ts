@@ -3,6 +3,7 @@ import type {
   AlbumFormValues,
 } from "@/components/editor/AlbumForm";
 import type { SeriesFormValues } from "@/components/editor/SeriesForm";
+import { ensurePhotographer } from "@/editor/photographers";
 import type { CreditInput } from "@/editor/schemas";
 import { parentPathOf, pathPrefixes } from "@/gallery/paths";
 
@@ -83,9 +84,8 @@ export function today(): string {
 export async function newAlbumDefaults(
   viewer: SignedIn,
 ): Promise<{ values: AlbumFormValues; credits: CreditInput[] }> {
-  const photographer = await db.orm.public.Photographer.where({
-    userId: viewer.userId,
-  }).first();
+  // Created here if missing, so the credits editor can offer the photographer themselves.
+  const photographer = await ensurePhotographer(viewer);
   return {
     values: {
       title: "",
@@ -99,20 +99,14 @@ export async function newAlbumDefaults(
       ordering: 0,
       eventMetadataUrl: "",
       body: "",
-      termsId: photographer?.defaultTermsId ?? "",
+      termsId: photographer.defaultTermsId ?? "",
       ownerId: viewer.userId,
       redirectUrl: "",
       seriesId: "",
     },
-    credits: photographer
-      ? [
-          {
-            photographerId: photographer.id,
-            isCopyright: true,
-            description: "",
-          },
-        ]
-      : [],
+    credits: [
+      { photographerId: photographer.id, isCopyright: true, description: "" },
+    ],
   };
 }
 

@@ -26,7 +26,6 @@ import { ensurePhotographer } from "@/editor/photographers";
 import { importFlickrAlbum as runFlickrImport } from "@/editor/importFlickr";
 import {
   AlbumFormSchema,
-  type CreditInput,
   DeleteAlbumSchema,
   FlickrImportSchema,
   PhotographersIntroSchema,
@@ -94,31 +93,6 @@ async function touchSeriesMembership(
     }
 }
 
-/**
- * A first-time photographer has no profile to pick in the credits editor, so their first album
- * credits them and creates the profile. Anyone who already has a profile and left the list
- * empty meant it, exactly as when editing.
- */
-async function creditsForNewAlbum(
-  viewer: SignedIn,
-  credits: CreditInput[],
-): Promise<CreditInput[]> {
-  if (credits.length > 0) return credits;
-  const existing = await db.orm.public.Photographer.where({
-    userId: viewer.userId,
-  })
-    .select("id")
-    .first();
-  if (existing) return [];
-  return [
-    {
-      photographerId: (await ensurePhotographer(viewer)).id,
-      isCopyright: true,
-      description: "",
-    },
-  ];
-}
-
 export async function createAlbum(
   locale: string,
   parentId: string,
@@ -150,7 +124,6 @@ export async function createAlbum(
     return void redirect(
       withMessage(`${parent.path}`, "error", "redirectLoop") + "&new=1",
     );
-  const credits = await creditsForNewAlbum(viewer, form.credits);
   const ownerId = viewer.isAdmin && form.ownerId ? form.ownerId : viewer.userId;
 
   const album = await db.orm.public.Album.create({
@@ -171,7 +144,7 @@ export async function createAlbum(
     redirectUrl: form.redirectUrl,
     seriesId: await requireSeriesId(form.seriesId),
   });
-  await replaceCredits(album.id, credits);
+  await replaceCredits(album.id, form.credits);
   await clearRedirect(path);
   await touchSeriesMembership(album.seriesId);
   await touchAlbum(album.id, parent.id);
