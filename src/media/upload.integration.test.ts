@@ -12,6 +12,7 @@ import { db } from "@/prisma/db";
 
 import { albumJobCounts, claimJob, cleanupFinishedJobs, processMediaJob, requeueStrandedJobs } from "./jobs";
 import { mediaStorage } from "./storage";
+import { checkMediaWritable, WorkerEnvironmentError } from "./workerHealth";
 
 const { POST: presign } = await import("@/app/api/albums/[albumId]/photos/presign/route");
 
@@ -303,5 +304,36 @@ describe("photo upload and processing", () => {
     expect(await cleanupFinishedJobs()).toBe(done.n);
     const remaining = await db.orm.public.MediaJob.select("status").all();
     expect(remaining.map((j) => j.status)).toEqual(["failed"]);
+  });
+
+  // A mount gone read-only fails every job alike; the worker must stop instead of working through
+  // the queue and failing all of it.
+  it("reports a failure caused by the storage as a worker environment error", async () => {
+    const response = await POST(request(albumId, "IMG_0100.JPG", await jpeg(40, 30)), { params: Promise.resolve({ albumId }) });
+    expect(response.status).toBe(201);
+    const readOnly = Object.assign(new Error("EROFS: read-only file system, open 'previews/x.jpg'"), { code: "EROFS" });
+    const put = vi.spyOn(mediaStorage, "put").mockRejectedValue(readOnly);
+    try {
+      const job = (await claimJob())!;
+      await expect(processMediaJob(job)).rejects.toBeInstanceOf(WorkerEnvironmentError);
+      const recorded = await db.orm.public.MediaJob.where({ id: job.id }).first();
+      expect(recorded).toMatchObject({ status: "pending", error: readOnly.message });
+      await expect(checkMediaWritable()).rejects.toBe(readOnly);
+    } finally {
+      put.mockRestore();
+    }
+    await processMediaJob((await claimJob())!);
+    expect(await claimJob()).toBeNull();
+  });
+
+  it("leaves no file behind from the storage write check", async () => {
+    const put = vi.spyOn(mediaStorage, "put");
+    try {
+      await checkMediaWritable();
+      const [key] = put.mock.calls[0];
+      expect(await mediaStorage.stat(key)).toBeNull();
+    } finally {
+      put.mockRestore();
+    }
   });
 });

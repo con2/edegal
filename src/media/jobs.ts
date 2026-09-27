@@ -5,6 +5,7 @@ import { db } from "@/prisma/db";
 
 import { generateScaledMedia, type ProducedMedia } from "./pipeline";
 import { type MediaBackend, mediaStorage, storageFor } from "./storage";
+import { isEnvironmentError, WorkerEnvironmentError } from "./workerHealth";
 
 export interface ClaimedJob {
   id: string;
@@ -90,7 +91,8 @@ async function replaceScaledMedia(
 /**
  * Generates the scaled variants for one photo and maintains the album's automatic thumbnail: the
  * first processed photo becomes the thumbnail, and a later landscape photo replaces an
- * automatically chosen portrait one.
+ * automatically chosen portrait one. A failure is recorded on the job; one caused by the worker's
+ * surroundings is also thrown as a `WorkerEnvironmentError`.
  */
 export async function processMediaJob(job: ClaimedJob): Promise<void> {
   try {
@@ -136,6 +138,7 @@ export async function processMediaJob(job: ClaimedJob): Promise<void> {
       error: message,
     });
     console.error(`media job ${job.id} for photo ${job.photoId} failed (${retry ? "will retry" : "giving up"}): ${message}`);
+    if (isEnvironmentError(error)) throw new WorkerEnvironmentError(message, { cause: error });
   }
 }
 

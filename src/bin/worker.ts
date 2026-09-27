@@ -10,6 +10,10 @@ import {
   processMediaJob,
   requeueStrandedJobs,
 } from "@/media/jobs";
+import {
+  checkMediaWritable,
+  WorkerEnvironmentError,
+} from "@/media/workerHealth";
 import { pool } from "@/prisma/pool";
 import { db } from "@/prisma/db";
 
@@ -24,18 +28,68 @@ const cleanupIntervalMs = 60 * 60 * 1000;
 const larpitSyncIntervalMs = 60 * 60 * 1000;
 // Incremental Larpit.fi syncs overlap by this much so clock skew between the hosts loses no larps.
 const larpitSyncOverlapMs = 10 * 60 * 1000;
+const writeCheckIntervalMs = 60 * 1000;
+const writeCheckTimeoutMs = 60 * 1000;
 let stopping = false;
+/** Set when the worker stops because its surroundings are broken; the process then exits with 1. */
+let environmentFailure = false;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function sleepUnlessStopping(ms: number) {
+  for (let waited = 0; waited < ms && !stopping; waited += idleSleepMs)
+    await sleep(idleSleepMs);
+}
+
+function describe(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Stops claiming jobs so that a fresh container, once its media storage works, takes them over
+ * instead of this one failing every job it claims.
+ */
+function stopForEnvironment(reason: string, error: unknown) {
+  if (!environmentFailure)
+    console.error(`${reason}, stopping: ${describe(error)}`);
+  environmentFailure = true;
+  stopping = true;
+}
+
+/**
+ * Exits at once when the check hangs, as writes to a hard-mounted NFS export do while the server
+ * is unreachable: the stuck call cannot be cancelled, and in-flight jobs would never finish.
+ */
+async function checkMediaWritableOrExit() {
+  const timer = setTimeout(() => {
+    console.error(
+      `media storage write check did not finish in ${writeCheckTimeoutMs} ms, exiting`,
+    );
+    process.exit(1);
+  }, writeCheckTimeoutMs);
+  try {
+    await checkMediaWritable();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function watchMediaStorage() {
+  while (!stopping) {
+    await sleepUnlessStopping(writeCheckIntervalMs);
+    if (stopping) break;
+    await checkMediaWritableOrExit().catch((error) =>
+      stopForEnvironment("media storage is not writable", error),
+    );
+  }
+}
+
 async function slot(index: number) {
   while (!stopping) {
     const job = await claimJob().catch((error) => {
-      console.error(
-        `slot ${index}: claim failed: ${error instanceof Error ? error.message : error}`,
-      );
+      console.error(`slot ${index}: claim failed: ${describe(error)}`);
       return null;
     });
     if (!job) {
@@ -43,7 +97,16 @@ async function slot(index: number) {
       continue;
     }
     const started = Date.now();
-    await processMediaJob(job);
+    try {
+      await processMediaJob(job);
+    } catch (error) {
+      if (!(error instanceof WorkerEnvironmentError)) throw error;
+      stopForEnvironment(
+        `slot ${index}: job ${job.id} hit a broken environment`,
+        error,
+      );
+      break;
+    }
     console.log(
       `slot ${index}: job ${job.id} finished in ${Date.now() - started} ms`,
     );
@@ -93,34 +156,35 @@ async function maintenance() {
         sinceCleanupMs = 0;
       }
     } catch (error) {
-      console.error(
-        `maintenance failed: ${error instanceof Error ? error.message : error}`,
-      );
+      console.error(`maintenance failed: ${describe(error)}`);
     }
     if (larpitSyncApiUrl) {
       try {
         await runPeriodicTask("larpit-sync", larpitSyncIntervalMs, syncLarpit);
       } catch (error) {
-        console.error(
-          `larpit sync failed: ${error instanceof Error ? error.message : error}`,
-        );
+        console.error(`larpit sync failed: ${describe(error)}`);
       }
     }
-    for (
-      let waited = 0;
-      waited < strandedCheckIntervalMs && !stopping;
-      waited += idleSleepMs
-    )
-      await sleep(idleSleepMs);
+    await sleepUnlessStopping(strandedCheckIntervalMs);
     sinceCleanupMs += strandedCheckIntervalMs;
   }
 }
 
+// A container restarted on a broken mount fails here and claims nothing, so pending jobs keep
+// their attempts until a healthy worker picks them up.
+try {
+  await checkMediaWritableOrExit();
+} catch (error) {
+  console.error(`media storage is not writable, exiting: ${describe(error)}`);
+  process.exit(1);
+}
 console.log(`media worker started with concurrency ${concurrency}`);
 await Promise.all([
   ...Array.from({ length: concurrency }, (_, i) => slot(i)),
   maintenance(),
+  watchMediaStorage(),
 ]);
 await db.close();
 await pool.end();
 console.log("media worker stopped");
+if (environmentFailure) process.exitCode = 1;
