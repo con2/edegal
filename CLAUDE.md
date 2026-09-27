@@ -31,6 +31,7 @@ the user in new places.
 - `npm test` (unit), `npm run test:integration` (needs `TEST_DATABASE_URL`)
 - `npm run db:plan -- <slug>` – emit contract and plan a migration; `npm run db:migrate:dev` – apply and advance the `db` ref
 - `npm run db:seed` – example v4 content into the dev database and `MEDIA_ROOT`
+- `npm run db:reset` – empty the v4 tables except users (local database only), migrate and seed
 
 ## Prisma 8 is not Prisma 7
 

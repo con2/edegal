@@ -21,6 +21,7 @@ cp .env.example .env                  # defaults match the above
 npm install
 npm run db:migrate:dev                # apply v4 migrations
 npm run db:seed                       # example content and media
+npm run db:reset                      # empty the v4 tables (users kept) and seed again
 npm run dev                           # http://localhost:3160
 ```
 
