@@ -1,10 +1,12 @@
 import { defaultLanguage } from "@/i18n/locales";
+import { primary, type Reader } from "@/prisma/reader";
 import { withEventMetadataBody } from "@/integrations/larpit/body";
 
 import { canView } from "./access";
 import { albumVersion, loadAlbum } from "./album";
 import { cachedAlbum } from "./cache";
 import { lastSegment } from "./paths";
+import { readerFor } from "./reader";
 import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
 import { loadSeriesPageBySlug, seriesVersion } from "./series";
@@ -19,23 +21,24 @@ import { applyVisibility } from "./visibility";
 export async function loadResolved(
   resolution: Resolution,
   locale: string = defaultLanguage,
+  reader: Reader = primary,
 ): Promise<AlbumPageVM | null> {
   let vm: AlbumPageVM | null;
   if (resolution.kind === "series") {
     const slug = lastSegment(resolution.path);
-    const version = await seriesVersion(slug);
+    const version = await seriesVersion(slug, reader);
     vm = await cachedAlbum(
       `series:${slug}`,
-      () => loadSeriesPageBySlug(slug),
+      () => loadSeriesPageBySlug(slug, reader),
       version,
     );
   } else {
     const { albumId } = resolution;
     // One tiny query decides whether the cached page is still current; the media worker and every
     // mutation bump updated_at.
-    const version = await albumVersion(albumId);
+    const version = await albumVersion(albumId, reader);
     if (version === null) return null;
-    vm = await cachedAlbum(albumId, () => loadAlbum(albumId), version);
+    vm = await cachedAlbum(albumId, () => loadAlbum(albumId, reader), version);
   }
   return vm ? withEventMetadataBody(vm, locale) : null;
 }
@@ -45,13 +48,14 @@ export async function loadGalleryPage(
   viewer: Viewer,
   locale: string = defaultLanguage,
 ): Promise<GalleryPageResult> {
-  const resolution = await resolvePath(path);
+  const reader = readerFor(viewer);
+  const resolution = await resolvePath(path, reader);
   if (!resolution) {
-    const target = await resolveRedirect(path);
+    const target = await resolveRedirect(path, reader);
     return target ? { kind: "redirect", to: target } : { kind: "not-found" };
   }
 
-  const loaded = await loadResolved(resolution, locale);
+  const loaded = await loadResolved(resolution, locale, reader);
   return finishGalleryPage(resolution, loaded, viewer, path);
 }
 

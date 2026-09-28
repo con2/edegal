@@ -1,4 +1,4 @@
-import { db } from "@/prisma/db";
+import { primary, type Reader } from "@/prisma/reader";
 
 import { mostRestrictive } from "./access";
 import { pathPrefixes } from "./paths";
@@ -7,6 +7,7 @@ import type { Visibility } from "./types";
 /** Effective visibility of each album path, from one query over the paths and their ancestors. */
 export async function effectiveVisibilities(
   paths: string[],
+  reader: Reader = primary,
 ): Promise<Map<string, Visibility>> {
   const wanted = new Set<string>();
   for (const path of paths) {
@@ -15,7 +16,7 @@ export async function effectiveVisibilities(
   }
   const rows =
     wanted.size > 0
-      ? await db.orm.public.Album.where((a) => a.path.in([...wanted]))
+      ? await reader.db.orm.public.Album.where((a) => a.path.in([...wanted]))
           .select("path", "visibility")
           .all()
       : [];

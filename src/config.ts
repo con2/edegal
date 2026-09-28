@@ -29,6 +29,11 @@ export const databaseUrl = secretEnv(
   "DATABASE_URL",
   "postgresql://edegal:photos@localhost:5432/edegal",
 );
+/**
+ * Streaming replica for reads by anonymous viewers; empty means every query goes to
+ * `databaseUrl`. Optional on purpose: a site still on siilo has no replica.
+ */
+export const databaseReplicaUrl = env("DATABASE_URL_REPLICA", "");
 export const testDatabaseUrl = env(
   "TEST_DATABASE_URL",
   "postgresql://edegal:photos@localhost:5432/edegal_test",

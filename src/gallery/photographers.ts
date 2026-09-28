@@ -1,5 +1,5 @@
 import { compareEventDateDesc } from "@/lib/time";
-import { db } from "@/prisma/db";
+import { primary, type Reader } from "@/prisma/reader";
 
 import { effectiveVisibilities } from "./effectiveVisibility";
 import { buildMediaSet } from "./media";
@@ -9,8 +9,8 @@ import type { AlbumPageVM, CoverVM, SubalbumVM } from "./types";
 
 const photographersPath = "/photographers";
 
-async function rootCrumb() {
-  const root = await db.orm.public.Album.where({ path: "/" })
+async function rootCrumb(reader: Reader) {
+  const root = await reader.db.orm.public.Album.where({ path: "/" })
     .select("path", "title")
     .first();
   return root ? [{ path: root.path, title: root.title }] : [];
@@ -20,8 +20,8 @@ async function rootCrumb() {
  * Public photographers, one tile each: their own profile photo, or an empty tile when they
  * have none - never guessed from a credited album, so an empty tile means exactly what it shows.
  */
-async function photographerSubalbums(): Promise<SubalbumVM[]> {
-  const photographers = await db.orm.public.Photographer.where({
+async function photographerSubalbums(reader: Reader): Promise<SubalbumVM[]> {
+  const photographers = await reader.db.orm.public.Photographer.where({
     visibility: "public",
   })
     .include("coverPhoto", (p) => p.include("media").include("album"))
@@ -31,6 +31,7 @@ async function photographerSubalbums(): Promise<SubalbumVM[]> {
     photographers.flatMap((p) =>
       p.coverPhoto ? [p.coverPhoto.album.path] : [],
     ),
+    reader,
   );
   return photographers.map((photographer) => {
     const thumbnail =
@@ -51,11 +52,13 @@ async function photographerSubalbums(): Promise<SubalbumVM[]> {
 }
 
 /** The /photographers index: every public photographer, sorted by name. */
-export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
+export async function loadPhotographersIndex(
+  reader: Reader = primary,
+): Promise<AlbumPageVM> {
   const [subalbums, root, intro] = await Promise.all([
-    photographerSubalbums(),
-    rootCrumb(),
-    db.orm.public.Album.where({ path: photographersPath })
+    photographerSubalbums(reader),
+    rootCrumb(reader),
+    reader.db.orm.public.Album.where({ path: photographersPath })
       .select("body")
       .first(),
   ]);
@@ -93,8 +96,9 @@ export async function loadPhotographersIndex(): Promise<AlbumPageVM> {
 /** A photographer's page: introduction, links and every album they are credited on. */
 export async function loadPhotographerPageBySlug(
   slug: string,
+  reader: Reader = primary,
 ): Promise<AlbumPageVM | null> {
-  const photographer = await db.orm.public.Photographer.where({ slug })
+  const photographer = await reader.db.orm.public.Photographer.where({ slug })
     .include("links", (l) => l.orderBy((x) => x.ordering.asc()))
     .include("credits", (c) =>
       c.include("album", (a) =>
@@ -110,10 +114,13 @@ export async function loadPhotographerPageBySlug(
     )
     .first();
   if (!photographer) return null;
-  const effective = await effectiveVisibilities([
-    ...photographer.credits.map((c) => c.album.path),
-    ...(photographer.coverPhoto ? [photographer.coverPhoto.album.path] : []),
-  ]);
+  const effective = await effectiveVisibilities(
+    [
+      ...photographer.credits.map((c) => c.album.path),
+      ...(photographer.coverPhoto ? [photographer.coverPhoto.album.path] : []),
+    ],
+    reader,
+  );
   // The cover photo's own containing album's visibility gates it independently of the
   // photographer's own profile visibility: a photo picked from a non-public album stays off it.
   const coverMedia =
@@ -152,7 +159,7 @@ export async function loadPhotographerPageBySlug(
       if (prefix !== "/") prefixes.add(prefix);
   const ancestorRows =
     prefixes.size > 0
-      ? await db.orm.public.Album.where((a) => a.path.in([...prefixes]))
+      ? await reader.db.orm.public.Album.where((a) => a.path.in([...prefixes]))
           .select("path", "title")
           .all()
       : [];
@@ -205,7 +212,7 @@ export async function loadPhotographerPageBySlug(
     photosProcessing: 0,
     hasManualOrdering: false,
     breadcrumb: [
-      ...(await rootCrumb()),
+      ...(await rootCrumb(reader)),
       { path: photographersPath, title: "Photographers" },
     ],
     subalbums,

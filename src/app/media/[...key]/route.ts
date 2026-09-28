@@ -2,9 +2,9 @@ import { Readable } from "node:stream";
 
 import { canView } from "@/gallery/access";
 import { effectiveVisibilities } from "@/gallery/effectiveVisibility";
+import { readerFor } from "@/gallery/reader";
 import { getViewer } from "@/gallery/viewer";
 import { storageFor } from "@/media/storage";
-import { db } from "@/prisma/db";
 
 const contentTypes: Record<string, string> = {
   jpeg: "image/jpeg",
@@ -35,18 +35,17 @@ export async function GET(
   if (storageKey.split("/").some((segment) => segment === "..")) {
     return notFound();
   }
-  const media = await db.orm.public.Media.where({ storageKey })
+  const viewer = await getViewer();
+  const reader = readerFor(viewer);
+  const media = await reader.db.orm.public.Media.where({ storageKey })
     .include("photo", (p) => p.include("album"))
     .first();
   if (!media) return notFound();
   const { album } = media.photo;
-  const visibility = (await effectiveVisibilities([album.path])).get(
-    album.path,
-  );
-  if (
-    !visibility ||
-    !canView(await getViewer(), { visibility, ownerId: album.ownerId })
-  ) {
+  const visibility = (
+    await effectiveVisibilities([album.path], reader)
+  ).get(album.path);
+  if (!visibility || !canView(viewer, { visibility, ownerId: album.ownerId })) {
     return notFound();
   }
 

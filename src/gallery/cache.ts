@@ -14,7 +14,9 @@ interface Entry {
 /**
  * Unfiltered album pages, one entry per album, so browsing the photos of an album in order costs
  * one database load. Visibility is applied per viewer after the cache. Entries are per process:
- * mutations from other processes (the media worker) are noticed through `version`.
+ * mutations from other processes (the media worker) are noticed through `version`. The source
+ * does not matter either: a page loaded from a lagging replica carries the old `version`, so the
+ * next request whose source has caught up (any signed-in one reads the primary) reloads it.
  */
 const albums = new LRUCache<string, Entry>({
   maxSize: 100 * 1024 * 1024,

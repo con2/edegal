@@ -6,6 +6,7 @@ import { GalleryPage } from "@/components/GalleryPage";
 import { loadGalleryPage, presentAlbumPage } from "@/gallery/load";
 import { galleryMetadata } from "@/gallery/metadata";
 import { loadPhotographerPageBySlug } from "@/gallery/photographers";
+import { readerFor } from "@/gallery/reader";
 import { getViewer } from "@/gallery/viewer";
 
 interface Props {
@@ -22,7 +23,10 @@ const getPage = cache(async (slug: string, locale: string) => {
   const viewer = await getViewer();
   const path = `/photographers/${slug}`;
   if (!/^[a-z0-9-]+$/.test(slug)) return { kind: "not-found" as const };
-  const photographer = await loadPhotographerPageBySlug(slug);
+  const photographer = await loadPhotographerPageBySlug(
+    slug,
+    readerFor(viewer),
+  );
   if (photographer) return presentAlbumPage(photographer, viewer, path, null);
   return loadGalleryPage(path, viewer, locale);
 });

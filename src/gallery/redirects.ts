@@ -1,4 +1,5 @@
 import { db } from "@/prisma/db";
+import { primary, type Reader } from "@/prisma/reader";
 
 import { effectiveVisibilities } from "./effectiveVisibility";
 
@@ -38,8 +39,13 @@ export function walkRedirects(
  * redirecting ancestor (a v4 album's redirect URL or a recorded move of an ancestor). Null when
  * the path is simply unknown.
  */
-export async function resolveRedirect(path: string): Promise<string | null> {
-  const exact = await db.orm.public.Redirect.where({ fromPath: path }).first();
+export async function resolveRedirect(
+  path: string,
+  reader: Reader = primary,
+): Promise<string | null> {
+  const exact = await reader.db.orm.public.Redirect.where({
+    fromPath: path,
+  }).first();
   if (exact) return exact.toPath;
 
   const segments = path.split("/").filter(Boolean);
@@ -49,16 +55,19 @@ export async function resolveRedirect(path: string): Promise<string | null> {
   if (ancestorPaths.length === 0) return null;
 
   const [albums, moves] = await Promise.all([
-    db.orm.public.Album.where((a) => a.path.in(ancestorPaths))
+    reader.db.orm.public.Album.where((a) => a.path.in(ancestorPaths))
       .select("path", "redirectUrl", "visibility")
       .all(),
-    db.orm.public.Redirect.where((r) => r.fromPath.in(ancestorPaths))
+    reader.db.orm.public.Redirect.where((r) => r.fromPath.in(ancestorPaths))
       .select("fromPath", "toPath")
       .all(),
   ]);
   // Effective, not the album's own visibility: a public-looking album under a private parent must
   // not leak its redirect's existence and destination just because its own flag says "public".
-  const effective = await effectiveVisibilities(albums.map((a) => a.path));
+  const effective = await effectiveVisibilities(
+    albums.map((a) => a.path),
+    reader,
+  );
   // A redirect reveals the album exists and where it went; private albums keep that to themselves.
   const sources: RedirectSource[] = [
     ...albums

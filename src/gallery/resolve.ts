@@ -1,4 +1,4 @@
-import { pool } from "@/prisma/pool";
+import { primary, type Reader } from "@/prisma/reader";
 
 import type { Resolution } from "./types";
 
@@ -24,8 +24,11 @@ const probeSql = `
 `;
 
 /** One round trip over every `path` index. */
-export async function resolvePath(path: string): Promise<Resolution | null> {
-  const { rows } = await pool.query<ProbeRow>(probeSql, [path]);
+export async function resolvePath(
+  path: string,
+  reader: Reader = primary,
+): Promise<Resolution | null> {
+  const { rows } = await reader.pool.query<ProbeRow>(probeSql, [path]);
   const row = rows[0];
   if (!row) return null;
   switch (row.kind) {

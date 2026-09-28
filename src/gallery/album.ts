@@ -1,5 +1,5 @@
 import { compareEventDateDesc } from "@/lib/time";
-import { db } from "@/prisma/db";
+import { primary, type Reader } from "@/prisma/reader";
 
 import { mostRestrictive } from "./access";
 import { creditVM, isContactable } from "./credit";
@@ -8,8 +8,11 @@ import { pathPrefixes } from "./paths";
 import { seriesNeighbours } from "./series";
 import type { AlbumPageVM, Crumb, PhotoVM, SubalbumVM } from "./types";
 
-export async function loadAlbum(albumId: string): Promise<AlbumPageVM | null> {
-  const album = await db.orm.public.Album.where({ id: albumId })
+export async function loadAlbum(
+  albumId: string,
+  reader: Reader = primary,
+): Promise<AlbumPageVM | null> {
+  const album = await reader.db.orm.public.Album.where({ id: albumId })
     .include("children", (children) =>
       // Re-sorted below by ordering then event date; querying in any order is fine.
       children.include("thumbnailPhoto", (photo) => photo.include("media")),
@@ -33,7 +36,7 @@ export async function loadAlbum(albumId: string): Promise<AlbumPageVM | null> {
     .first();
   if (!album) return null;
 
-  const ancestors = await db.orm.public.Album.where((a) =>
+  const ancestors = await reader.db.orm.public.Album.where((a) =>
     a.path.in(pathPrefixes(album.path)),
   )
     .select("path", "title", "termsId", "seriesId", "visibility")
@@ -50,7 +53,7 @@ export async function loadAlbum(albumId: string): Promise<AlbumPageVM | null> {
       (id) => id !== null,
     ) ?? null;
   const series = seriesId
-    ? await db.orm.public.Series.where({ id: seriesId })
+    ? await reader.db.orm.public.Series.where({ id: seriesId })
         .select("path", "title")
         .first()
     : null;
@@ -61,7 +64,7 @@ export async function loadAlbum(albumId: string): Promise<AlbumPageVM | null> {
   if (series)
     breadcrumb.splice(1, 0, { path: series.path, title: series.title });
   const neighbours = seriesId
-    ? await seriesNeighbours(seriesId, album.path)
+    ? await seriesNeighbours(seriesId, album.path, reader)
     : { previous: null, next: null };
 
   // The album's own terms, else the nearest ancestor's.
@@ -70,7 +73,7 @@ export async function loadAlbum(albumId: string): Promise<AlbumPageVM | null> {
       (id) => id !== null,
     ) ?? null;
   const terms = termsId
-    ? await db.orm.public.Terms.where({ id: termsId }).first()
+    ? await reader.db.orm.public.Terms.where({ id: termsId }).first()
     : null;
 
   const subalbums: SubalbumVM[] = album.children
@@ -132,8 +135,11 @@ export async function loadAlbum(albumId: string): Promise<AlbumPageVM | null> {
 }
 
 /** The album's updated_at, used as the cache version; null when the album does not exist. */
-export async function albumVersion(albumId: string): Promise<string | null> {
-  const row = await db.orm.public.Album.where({ id: albumId })
+export async function albumVersion(
+  albumId: string,
+  reader: Reader = primary,
+): Promise<string | null> {
+  const row = await reader.db.orm.public.Album.where({ id: albumId })
     .select("updatedAt")
     .first();
   return row?.updatedAt ?? null;

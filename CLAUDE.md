@@ -41,6 +41,7 @@ touching the contract, migrations or queries. Key points:
 - Contract source: `src/prisma/contract.prisma`. After editing, `prisma contract emit` regenerates
   `contract.json` + `contract.d.ts` (committed, never hand-edited).
 - Queries: `db.orm.public.<Model>` and `db.sql.public.<table>` from `src/prisma/db.ts`.
+- Reads may come from a replica. `src/prisma/reader.ts` has `primary` and `replica` (`{ db, pool }`; the same object when `DATABASE_URL_REPLICA` is unset), and `readerFor(viewer)` in `src/gallery/reader.ts` picks `replica` for anonymous viewers and `primary` for signed-in ones, who are the only writers. Gallery loaders take a trailing `reader = primary`; page and route handlers pass `readerFor(viewer)`. Writes always use `db`/`pool`.
 - Migrations are TypeScript packages under `migrations/app/`; `ops.json` is compiled by running the
   migration file, never edited by hand.
 - Production applies migrations with `src/bin/migrate.mjs` (ORM command family only) so the

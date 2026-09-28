@@ -5,6 +5,7 @@ import { GalleryPage } from "@/components/GalleryPage";
 import { presentAlbumPage } from "@/gallery/load";
 import { galleryMetadata } from "@/gallery/metadata";
 import { loadPhotographersIndex } from "@/gallery/photographers";
+import { readerFor } from "@/gallery/reader";
 import { getViewer } from "@/gallery/viewer";
 
 interface Props {
@@ -12,14 +13,15 @@ interface Props {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-const getPage = cache(async () =>
-  presentAlbumPage(
-    await loadPhotographersIndex(),
-    await getViewer(),
+const getPage = cache(async () => {
+  const viewer = await getViewer();
+  return presentAlbumPage(
+    await loadPhotographersIndex(readerFor(viewer)),
+    viewer,
     "/photographers",
     null,
-  ),
-);
+  );
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;

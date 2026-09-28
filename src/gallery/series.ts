@@ -1,4 +1,4 @@
-import { db } from "@/prisma/db";
+import { primary, type Reader } from "@/prisma/reader";
 
 import { effectiveVisibilities } from "./effectiveVisibility";
 import { buildMediaSet } from "./media";
@@ -41,14 +41,20 @@ export function neighboursOf(
 }
 
 /** Tiles for every album in the series, effective-visibility-aware, newest first. */
-async function seriesMembersOf(seriesId: string | null): Promise<SubalbumVM[]> {
+async function seriesMembersOf(
+  seriesId: string | null,
+  reader: Reader,
+): Promise<SubalbumVM[]> {
   const albums = seriesId
-    ? await db.orm.public.Album.where({ seriesId })
+    ? await reader.db.orm.public.Album.where({ seriesId })
         .include("thumbnailPhoto", (photo) => photo.include("media"))
         .all()
     : [];
   // A series is a site-wide listing, so members show their effective visibility.
-  const effective = await effectiveVisibilities(albums.map((a) => a.path));
+  const effective = await effectiveVisibilities(
+    albums.map((a) => a.path),
+    reader,
+  );
   const tiles: SubalbumVM[] = albums.map((album) => ({
     path: album.path,
     title: album.title,
@@ -66,12 +72,16 @@ async function seriesMembersOf(seriesId: string | null): Promise<SubalbumVM[]> {
 export async function seriesNeighbours(
   seriesId: string,
   albumPath: string,
+  reader: Reader = primary,
 ): Promise<{ previous: Crumb | null; next: Crumb | null }> {
-  return neighboursOf(await seriesMembersOf(seriesId), albumPath);
+  return neighboursOf(await seriesMembersOf(seriesId, reader), albumPath);
 }
 
-export async function seriesVersion(slug: string): Promise<string | null> {
-  const row = await db.orm.public.Series.where({ slug })
+export async function seriesVersion(
+  slug: string,
+  reader: Reader = primary,
+): Promise<string | null> {
+  const row = await reader.db.orm.public.Series.where({ slug })
     .select("updatedAt")
     .first();
   return row?.updatedAt ?? null;
@@ -80,12 +90,13 @@ export async function seriesVersion(slug: string): Promise<string | null> {
 /** The series page for a slug; null when no series has it. */
 export async function loadSeriesPageBySlug(
   slug: string,
+  reader: Reader = primary,
 ): Promise<AlbumPageVM | null> {
-  const series = await db.orm.public.Series.where({ slug }).first();
+  const series = await reader.db.orm.public.Series.where({ slug }).first();
   if (!series) return null;
   const [root, tiles] = await Promise.all([
-    db.orm.public.Album.where({ path: "/" }).select("title").first(),
-    seriesMembersOf(series.id),
+    reader.db.orm.public.Album.where({ path: "/" }).select("title").first(),
+    seriesMembersOf(series.id, reader),
   ]);
   const rootCrumb: Crumb[] = root ? [{ path: "/", title: root.title }] : [];
   return {

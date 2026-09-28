@@ -21,6 +21,13 @@ All four keys are mandatory: the server refuses to start without them rather tha
 to development defaults. `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` join them once `s3.bucket`
 is set (see "Media in S3 (Garage)").
 
+A site whose database lives on the qb CloudNativePG cluster gets its `DATABASE_URL` and an
+optional `DATABASE_URL_REPLICA` from `infrastructure/kubernetes/postgres/update-secret.sh`
+(larppikuvat.fi; conikuvat.fi is still on siilo and has no replica key). With the replica key
+set, anonymous viewers read from the streaming replicas behind `postgres-ro`; signed-in
+viewers, every mutation and the worker keep using `DATABASE_URL`. Without it, everything goes to
+`DATABASE_URL`.
+
 `sslmode=verify-full` (not `require`) since siilo.tracon.fi has a proper TLS certificate: `pg`
 only warns on `require`/`prefer`/`verify-ca` today because it treats them as aliases for
 `verify-full`, but a future major version will make them mean actual libpq semantics (weaker,

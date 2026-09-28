@@ -1,10 +1,11 @@
-import { db } from "@/prisma/db";
 import { defaultLanguage } from "@/i18n/locales";
+import type { Reader } from "@/prisma/reader";
 
 import { effectiveVisibilities } from "./effectiveVisibility";
 import type { CreditRow } from "./credit";
 import { creditVM, isContactable } from "./credit";
 import { photoVM } from "./media";
+import { readerFor } from "./reader";
 import { isAncestorOrSelf } from "./paths";
 import { finishGalleryPage, loadResolved, presentAlbumPage } from "./load";
 import { resolveRedirect } from "./redirects";
@@ -55,13 +56,14 @@ export async function loadTimelinePage(
   timelineParam: string,
   locale: string = defaultLanguage,
 ): Promise<GalleryPageResult> {
-  const resolution = await resolvePath(path);
+  const reader = readerFor(viewer);
+  const resolution = await resolvePath(path, reader);
   if (!resolution) {
-    const target = await resolveRedirect(path);
+    const target = await resolveRedirect(path, reader);
     return target ? { kind: "redirect", to: target } : { kind: "not-found" };
   }
 
-  const shell = await loadResolved(resolution, locale);
+  const shell = await loadResolved(resolution, locale, reader);
   const photoPath = resolution.kind === "photo" ? resolution.photoPath : null;
   const fallback = () => finishGalleryPage(resolution, shell, viewer, path);
 
@@ -69,10 +71,10 @@ export async function loadTimelinePage(
 
   let root = shell;
   if (timelineParam !== "" && timelineParam !== shell.path) {
-    const rootResolution = await resolvePath(timelineParam);
+    const rootResolution = await resolvePath(timelineParam, reader);
     const rootShell =
       rootResolution && rootResolution.kind === "album"
-        ? await loadResolved(rootResolution, locale)
+        ? await loadResolved(rootResolution, locale, reader)
         : null;
     // A tampered or stale `?timeline=<root>` link (wrong path, or one that doesn't actually
     // contain the requested page) falls back to the normal page rather than guessing a root.
@@ -90,7 +92,7 @@ export async function loadTimelinePage(
   // would scan the entire gallery at once.
   if (root.path === "/") return fallback();
 
-  const photos = await timelinePhotos(root);
+  const photos = await timelinePhotos(root, reader);
 
   if (photoPath !== null && !photos.some((p) => p.path === photoPath)) {
     return fallback();
@@ -110,13 +112,16 @@ export async function loadTimelinePage(
  * at all, not its own photos once you're on it) - only *descendants* pulled into the listing are
  * gated by their own effective visibility, the same way a subalbum tile is.
  */
-async function timelinePhotos(album: {
-  id: string;
-  path: string;
-  ownerId: string | null;
-  isDownloadable: boolean;
-}): Promise<PhotoVM[]> {
-  const descendants = await db.orm.public.Album.where((a) =>
+async function timelinePhotos(
+  album: {
+    id: string;
+    path: string;
+    ownerId: string | null;
+    isDownloadable: boolean;
+  },
+  reader: Reader,
+): Promise<PhotoVM[]> {
+  const descendants = await reader.db.orm.public.Album.where((a) =>
     a.path.like(`${album.path}/%`),
   )
     .select("id", "path", "ownerId", "isDownloadable")
@@ -131,9 +136,12 @@ async function timelinePhotos(album: {
     ...descendants,
   ];
   const albumById = new Map(subtree.map((a) => [a.id, a]));
-  const effective = await effectiveVisibilities(subtree.map((a) => a.path));
+  const effective = await effectiveVisibilities(
+    subtree.map((a) => a.path),
+    reader,
+  );
 
-  const creditRows = await db.orm.public.AlbumCredit.where((c) =>
+  const creditRows = await reader.db.orm.public.AlbumCredit.where((c) =>
     c.albumId.in(subtree.map((a) => a.id)),
   )
     .include("photographer", (p) => p.include("links"))
@@ -146,7 +154,7 @@ async function timelinePhotos(album: {
     creditsByAlbum.set(credit.albumId, list);
   }
 
-  const photos = await db.orm.public.Photo.where((p) =>
+  const photos = await reader.db.orm.public.Photo.where((p) =>
     p.albumId.in(subtree.map((a) => a.id)),
   )
     .where((p) => p.takenAt.isNotNull())

@@ -5,8 +5,9 @@ import { loadGalleryPage } from "@/gallery/load";
 import { normalizeGalleryPath } from "@/gallery/paths";
 import type { ClientSubalbum, MediaVariant } from "@/gallery/types";
 import { buildMediaSet } from "@/gallery/media";
+import { readerFor } from "@/gallery/reader";
 import { getViewer } from "@/gallery/viewer";
-import { db } from "@/prisma/db";
+import type { Reader } from "@/prisma/reader";
 
 /**
  * Minimal shim for the legacy Django `/api/v3/<path>` endpoint, kept for its known external
@@ -51,9 +52,10 @@ interface ChildJson {
 async function childrenByPath(
   kind: string,
   albumId: string,
+  reader: Reader,
 ): Promise<Map<string, ChildJson>> {
   if (kind !== "album") return new Map();
-  const children = await db.orm.public.Album.where({ parentId: albumId })
+  const children = await reader.db.orm.public.Album.where({ parentId: albumId })
     .include("thumbnailPhoto", (t) => t.include("media"))
     .all();
   return new Map(
@@ -94,7 +96,8 @@ export async function GET(
   const normalized = normalizeGalleryPath(path);
   if (!normalized || normalized.timeline) return notFound();
 
-  const result = await loadGalleryPage(normalized.path, await getViewer());
+  const viewer = await getViewer();
+  const result = await loadGalleryPage(normalized.path, viewer);
   if (result.kind === "not-found") return notFound();
   if (result.kind === "redirect") {
     // Legacy's own v3 API returned this as a 200 body, not an HTTP redirect - the target may be
@@ -113,6 +116,7 @@ export async function GET(
   const children = await childrenByPath(
     result.unfiltered.kind,
     result.unfiltered.id,
+    readerFor(viewer),
   );
   return NextResponse.json({
     path: album.path,
