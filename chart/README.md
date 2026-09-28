@@ -49,7 +49,7 @@ form tells visitors that sending is unavailable.
 
 ## Media in S3 (Garage)
 
-New uploads go to an S3 bucket on the cluster's own Garage (`infrastructure/kubernetes/garage.README.md`):
+New uploads go to an S3 bucket on the cluster's own Garage (`infrastructure/kubernetes/garage/README.md`):
 browsers PUT originals straight to the bucket with presigned URLs and fetch every image through
 presigned URLs, so nothing in the bucket is public. One bucket and key per site, created from a
 Garage pod:
