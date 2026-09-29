@@ -1,12 +1,13 @@
-# One Gateway per app namespace, attached to the cluster's Traefik GatewayClass. The TLS
-# certificate comes from the explicit Certificate below because cert-manager in this cluster runs
-# without Gateway API support.
+# One Gateway per app namespace, attached to the cluster's Traefik GatewayClass. cert-manager
+# issues the certificate for the https listener's hostname into the referenced Secret.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: v4
   labels:
     {{- include "v4.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   gatewayClassName: traefik
   listeners:
@@ -29,22 +30,3 @@ spec:
       allowedRoutes:
         namespaces:
           from: Same
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: v4
-  labels:
-    {{- include "v4.labels" . | nindent 4 }}
-spec:
-  secretName: {{ include "v4.tlsSecretName" . }}
-  privateKey:
-    rotationPolicy: Always
-  issuerRef:
-    kind: ClusterIssuer
-    name: letsencrypt-prod
-  dnsNames:
-    - {{ .Values.hostname | quote }}
-    {{- range .Values.additionalHostnames }}
-    - {{ . | quote }}
-    {{- end }}

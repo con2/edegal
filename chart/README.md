@@ -2,8 +2,9 @@
 
 Deploys the v4 gallery: a Next.js Deployment (with a Prisma migration init container), the media
 worker DaemonSet, an nginx Deployment serving `/media` from the shared NFS export (until the
-media has moved to S3, see "Media in S3 (Garage)"), a per-namespace Gateway with HTTPRoutes, and a
-cert-manager Certificate.
+media has moved to S3, see "Media in S3 (Garage)"), and a per-namespace Gateway with HTTPRoutes.
+cert-manager issues the TLS certificate from the Gateway's `cert-manager.io/cluster-issuer`
+annotation.
 
 ## Prerequisites per namespace (`conikuvat-v4`, `larppikuvat-v4`)
 
@@ -157,8 +158,9 @@ already exists. The Job needs no media mount: files never move.
 3. Rerunning is safe: an emptied top-level album is skipped. Set `enabled: false` afterwards, or
    leave it enabled and bump `runId` whenever photos land in a top-level album again.
 
-`additionalHostnames` adds dnsNames to the Certificate without adding Gateway listeners. The TLS
-Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` change.
+The TLS Secret has the fixed name `tls-v4`, so the certificate survives a `hostname` change.
+cert-manager derives the certificate's names from the Gateway listeners, so a hostname needs a
+listener to be covered.
 
 ## History: hostname cutover and legacy Django admin (done 2026-09)
 

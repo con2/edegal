@@ -8,9 +8,6 @@ image:
   tag: latest
 
 hostname: v4.example.com
-# Extra Certificate dnsNames. Lets the apex certificate issue before `hostname` moves to it, so the
-# hostname flip has no TLS gap.
-additionalHostnames: []
 
 # Production media directory, holding both v4 uploads and the legacy Django admin's originals from
 # before it was decommissioned (uid 1082 owns the files). Stays mounted until every media row has
