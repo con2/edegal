@@ -78,7 +78,7 @@ export function SeriesForm({
             id="SeriesForm-slug"
             name="slug"
             type="text"
-            pattern="[a-z0-9-]*"
+            pattern="[a-z0-9\-]*"
             maxLength={255}
             autoComplete="off"
             defaultValue={values.slug}

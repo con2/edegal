@@ -9,7 +9,7 @@ vi.mock("@/gallery/viewer", () => ({
     userId: process.env.TEST_USER_ID,
     name: "Guest",
     isPhotographer: true,
-    isAdmin: false,
+    isAdmin: process.env.TEST_USER_IS_ADMIN === "1",
   }),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
@@ -19,7 +19,7 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { createAlbum } = await import("./actions");
+const { createAlbum, createSeries } = await import("./actions");
 const { newAlbumDefaults } = await import("@/editor/formData");
 
 let eventId: string;
@@ -120,5 +120,44 @@ describe("newAlbumDefaults", () => {
     expect(defaults.credits).toEqual([
       { photographerId: profile!.id, isCopyright: true, description: "" },
     ]);
+  });
+});
+
+describe("createAlbum with fields the schema rejects", () => {
+  it("sends the creator back to the form naming the first bad field", async () => {
+    const form = albumForm("Third", "[]");
+    form.set("slug", "Kolmas päivä");
+    form.set("eventMetadataUrl", "https://www.facebook.com/events/1");
+    await expect(createAlbum("fi", eventId, form)).rejects.toThrow(
+      "redirect:/event?error=invalidSlug&new=1",
+    );
+  });
+
+  it("rejects an event metadata URL outside Kompassi and Larpit.fi", async () => {
+    const form = albumForm("Fourth", "[]");
+    form.set("eventMetadataUrl", "http://larpit.fi/larp/1");
+    await expect(createAlbum("fi", eventId, form)).rejects.toThrow(
+      "redirect:/event?error=invalidEventMetadataUrl&new=1",
+    );
+    expect(
+      await db.orm.public.Album.where({ path: "/event/fourth" }).first(),
+    ).toBeNull();
+  });
+});
+
+describe("createSeries with a slug the schema rejects", () => {
+  it("sends the admin back to the series form", async () => {
+    process.env.TEST_USER_IS_ADMIN = "1";
+    const form = new FormData();
+    form.set("title", "Ropecon");
+    form.set("slug", "Ropecon");
+    form.set("visibility", "public");
+    try {
+      await expect(createSeries("fi", form)).rejects.toThrow(
+        "redirect:/?error=invalidSlug&newSeries=1",
+      );
+    } finally {
+      delete process.env.TEST_USER_IS_ADMIN;
+    }
   });
 });

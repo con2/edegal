@@ -143,7 +143,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
                 id="Profile-slug"
                 name="slug"
                 required
-                pattern="[a-z0-9-]+"
+                pattern="[a-z0-9\-]+"
                 maxLength={255}
                 defaultValue={
                   photographer?.slug ?? slugifyDash(viewer.name ?? "")

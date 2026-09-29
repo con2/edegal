@@ -189,9 +189,9 @@ const translations: Translations = {
       ordering: "Järjestysnumero",
       orderingHelp:
         "Pienemmän numeron alialbumit ensin; samat numerot järjestetään päivän mukaan.",
-      eventMetadataUrl: "Tapahtuman sivu",
+      eventMetadataUrl: "Tapahtuman metadata-URL",
       eventMetadataUrlHelp:
-        "Tapahtuman osoite Kompassissa tai Larpit.fi:ssä. Aseta vain tapahtuman pääalbumille.",
+        "Tapahtuman https-osoite Kompassissa tai Larpit.fi:ssä, esim. https://larpit.fi/larp/…; muut sivustot eivät kelpaa. Aseta vain tapahtuman pääalbumille.",
       body: "Kuvaus",
       terms: "Käyttöehdot",
       termsInherit: "Samat kuin yläalbumissa",
@@ -252,6 +252,12 @@ const translations: Translations = {
         "Albumissa on toisten kuvaajien omistamia albumeita. Heidän täytyy poistaa omansa ensin, tai pyydä adminia.",
       forbidden: "Sinulla ei ole oikeutta tähän.",
       invalid: "Tarkista lomake.",
+      invalidSlug:
+        "Osoitetunnuksessa saa olla vain pieniä kirjaimia a–z, numeroita ja viivoja.",
+      invalidEventMetadataUrl:
+        "Tapahtuman metadata-URL:n täytyy olla tapahtuman https-osoite Kompassissa tai Larpit.fi:ssä, tai tyhjä.",
+      invalidRedirectUrl:
+        "Uudelleenohjauksen täytyy olla http(s)-osoite tai gallerian polku, kuten /desucon-2026.",
       flickrUnreachable:
         "Flickr-sivua ei saatu haettua. Tarkista osoite ja yritä uudelleen.",
       flickrNotAlbum:

@@ -3,6 +3,7 @@
 import { normalizeFormData } from "@con2/components/helpers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { z } from "zod";
 
 import {
   albumSubtree,
@@ -70,6 +71,20 @@ function withMessage(
   return `${path}?${kind}=${code}`;
 }
 
+const fieldErrorCodes: Record<string, string> = {
+  slug: "invalidSlug",
+  eventMetadataUrl: "invalidEventMetadataUrl",
+  redirectUrl: "invalidRedirectUrl",
+};
+
+function formErrorCode(error: z.ZodError): string {
+  for (const issue of error.issues) {
+    const code = fieldErrorCodes[String(issue.path[0])];
+    if (code) return code;
+  }
+  return "invalid";
+}
+
 async function requireSeriesId(seriesId: string): Promise<string | null> {
   if (!seriesId) return null;
   const series = await db.orm.public.Series.where({ id: seriesId })
@@ -108,7 +123,12 @@ export async function createAlbum(
   ) {
     throw new Error("not allowed to create a subalbum here");
   }
-  const form = AlbumFormSchema.parse(normalizeFormData(formData));
+  const parsed = AlbumFormSchema.safeParse(normalizeFormData(formData));
+  if (!parsed.success)
+    return void redirect(
+      withMessage(parent.path, "error", formErrorCode(parsed.error)) + "&new=1",
+    );
+  const form = parsed.data;
   const slug = slugForAlbum(form.title, form.slug);
   const path = childPath(parent.path, slug);
   try {
@@ -198,7 +218,12 @@ export async function updateAlbum(
   const album = await requireAlbum(albumId);
   if (!canEditAlbum(viewer, { ownerId: album.ownerId }))
     throw new Error("not allowed to edit this album");
-  const form = AlbumFormSchema.parse(normalizeFormData(formData));
+  const parsed = AlbumFormSchema.safeParse(normalizeFormData(formData));
+  if (!parsed.success)
+    return void redirect(
+      withMessage(album.path, "error", formErrorCode(parsed.error)) + "&edit=1",
+    );
+  const form = parsed.data;
   const isRoot = album.path === "/";
   const slug = isRoot ? "" : slugForAlbum(form.title, form.slug);
   // A new parent is accepted only from the same list the form offered, so the album cannot be
@@ -442,7 +467,12 @@ function seriesRedirectTarget(slug: string): string {
 export async function createSeries(locale: string, formData: FormData) {
   const viewer = await requireUser();
   if (!canManageSeries(viewer)) throw new Error("admin privileges required");
-  const form = SeriesFormSchema.parse(normalizeFormData(formData));
+  const parsed = SeriesFormSchema.safeParse(normalizeFormData(formData));
+  if (!parsed.success)
+    return void redirect(
+      withMessage("/", "error", formErrorCode(parsed.error)) + "&newSeries=1",
+    );
+  const form = parsed.data;
   const slug = slugForAlbum(form.title, form.slug);
   const path = seriesRedirectTarget(slug);
   try {
@@ -477,7 +507,13 @@ export async function updateSeries(
   if (!canManageSeries(viewer)) throw new Error("admin privileges required");
   const series = await db.orm.public.Series.where({ id: seriesId }).first();
   if (!series) throw new Error("series not found");
-  const form = SeriesFormSchema.parse(normalizeFormData(formData));
+  const parsed = SeriesFormSchema.safeParse(normalizeFormData(formData));
+  if (!parsed.success)
+    return void redirect(
+      withMessage(series.path, "error", formErrorCode(parsed.error)) +
+        "&edit=1",
+    );
+  const form = parsed.data;
   const slug = slugForAlbum(form.title, form.slug);
   const path = seriesRedirectTarget(slug);
   if (slug !== series.slug) {

@@ -171,7 +171,7 @@ export function AlbumForm({
               id="AlbumForm-slug"
               name="slug"
               type="text"
-              pattern="[a-z0-9-]*"
+              pattern="[a-z0-9\-]*"
               maxLength={255}
               defaultValue={values.slug}
             />

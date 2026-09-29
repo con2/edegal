@@ -190,9 +190,9 @@ const translations = {
       ordering: "Ordering number",
       orderingHelp:
         "Subalbums with a smaller number come first; equal numbers are ordered by date.",
-      eventMetadataUrl: "Event page",
+      eventMetadataUrl: "Event metadata URL",
       eventMetadataUrlHelp:
-        "Kompassi or Larpit.fi address of the event. Only set this for the main album of the event.",
+        "The event's https address in Kompassi or Larpit.fi, such as https://larpit.fi/larp/…; other sites are not accepted. Only set this for the main album of the event.",
       body: "Description",
       terms: "Conditions of use",
       termsInherit: "Same as the parent album",
@@ -253,6 +253,12 @@ const translations = {
         "This album contains albums owned by other photographers. They must delete theirs first, or ask an admin.",
       forbidden: "You do not have permission to do this.",
       invalid: "Please check the form.",
+      invalidSlug:
+        "The slug may only contain lowercase letters a–z, numbers and hyphens.",
+      invalidEventMetadataUrl:
+        "The event metadata URL must be an https address of the event in Kompassi or Larpit.fi, or left empty.",
+      invalidRedirectUrl:
+        "The redirect must be an http(s) address or a gallery path such as /desucon-2026.",
       flickrUnreachable:
         "The Flickr page could not be fetched. Check the address and try again.",
       flickrNotAlbum:
