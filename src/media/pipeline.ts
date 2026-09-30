@@ -1,7 +1,9 @@
 import sharp, { type Sharp } from "sharp";
 
+import { timezone } from "@/config";
 import type { MediaFormat } from "@/gallery/types";
 
+import { exifCaptureTime } from "./exif";
 import { type ScaledMediaSpec, scaledMediaSpecs } from "./specs";
 import { type MediaBackend, mediaStorage } from "./storage";
 
@@ -137,13 +139,44 @@ export async function importOriginal(photoPath: string, original: Buffer): Promi
   return [stored, ...(await generateScaledMedia(photoPath, original))];
 }
 
-/** EXIF DateTimeOriginal as ISO 8601, or null. */
+const wallClockFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: timezone,
+  hourCycle: "h23",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+/** Milliseconds the configured time zone is ahead of UTC at `instant`. */
+function zoneOffsetAt(instant: number): number {
+  const part = Object.fromEntries(wallClockFormat.formatToParts(new Date(instant)).map((p) => [p.type, Number(p.value)]));
+  return Date.UTC(part.year!, part.month! - 1, part.day, part.hour, part.minute, part.second) - instant;
+}
+
+/**
+ * The instant at which clocks in the configured time zone showed `wall`, given as UTC
+ * milliseconds of the same digits. Around a DST transition the offset can differ between the
+ * first guess and the answer, so it is looked up twice.
+ */
+function wallClockToInstant(wall: number): number {
+  const instant = wall - zoneOffsetAt(wall);
+  return wall - zoneOffsetAt(instant);
+}
+
+/**
+ * EXIF capture time as ISO 8601, or null. A camera that records no UTC offset is assumed to keep
+ * the configured time zone.
+ */
 export async function takenAtOf(original: Buffer): Promise<string | null> {
   const { exif } = await sharp(original).metadata();
   if (!exif) return null;
-  const match = exif.toString("latin1").match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
-  if (!match) return null;
-  const [, y, mo, d, h, mi, s] = match;
-  const date = new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}`);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  const captured = exifCaptureTime(exif);
+  if (!captured) return null;
+  const [date, time] = captured.dateTime.split(" ");
+  const iso = `${date!.replaceAll(":", "-")}T${time}`;
+  const parsed = captured.offset ? new Date(`${iso}${captured.offset}`) : new Date(wallClockToInstant(Date.parse(`${iso}Z`)));
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }

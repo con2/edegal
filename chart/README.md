@@ -142,6 +142,21 @@ an orientation tag, which the worker then re-renders.
    `select status, count(*) from v4_media_job group by 1`.
 3. Rerunning is safe: a row is inspected once, and only rows whose file was missing come back.
 
+### Refreshing capture times
+
+Uploads before October 2026 took the first timestamp in the EXIF blob, which for a photo saved
+from an editor is the export time rather than the capture time, so capture-time order shuffled
+edited photos. `src/bin/refresh-taken-at.ts` re-reads every original with the fixed parser and
+rewrites `taken_at` where it differs, bumping the albums touched so their cached pages re-sort.
+`--album=/path` limits the pass to one album subtree, which is enough when only one
+photographer's albums are affected; without it every original on the site is read once.
+
+1. Values: `mediaTask.script: src/bin/refresh-taken-at.ts`, `enabled: true`, bump `runId`,
+   `args: ["--album=/nexus-2026"]` (or `[]` for the whole site); push. The log lists every photo
+   whose time would change.
+2. Bump `runId`, add `"--apply"` to `args`; push.
+3. Rerunning is safe: a photo whose stored time already matches its original is left alone.
+
 ## Moving top-level photos
 
 Larppikuvat.fi keeps one top-level album per larp, with each photographer's photos in a subalbum

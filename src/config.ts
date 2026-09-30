@@ -89,6 +89,10 @@ export const kompassiOidc = {
 export const photographerGroup = env("PHOTOGRAPHER_GROUP", "larppikuvat-staff");
 export const adminGroup = env("ADMIN_GROUP", "admins");
 
+/**
+ * Time zone of the sites' events, and the clock a camera is assumed to run on when its EXIF
+ * carries no UTC offset.
+ */
 export const timezone = "Europe/Helsinki";
 
 /**

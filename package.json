@@ -25,7 +25,8 @@
     "media:backfill": "tsx src/bin/backfill-media.ts",
     "media:migrate-s3": "tsx src/bin/migrate-media-to-s3.ts",
     "s3:setup": "tsx src/bin/s3-setup.ts",
-    "photos:move-top-level": "tsx src/bin/move-top-level-photos.ts"
+    "photos:move-top-level": "tsx src/bin/move-top-level-photos.ts",
+    "photos:refresh-taken-at": "tsx src/bin/refresh-taken-at.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1143.0",
