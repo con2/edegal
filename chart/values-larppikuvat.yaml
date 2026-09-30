@@ -25,3 +25,10 @@ s3:
   region: garage
   bucket: larppikuvat
   forcePathStyle: true
+
+mediaTask:
+  enabled: true
+  runId: 1
+  script: src/bin/refresh-taken-at.ts
+  args: ["--apply"]
+  nfs: true
