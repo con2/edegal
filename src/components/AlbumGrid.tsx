@@ -43,7 +43,9 @@ export function AlbumGrid({ tiles, showTitle, onOpenPhoto }: AlbumGridProps) {
           <>
             {tile.thumbnail ? (
               <Picture media={tile.thumbnail} alt={tile.title} loading="lazy" />
-            ) : null}
+            ) : (
+              <div className="PictureTile-placeholder" />
+            )}
             {tile.externalUrl ? (
               <div className="PictureTile-title">
                 <LaunchIcon className="PictureTile-icon" />

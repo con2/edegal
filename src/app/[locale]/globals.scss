@@ -127,6 +127,11 @@ picture img {
     height: auto;
   }
 }
+/* Keeps a tile without a thumbnail (a fresh subalbum) as tall as its row instead of collapsing to the overlaid title. */
+.PictureTile-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+}
 .PictureTile-title {
   position: absolute;
   bottom: 0;
