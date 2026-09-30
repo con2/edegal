@@ -27,8 +27,8 @@ s3:
   forcePathStyle: true
 
 mediaTask:
-  enabled: true
-  runId: 1
+  enabled: false
+  runId: 2
   script: src/bin/refresh-taken-at.ts
   args: ["--apply"]
   nfs: true
