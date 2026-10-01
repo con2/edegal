@@ -28,7 +28,7 @@ s3:
 
 mediaTask:
   enabled: true
-  runId: 3
+  runId: 4
   script: src/bin/migrate-media-to-s3.ts
   args: ["--apply"]
   nfs: true

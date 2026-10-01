@@ -122,7 +122,10 @@ a 100 megapixel input, which is what `resources.worker` is sized for.
 `mediaTask` runs one of the `src/bin` media scripts once as a Job with the worker image:
 `script` names the script, `args` its arguments (every script is a dry run without `--apply`),
 `nfs` mounts the export read-only, and `runId` names the Job, so bump it for every run. Set
-`enabled: false` afterwards.
+`enabled: false` afterwards. A Job's pod template is immutable, so a push that changes the image
+while the task is enabled fails the Helm upgrade with "field is immutable": bump `runId` in the
+same push. Helm then deletes the running Job and starts the new one, which is fine for every
+script here because all of them are rerunnable.
 
 ### Media backfill
 

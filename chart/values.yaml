@@ -52,8 +52,10 @@ larpitSync:
 workerConcurrency: 4
 
 # One-off media maintenance Job running one of the src/bin scripts with the worker image
-# (chart/README.md, "Media backfill" and "Migrating media to S3"). Bump `runId` for every run;
-# the scripts default to a dry run, add "--apply" to write. `nfs` mounts the export read-only.
+# (chart/README.md, "Media backfill" and "Migrating media to S3"). Bump `runId` for every run
+# and whenever a new image is deployed while the task is enabled: a Job's pod template is
+# immutable, so a changed image tag fails the upgrade until the Job gets a new name. The scripts
+# default to a dry run, add "--apply" to write. `nfs` mounts the export read-only.
 mediaTask:
   enabled: false
   runId: 1
