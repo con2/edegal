@@ -27,8 +27,8 @@ s3:
   forcePathStyle: true
 
 mediaTask:
-  enabled: false
-  runId: 2
-  script: src/bin/refresh-taken-at.ts
+  enabled: true
+  runId: 3
+  script: src/bin/migrate-media-to-s3.ts
   args: ["--apply"]
   nfs: true
