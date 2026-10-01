@@ -47,7 +47,16 @@ export class S3MediaStorage implements MediaStorage {
       forcePathStyle: settings.forcePathStyle,
       credentials: { accessKeyId: settings.accessKeyId, secretAccessKey: settings.secretAccessKey },
     };
-    this.client = new S3Client({ ...shared, endpoint: settings.endpoint });
+    // Garage answers a GET of a multipart-uploaded object with the checksum of its parts
+    // combined, without the "-N" suffix S3 uses to mark one; the SDK then compares it against
+    // the whole body and rejects the download. Neither side of the checksum exchange is
+    // needed here, so both are off.
+    this.client = new S3Client({
+      ...shared,
+      endpoint: settings.endpoint,
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
+    });
     // The SDK otherwise hoists a CRC32 checksum placeholder into presigned URLs, and Garage then
     // rejects the browser's body for not matching it.
     this.publicClient = new S3Client({
