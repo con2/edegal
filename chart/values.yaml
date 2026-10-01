@@ -28,11 +28,6 @@ s3:
   bucket: ""
   forcePathStyle: true
 
-# nginx serving `/media/` straight from the NFS export without authorization. Set `enabled: false`
-# once media has moved to S3: `/media/` then falls through to the app, which authorizes each file.
-nginx:
-  enabled: true
-
 kompassi:
   baseUrl: https://kompassi.eu
   photographerGroup: conikuvat-staff
@@ -74,7 +69,7 @@ moveTopLevelPhotos:
   runId: 1
   args: []
 
-# Sized from production usage (node 140-530 MiB, worker 100-220 MiB idle, nginx mostly page cache).
+# Sized from production usage (node 140-530 MiB, worker 100-220 MiB idle).
 # An upload holds up to 100 MB of body plus the decoded image (about 4 bytes per pixel, capped at
 # 100 megapixels), and the worker decodes `workerConcurrency` images at once. Each AVIF encode
 # runs libvips on one thread plus libaom's own four, so the worker's CPU limit stays above the
@@ -95,9 +90,6 @@ resources:
   moveTopLevelPhotos:
     requests: { cpu: 100m, memory: 256Mi }
     limits: { cpu: "1", memory: 1Gi }
-  nginx:
-    requests: { cpu: 20m, memory: 64Mi }
-    limits: { cpu: "1", memory: 512Mi }
 
 # THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
 # DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET (and optionally

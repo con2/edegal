@@ -1,8 +1,9 @@
 # v4 Helm chart
 
 Deploys the v4 gallery: a Next.js Deployment (with a Prisma migration init container), the media
-worker DaemonSet, an nginx Deployment serving `/media` from the shared NFS export (until the
-media has moved to S3, see "Media in S3 (Garage)"), and a per-namespace Gateway with HTTPRoutes.
+worker DaemonSet, and a per-namespace Gateway with HTTPRoutes. `/media/<key>` is served by the
+app, which authorizes each file and either streams it from the shared NFS export or redirects to
+a presigned S3 URL (see "Media in S3 (Garage)").
 cert-manager issues the TLS certificate from the Gateway's `cert-manager.io/cluster-issuer`
 annotation.
 
@@ -78,8 +79,7 @@ with the same `S3_*` settings and `AUTH_URL=https://<hostname>` in the environme
 from a shell in a `node` pod, or locally against `https://garage.con2.fi` as the endpoint.
 
 With the bucket set, new originals and every regenerated preview land in S3 while rows still on
-the export keep being served from it; `mediaNfs` and `nginx` stay enabled until the migration
-below has run.
+the export keep being served from it; `mediaNfs` stays enabled until the migration below has run.
 
 ## Migrating media to S3
 
@@ -95,16 +95,14 @@ read-only:
    in the bucket with the same size is skipped.
 3. Verify `select backend, count(*) from v4_media group by 1` shows no `fs`, and spot-check album
    pages.
-4. Values: `mediaNfs.enabled: false`, `nginx.enabled: false`, `mediaTask.enabled: false`; delete
-   `mediaNfs.server`/`mediaNfs.path` from the site values file; push. `/media/<key>` now reaches
-   the app, which authorizes the request and redirects to a presigned URL.
+4. Values: `mediaNfs.enabled: false`, `mediaTask.enabled: false`; delete `mediaNfs.server`/
+   `mediaNfs.path` from the site values file; push.
 
 ## Resources
 
 `resources.*` in values sets requests and limits per container. The defaults were sized from
 production usage with headroom for one 100 MB upload decoding at up to 100 megapixels in the web
-process, and `workerConcurrency` such decodes in the worker. nginx memory is mostly reclaimable
-page cache from the NFS export.
+process, and `workerConcurrency` such decodes in the worker.
 
 ## Worker
 

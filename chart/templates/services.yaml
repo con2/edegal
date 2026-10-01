@@ -11,19 +11,3 @@ spec:
   ports:
     - port: 3000
       targetPort: 3000
-{{- if .Values.nginx.enabled }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx
-  labels:
-    {{- include "v4.labels" . | nindent 4 }}
-spec:
-  selector:
-    stack: v4
-    component: nginx
-  ports:
-    - port: 8080
-      targetPort: 8080
-{{- end }}
