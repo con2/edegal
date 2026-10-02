@@ -1,5 +1,6 @@
 hostname: larppikuvat.fi
 mediaNfs:
+  enabled: false
   server: 91.105.252.80
   path: /opt/conikuvat/larppikuvat
 kompassi:
@@ -27,8 +28,8 @@ s3:
   forcePathStyle: true
 
 mediaTask:
-  enabled: true
-  runId: 4
+  enabled: false
+  runId: 5
   script: src/bin/migrate-media-to-s3.ts
   args: ["--apply"]
   nfs: true
