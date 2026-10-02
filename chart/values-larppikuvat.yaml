@@ -1,8 +1,4 @@
 hostname: larppikuvat.fi
-mediaNfs:
-  enabled: false
-  server: 91.105.252.80
-  path: /opt/conikuvat/larppikuvat
 kompassi:
   baseUrl: https://kompassi.eu
   photographerGroup: larppikuvat-staff
@@ -33,3 +29,6 @@ mediaTask:
   script: src/bin/migrate-media-to-s3.ts
   args: ["--apply"]
   nfs: true
+
+mediaNfs:
+  enabled: false
