@@ -1,5 +1,5 @@
 import yauzl from "yauzl";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { ClientAlbumPage, PhotoVM } from "@/gallery/types";
 import { storageFor } from "@/media/storage";
@@ -103,5 +103,31 @@ describe("createAlbumZip", () => {
     expect(entries.every((e) => e.compressionMethod === 0)).toBe(true);
     expect(entries[0].content.toString()).toBe("Event\nhttps://x/event\n");
     expect(entries[2].content.toString()).toBe("second");
+  });
+
+  it("opens each original only when its entry is written, not up front", async () => {
+    const storage = storageFor("fs");
+    const count = 60;
+    const photos: PhotoVM[] = [];
+    for (let i = 0; i < count; i++) {
+      const key = `pictures/lazy/pic-${i}.jpeg`;
+      await storage.put(key, Buffer.from(`photo ${i}`), "image/jpeg");
+      photos.push(photo(`pic-${i}`, key));
+    }
+    const getStream = vi.spyOn(storage, "getStream");
+    const album = {
+      path: "/lazy",
+      title: "Lazy",
+      photos,
+    } as unknown as ClientAlbumPage;
+
+    const zip = await createAlbumZip(album, "readme");
+    expect(getStream).not.toHaveBeenCalled();
+
+    const entries = await readZip(await collect(zip));
+    expect(getStream).toHaveBeenCalledTimes(count);
+    expect(entries).toHaveLength(count + 1);
+    expect(entries[count].content.toString()).toBe(`photo ${count - 1}`);
+    getStream.mockRestore();
   });
 });
