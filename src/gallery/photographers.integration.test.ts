@@ -139,7 +139,7 @@ describe("loadPhotographerPageBySlug", () => {
     ]);
   });
 
-  it("shows no cover when the chosen photo is in a non-public album", async () => {
+  it("shows no cover when the chosen photo is in a private album", async () => {
     const album = await db.orm.public.Album.where({
       path: "/con-2026/shared",
     }).first();
@@ -154,6 +154,30 @@ describe("loadPhotographerPageBySlug", () => {
       expect(tile?.thumbnail).toBeNull();
     } finally {
       await db.orm.public.Album.where({ id: album!.id }).update({
+        visibility: "public",
+      });
+    }
+  });
+
+  // Profile photos are typically uploaded into a hidden album kept off the front page, so a
+  // hidden ancestor must not strip the cover the way a private one does.
+  it("keeps the cover when the chosen photo is under a hidden ancestor", async () => {
+    const parent = await db.orm.public.Album.where({
+      path: "/con-2026",
+    }).first();
+    await db.orm.public.Album.where({ id: parent!.id }).update({
+      visibility: "hidden",
+    });
+    try {
+      expect((await loadPhotographerPageBySlug("shared"))?.cover?.path).toBe(
+        "/con-2026/shared/img-1",
+      );
+      const tile = (await loadPhotographersIndex()).subalbums.find(
+        (s) => s.path === "/photographers/shared",
+      );
+      expect(tile?.thumbnail?.fallback.src).toContain("img-1.jpeg");
+    } finally {
+      await db.orm.public.Album.where({ id: parent!.id }).update({
         visibility: "public",
       });
     }

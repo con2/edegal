@@ -36,7 +36,7 @@ async function photographerSubalbums(reader: Reader): Promise<SubalbumVM[]> {
   return photographers.map((photographer) => {
     const thumbnail =
       photographer.coverPhoto &&
-      effective.get(photographer.coverPhoto.album.path) === "public"
+      effective.get(photographer.coverPhoto.album.path) !== "private"
         ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
         : null;
     return {
@@ -122,10 +122,12 @@ export async function loadPhotographerPageBySlug(
     reader,
   );
   // The cover photo's own containing album's visibility gates it independently of the
-  // photographer's own profile visibility: a photo picked from a non-public album stays off it.
+  // photographer's own profile visibility: a photo picked from a private album stays off it.
+  // Hidden albums are fine: hidden content is reachable by URL for everyone, only unlisted, and
+  // a photographer can only pick hidden photos they own.
   const coverMedia =
     photographer.coverPhoto &&
-    effective.get(photographer.coverPhoto.album.path) === "public"
+    effective.get(photographer.coverPhoto.album.path) !== "private"
       ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
       : null;
   const cover: CoverVM | null =
