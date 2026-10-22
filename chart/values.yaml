@@ -93,13 +93,21 @@ resources:
     requests: { cpu: 100m, memory: 256Mi }
     limits: { cpu: "1", memory: 1Gi }
 
+# The Next.js server and the media worker connect through PgBouncer (DATABASE_URL_POOLED in the
+# Secret, transaction mode) instead of DATABASE_URL. Each process keeps a pg.Pool of up to 10
+# connections open while idle, and the worker runs on every node; pooled, those cost the shared
+# database nothing.
+databasePooled: false
+
 # THE PRODUCTION-RECOMMENDED PATH: point at a pre-existing Secret with keys
 # DATABASE_URL, AUTH_SECRET, KOMPASSI_OIDC_CLIENT_ID, KOMPASSI_OIDC_CLIENT_SECRET (and optionally
-# DATABASE_URL_REPLICA, SMTP_USERNAME, SMTP_PASSWORD, and S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
-# when `s3.bucket` is set) and the chart skips creating its own.
+# DATABASE_URL_POOLED, DATABASE_URL_REPLICA, SMTP_USERNAME, SMTP_PASSWORD, and S3_ACCESS_KEY_ID,
+# S3_SECRET_ACCESS_KEY when `s3.bucket` is set) and the chart skips creating its own.
 existingSecretName: ""
 secret:
   databaseUrl: postgresql://changeme:changeme@postgres:5432/changeme
+  # The same database through PgBouncer; required when databasePooled is true.
+  databasePooledUrl: ""
   # Read replica for anonymous viewers. Empty means every query goes to databaseUrl.
   databaseReplicaUrl: ""
   authSecret: changeme

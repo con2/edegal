@@ -59,6 +59,13 @@ spec:
                 name: v4
             - secretRef:
                 name: {{ include "v4.secretName" . }}
+          {{- if .Values.databasePooled }}
+          env:
+            # An explicit env entry wins over envFrom. The migrate init container and the one-off
+            # Jobs keep the direct DATABASE_URL: one short-lived process each gains nothing.
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: {{ include "v4.secretName" . }}, key: DATABASE_URL_POOLED } }
+          {{- end }}
           resources:
             {{- toYaml .Values.resources.node | nindent 12 }}
           securityContext:

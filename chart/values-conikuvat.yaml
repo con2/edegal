@@ -13,6 +13,7 @@ mail:
   from: Conikuvat.fi <root@tracon.fi>
 # Secret `v4` in namespace conikuvat-v4 is managed out of band.
 existingSecretName: v4
+databasePooled: true
 s3:
   endpoint: http://garage.garage.svc.cluster.local:3900
   publicEndpoint: https://garage.con2.fi

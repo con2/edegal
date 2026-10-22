@@ -23,12 +23,18 @@ All four keys are mandatory: the server refuses to start without them rather tha
 to development defaults. `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` join them once `s3.bucket`
 is set (see "Media in S3 (Garage)").
 
-A site whose database lives on the qb CloudNativePG cluster gets its `DATABASE_URL` and an
-optional `DATABASE_URL_REPLICA` from `infrastructure/kubernetes/postgres/update-secret.sh`
-(larppikuvat.fi; conikuvat.fi is still on siilo and has no replica key). With the replica key
-set, anonymous viewers read from the streaming replicas behind `postgres-ro`; signed-in
-viewers, every mutation and the worker keep using `DATABASE_URL`. Without it, everything goes to
-`DATABASE_URL`.
+A site whose database lives on the qb CloudNativePG cluster gets its `DATABASE_URL`,
+`DATABASE_URL_POOLED` and `DATABASE_URL_REPLICA` from
+`infrastructure/kubernetes/postgres/update-secret.sh`. With the replica key set, anonymous
+viewers read from the streaming replicas behind `postgres-ro`; signed-in viewers, every mutation
+and the worker keep using `DATABASE_URL`. Without it, everything goes to `DATABASE_URL`.
+
+With `databasePooled: true` (both sites) the Next.js server and the media worker take
+`DATABASE_URL_POOLED`, the PgBouncer pooler in transaction mode, as their `DATABASE_URL`. Each
+process holds a `pg.Pool` of up to 10 connections open while idle and the worker runs on every
+node; through the pooler those cost the shared database nothing. The migrate init container and
+the one-off Jobs keep the direct URL. Nothing here needs session state: Prisma's migration lock
+is `pg_advisory_xact_lock` and `pg` sends unnamed statements.
 
 `sslmode=verify-full` (not `require`) since siilo.tracon.fi has a proper TLS certificate: `pg`
 only warns on `require`/`prefer`/`verify-ca` today because it treats them as aliases for
