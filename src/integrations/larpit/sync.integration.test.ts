@@ -13,6 +13,7 @@ const larpB = "019c1910-828b-7147-86c5-bf110d208139";
 const larpC = "019c1910-828b-7147-86c5-bf110d20813a";
 const larpD = "019c1910-828b-7147-86c5-bf110d20813b";
 const larpE = "019c1910-828b-7147-86c5-bf110d20813c";
+const larpF = "019c1910-828b-7147-86c5-bf110d20813d";
 
 function photos(href: string) {
   return { href, type: "PHOTOS", title: null };
@@ -52,6 +53,9 @@ beforeAll(async () => {
       "https://larpit.fi/larp/019c0000-0000-7000-8000-000000000000",
   });
   await top("shared");
+  await top("linked-by-alias", {
+    eventMetadataUrl: "https://larpit.fi/larp-f-p2",
+  });
   const event = await top("event");
   await db.orm.public.Album.create({
     parentId: event.id,
@@ -90,6 +94,12 @@ describe("syncFromLarpit", () => {
           { id: larpD, links: [photos("https://larppikuvat.fi/conflicting")] },
           { id: larpD, links: [photos("https://larppikuvat.fi/shared")] },
           { id: larpE, links: [photos("https://larppikuvat.fi/shared")] },
+          // Pointing back at the larp by its alias is as good as by its id.
+          {
+            id: larpF,
+            alias: "larp-f-p2",
+            links: [photos("https://larppikuvat.fi/linked-by-alias")],
+          },
         ],
         nextCursor: null,
       },
@@ -121,6 +131,9 @@ describe("syncFromLarpit", () => {
     expect(await eventMetadataUrl("/event/day-1")).toBe("");
     // An album claimed by two larps is left alone rather than guessed.
     expect(await eventMetadataUrl("/shared")).toBe("");
+    expect(await eventMetadataUrl("/linked-by-alias")).toBe(
+      "https://larpit.fi/larp-f-p2",
+    );
     expect(await eventMetadataUrl("/conflicting")).toBe(
       "https://larpit.fi/larp/019c0000-0000-7000-8000-000000000000",
     );

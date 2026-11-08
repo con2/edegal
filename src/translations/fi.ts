@@ -191,7 +191,7 @@ const translations: Translations = {
         "Pienemmän numeron alialbumit ensin; samat numerot järjestetään päivän mukaan.",
       eventMetadataUrl: "Tapahtuman metadata-URL",
       eventMetadataUrlHelp:
-        "Tapahtuman https-osoite Kompassissa tai Larpit.fi:ssä, esim. https://larpit.fi/larp/…; muut sivustot eivät kelpaa. Aseta vain tapahtuman pääalbumille.",
+        "Tapahtuman https-osoite Kompassissa tai Larpit.fi:ssä, esim. https://larpit.fi/larp/… tai larpin lyhyt osoite https://larpit.fi/…; muut sivustot eivät kelpaa. Aseta vain tapahtuman pääalbumille.",
       body: "Kuvaus",
       terms: "Käyttöehdot",
       termsInherit: "Samat kuin yläalbumissa",

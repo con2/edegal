@@ -192,7 +192,7 @@ const translations = {
         "Subalbums with a smaller number come first; equal numbers are ordered by date.",
       eventMetadataUrl: "Event metadata URL",
       eventMetadataUrlHelp:
-        "The event's https address in Kompassi or Larpit.fi, such as https://larpit.fi/larp/…; other sites are not accepted. Only set this for the main album of the event.",
+        "The event's https address in Kompassi or Larpit.fi, such as https://larpit.fi/larp/… or the larp's short address https://larpit.fi/…; other sites are not accepted. Only set this for the main album of the event.",
       body: "Description",
       terms: "Conditions of use",
       termsInherit: "Same as the parent album",

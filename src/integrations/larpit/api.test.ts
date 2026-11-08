@@ -19,6 +19,15 @@ describe("larpitApiUrl", () => {
     );
   });
 
+  it("maps a larp's short address to its api url", () => {
+    expect(larpitApiUrl("https://larpit.fi/welcome-to-grayhaven-p2")).toBe(
+      "https://larpit.fi/api/larp/welcome-to-grayhaven-p2",
+    );
+    expect(larpitApiUrl("https://www.larpit.fi/Korpkvadet/?x=1")).toBe(
+      "https://larpit.fi/api/larp/korpkvadet",
+    );
+  });
+
   it("rejects anything that is not a larpit.fi larp page", () => {
     expect(larpitApiUrl("")).toBeNull();
     expect(larpitApiUrl("not a url")).toBeNull();
@@ -29,6 +38,9 @@ describe("larpitApiUrl", () => {
       ),
     ).toBeNull();
     expect(larpitApiUrl("https://larpit.fi/larp/not-a-uuid")).toBeNull();
+    expect(larpitApiUrl("https://larpit.fi/")).toBeNull();
+    expect(larpitApiUrl("https://larpit.fi/some/path")).toBeNull();
+    expect(larpitApiUrl("https://larpit.fi/not_an_alias")).toBeNull();
     expect(
       larpitApiUrl(
         "https://larpit.fi/larps/019c1910-828b-7147-86c5-bf110d208138",

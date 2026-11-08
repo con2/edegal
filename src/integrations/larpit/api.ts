@@ -2,11 +2,15 @@
 
 import { z } from "zod";
 
-const larpPathRegex =
+const larpIdPathRegex =
   /^\/larp\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i;
+const larpAliasPathRegex = /^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/i;
 
-/** The larp id of `https://larpit.fi/larp/<uuid>` (optionally `www.`, a trailing slash, a query). */
-export function larpIdFromUrl(url: string): string | null {
+/**
+ * The larp id of `https://larpit.fi/larp/<uuid>` or the alias of `https://larpit.fi/<alias>`
+ * (optionally `www.`, a trailing slash, a query), lowercased. The Larpit.fi API takes either.
+ */
+export function larpKeyFromUrl(url: string): string | null {
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -16,7 +20,9 @@ export function larpIdFromUrl(url: string): string | null {
   if (parsed.protocol !== "https:") return null;
   if (parsed.hostname !== "larpit.fi" && parsed.hostname !== "www.larpit.fi")
     return null;
-  const match = parsed.pathname.match(larpPathRegex);
+  const match =
+    parsed.pathname.match(larpIdPathRegex) ??
+    parsed.pathname.match(larpAliasPathRegex);
   return match ? match[1].toLowerCase() : null;
 }
 
@@ -24,10 +30,10 @@ export function larpPageUrl(larpId: string): string {
   return `https://larpit.fi/larp/${larpId}`;
 }
 
-/** `https://larpit.fi/larp/<uuid>` (optionally `www.`, a trailing slash, a query) to its API URL. */
+/** A Larpit.fi larp page URL, as accepted by `larpKeyFromUrl`, to its API URL. */
 export function larpitApiUrl(eventMetadataUrl: string): string | null {
-  const larpId = larpIdFromUrl(eventMetadataUrl);
-  return larpId ? `https://larpit.fi/api/larp/${larpId}` : null;
+  const larpKey = larpKeyFromUrl(eventMetadataUrl);
+  return larpKey ? `https://larpit.fi/api/larp/${larpKey}` : null;
 }
 
 export const linkTypes = [

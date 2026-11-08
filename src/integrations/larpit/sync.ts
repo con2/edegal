@@ -7,10 +7,16 @@ import { z } from "zod";
 
 import { pool } from "@/prisma/pool";
 
-import { fetchJson, larpIdFromUrl, LarpLinkSchema, larpPageUrl } from "./api";
+import { fetchJson, larpKeyFromUrl, LarpLinkSchema, larpPageUrl } from "./api";
 
 const LarpPageSchema = z.object({
-  items: z.array(z.object({ id: z.string(), links: z.array(LarpLinkSchema) })),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      alias: z.string().nullable().optional(),
+      links: z.array(LarpLinkSchema),
+    }),
+  ),
   nextCursor: z.string().nullable(),
 });
 
@@ -53,6 +59,16 @@ export function topLevelAlbumPath(
   return /^\/[^/]+$/.test(path) ? path : null;
 }
 
+interface LarpRef {
+  id: string;
+  alias: string | null;
+}
+
+function isUrlOfLarp(url: string, larp: LarpRef): boolean {
+  const larpKey = larpKeyFromUrl(url);
+  return larpKey === larp.id || (larp.alias !== null && larpKey === larp.alias);
+}
+
 async function* larpPages(
   apiUrl: string,
   updatedAfter: Date | undefined,
@@ -87,22 +103,24 @@ export async function syncFromLarpit({
   logger = console,
 }: LarpitSyncOptions): Promise<LarpitSyncResult> {
   const siteHost = bareHost(new URL(siteUrl).hostname);
-  const larpIdsByAlbumPath = new Map<string, Set<string>>();
+  // Each inner map is keyed by larp id.
+  const larpsByAlbumPath = new Map<string, Map<string, LarpRef>>();
   for await (const larps of larpPages(apiUrl, updatedAfter, fetchImpl)) {
     for (const larp of larps) {
       for (const link of larp.links) {
         if (link.type !== "PHOTOS") continue;
         const path = topLevelAlbumPath(link.href, siteHost);
         if (!path) continue;
-        const larpIds = larpIdsByAlbumPath.get(path) ?? new Set();
-        larpIds.add(larp.id.toLowerCase());
-        larpIdsByAlbumPath.set(path, larpIds);
+        const albumLarps = larpsByAlbumPath.get(path) ?? new Map();
+        const id = larp.id.toLowerCase();
+        albumLarps.set(id, { id, alias: larp.alias?.toLowerCase() ?? null });
+        larpsByAlbumPath.set(path, albumLarps);
       }
     }
   }
 
   const result: LarpitSyncResult = { updated: 0, mismatched: 0 };
-  if (larpIdsByAlbumPath.size === 0) return result;
+  if (larpsByAlbumPath.size === 0) return result;
 
   const { rows } = await pool.query<AlbumRow>(
     `select a.id, a.path, a.event_metadata_url
@@ -111,19 +129,20 @@ export async function syncFromLarpit({
      where a.path = any($1::text[])
        and a.visibility = 'public'
        and root.visibility = 'public'`,
-    [[...larpIdsByAlbumPath.keys()]],
+    [[...larpsByAlbumPath.keys()]],
   );
 
   for (const album of rows) {
-    const larpIds = [...larpIdsByAlbumPath.get(album.path)!];
-    if (larpIds.length > 1) {
+    const larps = [...larpsByAlbumPath.get(album.path)!.values()];
+    if (larps.length > 1) {
       logger.warn(
-        `larpit sync: album ${album.path} is the photos of several larps: ${larpIds.map(larpPageUrl).join(", ")}`,
+        `larpit sync: album ${album.path} is the photos of several larps: ${larps.map((larp) => larpPageUrl(larp.id)).join(", ")}`,
       );
       result.mismatched++;
       continue;
     }
-    const larpUrl = larpPageUrl(larpIds[0]);
+    const [larp] = larps;
+    const larpUrl = larpPageUrl(larp.id);
     if (album.event_metadata_url === "") {
       // The emptiness check keeps a concurrent editor's or worker's value rather than overwriting
       // it. Bumping updated_at makes every process drop its cached page of the album.
@@ -136,7 +155,7 @@ export async function syncFromLarpit({
         logger.log(`larpit sync: album ${album.path} -> ${larpUrl}`);
         result.updated++;
       }
-    } else if (larpIdFromUrl(album.event_metadata_url) !== larpIds[0]) {
+    } else if (!isUrlOfLarp(album.event_metadata_url, larp)) {
       logger.warn(
         `larpit sync: album ${album.path} has event metadata url ${album.event_metadata_url}, but ${larpUrl} links to it as its photos`,
       );
