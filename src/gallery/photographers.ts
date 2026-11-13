@@ -6,6 +6,7 @@ import { buildMediaSet } from "./media";
 import { pathPrefixes } from "./paths";
 import { titleInPhotographerContext } from "./titles";
 import type { AlbumPageVM, CoverVM, SubalbumVM } from "./types";
+import { required } from "@/prisma/include";
 
 const photographersPath = "/photographers";
 
@@ -114,10 +115,18 @@ export async function loadPhotographerPageBySlug(
     )
     .first();
   if (!photographer) return null;
+  const credits = photographer.credits.map((credit) => ({
+    ...credit,
+    album: required(credit.album),
+  }));
+  const coverPhoto = photographer.coverPhoto && {
+    ...photographer.coverPhoto,
+    album: required(photographer.coverPhoto.album),
+  };
   const effective = await effectiveVisibilities(
     [
-      ...photographer.credits.map((c) => c.album.path),
-      ...(photographer.coverPhoto ? [photographer.coverPhoto.album.path] : []),
+      ...credits.map((c) => c.album.path),
+      ...(coverPhoto ? [coverPhoto.album.path] : []),
     ],
     reader,
   );
@@ -126,16 +135,15 @@ export async function loadPhotographerPageBySlug(
   // Hidden albums are fine: hidden content is reachable by URL for everyone, only unlisted, and
   // a photographer can only pick hidden photos they own.
   const coverMedia =
-    photographer.coverPhoto &&
-    effective.get(photographer.coverPhoto.album.path) !== "private"
-      ? buildMediaSet(photographer.coverPhoto.media, "thumbnail")
+    coverPhoto && effective.get(coverPhoto.album.path) !== "private"
+      ? buildMediaSet(coverPhoto.media, "thumbnail")
       : null;
   const cover: CoverVM | null =
-    photographer.coverPhoto && coverMedia
+    coverPhoto && coverMedia
       ? {
           media: coverMedia,
-          path: photographer.coverPhoto.path,
-          credits: photographer.coverPhoto.album.credits
+          path: coverPhoto.path,
+          credits: coverPhoto.album.credits
             .filter((c) => c.isCopyright)
             .sort((a, b) => a.ordering - b.ordering)
             .map((c) => ({
@@ -148,7 +156,7 @@ export async function loadPhotographerPageBySlug(
         }
       : null;
 
-  const albums = photographer.credits
+  const albums = credits
     .map((c) => c.album)
     .sort(
       (a, b) =>

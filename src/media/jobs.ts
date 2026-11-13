@@ -6,6 +6,7 @@ import { db } from "@/prisma/db";
 import { generateScaledMedia, type ProducedMedia } from "./pipeline";
 import { type MediaBackend, mediaStorage, storageFor } from "./storage";
 import { isEnvironmentError, WorkerEnvironmentError } from "./workerHealth";
+import { required } from "@/prisma/include";
 
 export interface ClaimedJob {
   id: string;
@@ -112,7 +113,7 @@ export async function processMediaJob(job: ClaimedJob): Promise<void> {
     const produced = await generateScaledMedia(keyBase, await readAll(original.backend, original.storageKey));
     await replaceScaledMedia(photo.id, photo.media, produced);
 
-    const { album } = photo;
+    const album = required(photo.album);
     const currentThumbnailOriginal = album.thumbnailPhoto?.media.find((m) => m.role === "original");
     const shouldTakeOver =
       album.thumbnailPhotoId === null ||

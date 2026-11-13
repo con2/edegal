@@ -5,6 +5,7 @@ import { effectiveVisibilities } from "@/gallery/effectiveVisibility";
 import { readerFor } from "@/gallery/reader";
 import { getViewer } from "@/gallery/viewer";
 import { storageFor } from "@/media/storage";
+import { required } from "@/prisma/include";
 
 const contentTypes: Record<string, string> = {
   jpeg: "image/jpeg",
@@ -41,7 +42,7 @@ export async function GET(
     .include("photo", (p) => p.include("album"))
     .first();
   if (!media) return notFound();
-  const { album } = media.photo;
+  const album = required(required(media.photo).album);
   const visibility = (
     await effectiveVisibilities([album.path], reader)
   ).get(album.path);

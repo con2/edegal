@@ -253,6 +253,7 @@
               },
               "owner": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "ownerId"
@@ -268,6 +269,7 @@
               },
               "parent": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "parentId"
@@ -298,6 +300,7 @@
               },
               "series": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "seriesId"
@@ -313,6 +316,7 @@
               },
               "terms": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "termsId"
@@ -328,6 +332,7 @@
               },
               "thumbnailPhoto": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "thumbnailPhotoId"
@@ -456,6 +461,7 @@
             "relations": {
               "album": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "albumId"
@@ -471,6 +477,7 @@
               },
               "photographer": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "photographerId"
@@ -592,6 +599,7 @@
             "relations": {
               "photo": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "photoId"
@@ -708,6 +716,7 @@
             "relations": {
               "photo": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "photoId"
@@ -870,6 +879,7 @@
             "relations": {
               "album": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "albumId"
@@ -900,6 +910,7 @@
               },
               "createdBy": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "createdById"
@@ -1082,6 +1093,7 @@
             "relations": {
               "coverPhoto": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "coverPhotoId"
@@ -1112,6 +1124,7 @@
               },
               "defaultTerms": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "defaultTermsId"
@@ -1142,6 +1155,7 @@
               },
               "user": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "userId"
@@ -1237,6 +1251,7 @@
             "relations": {
               "photographer": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "photographerId"
@@ -1504,6 +1519,7 @@
               },
               "owner": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "ownerId"
@@ -1624,6 +1640,7 @@
               },
               "photographer": {
                 "cardinality": "1:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "id"
@@ -1762,79 +1779,79 @@
               "columns": {
                 "body": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "description": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "event_date": {
                   "codecId": "pg/date-string@1",
+                  "dataType": "pg/date",
                   "default": {
                     "expression": "current_date",
                     "kind": "function"
                   },
-                  "nativeType": "date",
                   "nullable": true
                 },
                 "event_metadata_url": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "is_downloadable": {
                   "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
                   "default": {
                     "kind": "literal",
                     "value": true
                   },
-                  "nativeType": "bool",
                   "nullable": false
                 },
                 "is_open_for_subalbums": {
                   "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
                   "default": {
                     "kind": "literal",
                     "value": false
                   },
-                  "nativeType": "bool",
                   "nullable": false
                 },
                 "layout": {
                   "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
                   "default": {
                     "kind": "literal",
                     "value": "simple"
                   },
-                  "nativeType": "v4_album_layout",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_album_layout"
@@ -1848,83 +1865,83 @@
                 },
                 "ordering": {
                   "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
                   "default": {
                     "kind": "literal",
                     "value": 0
                   },
-                  "nativeType": "int4",
                   "nullable": false
                 },
                 "owner_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "parent_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "path": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "redirect_url": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "series_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "slug": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "terms_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "thumbnail_is_auto": {
                   "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
                   "default": {
                     "kind": "literal",
                     "value": true
                   },
-                  "nativeType": "bool",
                   "nullable": false
                 },
                 "thumbnail_photo_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "title": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": false
                 },
                 "visibility": {
                   "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
                   "default": {
                     "kind": "literal",
                     "value": "public"
                   },
-                  "nativeType": "v4_album_visibility",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_album_visibility"
@@ -1939,6 +1956,9 @@
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "name": "v4_album_parent_id_idx_ab33b399"
+                  },
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
@@ -1956,6 +1976,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_album_terms_id_idx_5cf174f1"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -1973,6 +1996,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_album_owner_id_idx_ade9f347"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -1990,6 +2016,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_album_thumbnail_photo_id_idx_a792ea2c"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -2007,6 +2036,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_album_series_id_idx_57e32972"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -2099,44 +2131,47 @@
               "columns": {
                 "album_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "description": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "is_copyright": {
                   "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
                   "default": {
                     "kind": "literal",
                     "value": false
                   },
-                  "nativeType": "bool",
                   "nullable": false
                 },
                 "ordering": {
                   "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
                   "default": {
                     "kind": "literal",
                     "value": 0
                   },
-                  "nativeType": "int4",
                   "nullable": false
                 },
                 "photographer_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 }
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "name": "v4_album_credit_album_id_idx_de2911bb"
+                  },
                   "onDelete": "cascade",
                   "source": {
                     "columns": [
@@ -2154,6 +2189,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_album_credit_photographer_id_idx_21cd8253"
+                  },
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
@@ -2201,11 +2239,11 @@
               "columns": {
                 "backend": {
                   "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
                   "default": {
                     "kind": "literal",
                     "value": "fs"
                   },
-                  "nativeType": "v4_media_backend",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_media_backend"
@@ -2219,21 +2257,21 @@
                 },
                 "byte_size": {
                   "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                  "dataType": "pg/int4",
                   "nullable": true
                 },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "format": {
                   "codecId": "pg/enum@1",
-                  "nativeType": "v4_media_format",
+                  "dataType": "pg/enum",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_media_format"
@@ -2247,22 +2285,22 @@
                 },
                 "height": {
                   "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                  "dataType": "pg/int4",
                   "nullable": false
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "photo_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "role": {
                   "codecId": "pg/enum@1",
-                  "nativeType": "v4_media_role",
+                  "dataType": "pg/enum",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_media_role"
@@ -2276,17 +2314,20 @@
                 },
                 "storage_key": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "width": {
                   "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                  "dataType": "pg/int4",
                   "nullable": false
                 }
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "name": "v4_media_photo_id_idx_9cab3b42"
+                  },
                   "onDelete": "cascade",
                   "source": {
                     "columns": [
@@ -2338,58 +2379,58 @@
               "columns": {
                 "attempts": {
                   "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
                   "default": {
                     "kind": "literal",
                     "value": 0
                   },
-                  "nativeType": "int4",
                   "nullable": false
                 },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "error": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "finished_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": true
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "photo_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "started_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": true
                 },
                 "status": {
                   "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
                   "default": {
                     "kind": "literal",
                     "value": "pending"
                   },
-                  "nativeType": "v4_media_job_status",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_media_job_status"
@@ -2404,6 +2445,9 @@
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "name": "v4_media_job_photo_id_idx_9cab3b42"
+                  },
                   "onDelete": "cascade",
                   "source": {
                     "columns": [
@@ -2451,17 +2495,17 @@
               "columns": {
                 "claimed_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": false
                 },
                 "last_success_claimed_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": true
                 },
                 "name": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 }
               },
@@ -2478,73 +2522,76 @@
               "columns": {
                 "album_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "created_by_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "media_key_base": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "ordering": {
                   "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
                   "default": {
                     "kind": "literal",
                     "value": 0
                   },
-                  "nativeType": "int4",
                   "nullable": false
                 },
                 "path": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "slug": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "taken_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": true
                 },
                 "title": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 }
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "name": "v4_photo_album_id_idx_de2911bb"
+                  },
                   "onDelete": "cascade",
                   "source": {
                     "columns": [
@@ -2562,6 +2609,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_photo_created_by_id_idx_2b1d9a03"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -2631,73 +2681,73 @@
               "columns": {
                 "cover_photo_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "default_terms_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "display_name": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "email": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "introduction": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "slug": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": false
                 },
                 "user_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "visibility": {
                   "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
                   "default": {
                     "kind": "literal",
                     "value": "public"
                   },
-                  "nativeType": "v4_album_visibility",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_album_visibility"
@@ -2712,6 +2762,11 @@
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "unique": [
+                      "user_id"
+                    ]
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -2729,6 +2784,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_photographer_default_terms_id_idx_f50d418e"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -2746,6 +2804,9 @@
                   }
                 },
                 {
+                  "index": {
+                    "name": "v4_photographer_cover_photo_id_idx_caa9ddb0"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -2803,36 +2864,39 @@
               "columns": {
                 "href": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "ordering": {
                   "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
                   "default": {
                     "kind": "literal",
                     "value": 0
                   },
-                  "nativeType": "int4",
                   "nullable": false
                 },
                 "photographer_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "title": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 }
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "name": "v4_photographer_link_photographer_id_idx_21cd8253"
+                  },
                   "onDelete": "cascade",
                   "source": {
                     "columns": [
@@ -2880,21 +2944,21 @@
               "columns": {
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "from_path": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "to_path": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 }
               },
@@ -2920,63 +2984,63 @@
               "columns": {
                 "body": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "description": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "path": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "slug": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "title": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": false
                 },
                 "visibility": {
                   "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
                   "default": {
                     "kind": "literal",
                     "value": "public"
                   },
-                  "nativeType": "v4_album_visibility",
                   "nullable": false,
                   "typeParams": {
                     "typeName": "v4_album_visibility"
@@ -3013,50 +3077,53 @@
               "columns": {
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "owner_id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": true
                 },
                 "text": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "title": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": false
                 },
                 "url": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 }
               },
               "foreignKeys": [
                 {
+                  "index": {
+                    "name": "v4_terms_owner_id_idx_ade9f347"
+                  },
                   "onDelete": "setNull",
                   "source": {
                     "columns": [
@@ -3095,44 +3162,44 @@
               "columns": {
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "display_name": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "email": {
                   "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "default": {
                     "kind": "literal",
                     "value": ""
                   },
-                  "nativeType": "text",
                   "nullable": false
                 },
                 "id": {
                   "codecId": "pg/uuid@1",
-                  "nativeType": "uuid",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
                 "sub": {
                   "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "dataType": "pg/text",
                   "nullable": false
                 },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
+                  "dataType": "pg/timestamptz",
                   "nullable": false
                 }
               },
@@ -3207,10 +3274,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "ada10a727c518d291261ba2ddf9d1f259ff3b16f20ea1c4bf6bbba5584818696"
+    "storageHash": "2ca9fe8f536a2ec2867ce2b8f994e9681dd38d7d9a9f3d7556743400b5bf4f4f"
   },
   "execution": {
-    "executionHash": "4de61373a8bb18837777d69f3fc78addb7349f6fb48ac3b4e9660aca0d6bd51b",
+    "executionHash": "efd9041100df4bf4ca3bafafbc5dcc25e57a29c9cb48ef2874f22d29b8d32a81",
     "mutations": {
       "defaults": [
         {
@@ -3219,24 +3286,24 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_album"
+            "entry": "v4_album",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
           "onCreate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "onUpdate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "ref": {
-            "column": "updated_at",
-            "namespace": "public",
-            "table": "v4_album"
+            "entry": "v4_album",
+            "field": "updated_at",
+            "namespace": "public"
           }
         },
         {
@@ -3245,9 +3312,9 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_media"
+            "entry": "v4_media",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
@@ -3256,9 +3323,9 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_media_job"
+            "entry": "v4_media_job",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
@@ -3267,9 +3334,9 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_photo"
+            "entry": "v4_photo",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
@@ -3278,24 +3345,24 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_photographer"
+            "entry": "v4_photographer",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
           "onCreate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "onUpdate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "ref": {
-            "column": "updated_at",
-            "namespace": "public",
-            "table": "v4_photographer"
+            "entry": "v4_photographer",
+            "field": "updated_at",
+            "namespace": "public"
           }
         },
         {
@@ -3304,9 +3371,9 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_photographer_link"
+            "entry": "v4_photographer_link",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
@@ -3315,24 +3382,24 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_series"
+            "entry": "v4_series",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
           "onCreate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "onUpdate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "ref": {
-            "column": "updated_at",
-            "namespace": "public",
-            "table": "v4_series"
+            "entry": "v4_series",
+            "field": "updated_at",
+            "namespace": "public"
           }
         },
         {
@@ -3341,24 +3408,24 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_terms"
+            "entry": "v4_terms",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
           "onCreate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "onUpdate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "ref": {
-            "column": "updated_at",
-            "namespace": "public",
-            "table": "v4_terms"
+            "entry": "v4_terms",
+            "field": "updated_at",
+            "namespace": "public"
           }
         },
         {
@@ -3367,24 +3434,24 @@
             "kind": "generator"
           },
           "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "v4_user"
+            "entry": "v4_user",
+            "field": "id",
+            "namespace": "public"
           }
         },
         {
           "onCreate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "onUpdate": {
-            "id": "timestampNow",
+            "id": "timestamptzStringNow",
             "kind": "generator"
           },
           "ref": {
-            "column": "updated_at",
-            "namespace": "public",
-            "table": "v4_user"
+            "entry": "v4_user",
+            "field": "updated_at",
+            "namespace": "public"
           }
         }
       ]
@@ -3393,6 +3460,8 @@
   "capabilities": {
     "postgres": {
       "distinctOn": true,
+      "forKeyShare": true,
+      "forNoKeyUpdate": true,
       "jsonAgg": true,
       "lateral": true,
       "limit": true,
@@ -3403,7 +3472,15 @@
       "checkConstraint": true,
       "defaultInInsert": true,
       "enums": true,
+      "forShare": true,
+      "forUpdate": true,
+      "insertOnConflictSkip": true,
+      "insertOnConflictTarget": true,
+      "insertOnConflictWithoutTarget": true,
       "lateral": true,
+      "lockNowait": true,
+      "lockOf": true,
+      "lockSkipLocked": true,
       "returning": true,
       "scalarList": true
     }

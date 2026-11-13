@@ -12,6 +12,7 @@ import { resolveRedirect } from "./redirects";
 import { resolvePath } from "./resolve";
 import type { AlbumPageVM, GalleryPageResult, PhotoVM } from "./types";
 import type { Viewer } from "./viewer";
+import { required } from "@/prisma/include";
 
 /**
  * Turns a normal album page into its timeline: no subalbum tiles (everything is flattened into
@@ -150,7 +151,10 @@ async function timelinePhotos(
   const creditsByAlbum = new Map<string, CreditRow[]>();
   for (const credit of creditRows) {
     const list = creditsByAlbum.get(credit.albumId) ?? [];
-    list.push(credit);
+    list.push({
+      ...credit,
+      photographer: required(credit.photographer),
+    });
     creditsByAlbum.set(credit.albumId, list);
   }
 

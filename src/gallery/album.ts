@@ -7,6 +7,7 @@ import { buildMediaSet, photoVM } from "./media";
 import { pathPrefixes } from "./paths";
 import { seriesNeighbours } from "./series";
 import type { AlbumPageVM, Crumb, PhotoVM, SubalbumVM } from "./types";
+import { required } from "@/prisma/include";
 
 export async function loadAlbum(
   albumId: string,
@@ -35,6 +36,10 @@ export async function loadAlbum(
     )
     .first();
   if (!album) return null;
+  const credits = album.credits.map((credit) => ({
+    ...credit,
+    photographer: required(credit.photographer),
+  }));
 
   const ancestors = await reader.db.orm.public.Album.where((a) =>
     a.path.in(pathPrefixes(album.path)),
@@ -117,7 +122,7 @@ export async function loadAlbum(
     layout: album.layout,
     visibility: album.visibility,
     effectiveVisibility,
-    contactable: isContactable(album.credits),
+    contactable: isContactable(credits),
     ownerId: album.ownerId,
     isOpenForSubalbums: album.isOpenForSubalbums,
     isDownloadable: album.isDownloadable,
@@ -126,7 +131,7 @@ export async function loadAlbum(
     breadcrumb,
     subalbums,
     photos,
-    credits: album.credits.map(creditVM),
+    credits: credits.map(creditVM),
     terms: terms ? { text: terms.text, url: terms.url } : null,
     previousInSeries: neighbours.previous,
     nextInSeries: neighbours.next,

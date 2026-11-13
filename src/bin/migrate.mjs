@@ -12,6 +12,7 @@ import { ormCommandFamily } from "@prisma/orm-toolchain/cli";
 
 const commands = [
   "db migrate",
+  "db sign",
   "db verify",
   "migration check",
   "migration status",

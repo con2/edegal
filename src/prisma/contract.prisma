@@ -1,4 +1,4 @@
-// use prisma-next
+// use prisma-8
 
 // Tables and types are prefixed v4_ because they share the public schema with the
 // legacy Django tables (edegal_*), which this contract deliberately does not describe.
@@ -52,12 +52,12 @@ native_enum MediaBackend {
 }
 
 model User {
-  id           Uuid                       @id @default(uuid(7))
+  id           Uuid                       @id @onCreate(uuid(7))
   sub          String                     @unique
   email        String                     @default("")
   displayName  String                     @default("") @map("display_name")
   createdAt    TimestamptzString          @default(now()) @map("created_at")
-  updatedAt    temporal.updatedAtString() @map("updated_at")
+  updatedAt    TimestamptzString @onCreate(now()) @onUpdate(now()) @map("updated_at")
 
   albums       Album[]
   photographer Photographer?
@@ -68,7 +68,7 @@ model User {
 }
 
 model Photographer {
-  id             Uuid                       @id @default(uuid(7))
+  id             Uuid                       @id @onCreate(uuid(7))
   slug           String                     @unique
   displayName    String                     @map("display_name")
   email          String                     @default("")
@@ -84,7 +84,7 @@ model Photographer {
   coverPhotoId   Uuid?                      @map("cover_photo_id")
   coverPhoto     Photo?                     @relation("PhotographerCover", fields:[coverPhotoId], references:[id], onDelete: SetNull)
   createdAt      TimestamptzString          @default(now()) @map("created_at")
-  updatedAt      temporal.updatedAtString() @map("updated_at")
+  updatedAt      TimestamptzString @onCreate(now()) @onUpdate(now()) @map("updated_at")
 
   links          PhotographerLink[]
   credits        AlbumCredit[]
@@ -93,7 +93,7 @@ model Photographer {
 }
 
 model PhotographerLink {
-  id             Uuid         @id @default(uuid(7))
+  id             Uuid         @id @onCreate(uuid(7))
   photographerId Uuid         @map("photographer_id")
   photographer   Photographer @relation(fields:[photographerId], references:[id], onDelete: Cascade)
   href           String
@@ -107,14 +107,14 @@ model PhotographerLink {
 // Reusable conditions of use. An album without its own uses the nearest ancestor's; the
 // root album's terms are therefore the site default.
 model Terms {
-  id            Uuid                       @id @default(uuid(7))
+  id            Uuid                       @id @onCreate(uuid(7))
   title         String
   text          String
   url           String                     @default("")
   ownerId       Uuid?                      @map("owner_id")
   owner         User?                      @relation(fields:[ownerId], references:[id], onDelete: SetNull)
   createdAt     TimestamptzString          @default(now()) @map("created_at")
-  updatedAt     temporal.updatedAtString() @map("updated_at")
+  updatedAt     TimestamptzString @onCreate(now()) @onUpdate(now()) @map("updated_at")
 
   albums        Album[]
   photographers Photographer[]
@@ -123,7 +123,7 @@ model Terms {
 }
 
 model Album {
-  id                 Uuid                       @id @default(uuid(7))
+  id                 Uuid                       @id @onCreate(uuid(7))
   parentId           Uuid?                      @map("parent_id")
   parent             Album?                     @relation("AlbumTree", fields:[parentId], references:[id], onDelete: Restrict)
   children           Album[]                    @relation("AlbumTree")
@@ -138,7 +138,7 @@ model Album {
   eventMetadataUrl   String                     @default("") @map("event_metadata_url")
   ordering           Int                        @default(0)
   // Null for a migrated legacy album whose date could not be determined; sorts last.
-  eventDate          DateString?                @default(dbgenerated("current_date")) @map("event_date")
+  eventDate          DateString?                @default(sql`current_date`) @map("event_date")
   isDownloadable     Boolean                    @default(true) @map("is_downloadable")
   termsId            Uuid?                      @map("terms_id")
   terms              Terms?                     @relation(fields:[termsId], references:[id], onDelete: SetNull)
@@ -151,7 +151,7 @@ model Album {
   seriesId           Uuid?                      @map("series_id")
   series             Series?                    @relation(fields:[seriesId], references:[id], onDelete: SetNull)
   createdAt          TimestamptzString          @default(now()) @map("created_at")
-  updatedAt          temporal.updatedAtString() @map("updated_at")
+  updatedAt          TimestamptzString @onCreate(now()) @onUpdate(now()) @map("updated_at")
 
   photos             Photo[]                    @relation("AlbumPhotos")
   credits            AlbumCredit[]
@@ -165,7 +165,7 @@ model Album {
 // A chronological group of albums (campaign runs, an annual event) with its own page at /<slug>.
 // A series sharing its slug with a legacy edegal_series renders as one merged page.
 model Series {
-  id          Uuid                       @id @default(uuid(7))
+  id          Uuid                       @id @onCreate(uuid(7))
   slug        String                     @unique
   path        String                     @unique
   title       String
@@ -173,7 +173,7 @@ model Series {
   body        String                     @default("")
   visibility  pg.enum(AlbumVisibility)   @default("public")
   createdAt   TimestamptzString          @default(now()) @map("created_at")
-  updatedAt   temporal.updatedAtString() @map("updated_at")
+  updatedAt   TimestamptzString @onCreate(now()) @onUpdate(now()) @map("updated_at")
 
   albums      Album[]
 
@@ -204,7 +204,7 @@ model AlbumCredit {
 }
 
 model Photo {
-  id           Uuid               @id @default(uuid(7))
+  id           Uuid               @id @onCreate(uuid(7))
   albumId      Uuid               @map("album_id")
   album        Album              @relation("AlbumPhotos", fields:[albumId], references:[id], onDelete: Cascade)
   slug         String
@@ -231,7 +231,7 @@ model Photo {
 }
 
 model Media {
-  id         Uuid                 @id @default(uuid(7))
+  id         Uuid                 @id @onCreate(uuid(7))
   photoId    Uuid                 @map("photo_id")
   photo      Photo                @relation(fields:[photoId], references:[id], onDelete: Cascade)
   role       pg.enum(MediaRole)
@@ -249,7 +249,7 @@ model Media {
 
 // Background work queued at upload time: previews and thumbnails for one photo.
 model MediaJob {
-  id         Uuid                    @id @default(uuid(7))
+  id         Uuid                    @id @onCreate(uuid(7))
   photoId    Uuid                    @map("photo_id")
   photo      Photo                   @relation(fields:[photoId], references:[id], onDelete: Cascade)
   status     pg.enum(MediaJobStatus) @default("pending")

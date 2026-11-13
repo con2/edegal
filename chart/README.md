@@ -47,6 +47,26 @@ with the legacy Django tables, and `db update` plans `DROP TABLE` for every tabl
 does not know about. The migration init container only ever runs `migration check` and
 `db migrate`.
 
+### Re-signing after a Prisma release that restamps the contract
+
+Some Prisma 8 release candidates change how a contract is stored without changing the schema it
+describes. Every storage hash then changes: the snapshot directories are renamed, but the
+database marker still names the old hash, so `db migrate` has nowhere to start from. Sign each
+database at the last migration it has applied before the first build on the new release rolls
+out; `db sign` verifies the live schema against that contract first, so it fails rather than
+mislabels a mismatching database. The deploy then applies the remaining migrations.
+
+```sh
+kubectl -n conikuvat-v4 run v4-sign --rm -it --restart=Never \
+  --image=ghcr.io/con2/edegal-v4:<short sha>-migrate \
+  --overrides='{"spec":{"containers":[{"name":"sign","image":"ghcr.io/con2/edegal-v4:<short sha>-migrate","command":["node","src/bin/migrate.mjs","db","sign","20260926T1911_media_backend"],"envFrom":[{"secretRef":{"name":"v4"}}]}]}}'
+```
+
+Repeat in `larppikuvat-v4`. The `<short sha>` must be the new build, since only its image carries
+the renamed graph. The rc.9 to rc.23 upgrade moved the marker of `20260926T1911_media_backend`
+from `ada10a72…` to `bc061246…`; the empty `20261113T2048_prisma_8_rc_23_contract` migration then
+moves it to `2ca9fe8f…`.
+
 ## Mail
 
 `mail.*` feeds the contact form: `smtpHostname`, `smtpPort`, `sender` (envelope sender) and `from`
