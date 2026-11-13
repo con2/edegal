@@ -4,7 +4,7 @@ kompassi:
   photographerGroup: larppikuvat-staff
   adminGroup: larppikuvat-admins
 larpitSync:
-  apiUrl: https://larpit.fi/api/larp
+  apiUrl: https://larp.fi/api/larp
 mail:
   smtpHostname: sr1.pahaip.fi
   smtpPort: 25

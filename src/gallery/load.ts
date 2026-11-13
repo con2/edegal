@@ -15,7 +15,7 @@ import type { Viewer } from "./viewer";
 import { applyVisibility } from "./visibility";
 
 /**
- * The cached, unfiltered album page, with a Larpit.fi-synthesized body applied afterwards - that
+ * The cached, unfiltered album page, with a Larp.fi-synthesized body applied afterwards - that
  * synthesis has its own TTL, so it is not frozen into the cached VM itself (see `@/integrations/larpit/body.ts`).
  */
 export async function loadResolved(

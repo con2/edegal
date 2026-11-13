@@ -1,6 +1,6 @@
 /**
- * Fills in `eventMetadataUrl` of public top-level albums that a Larpit.fi larp links to as its
- * photos. Larpit.fi runs the reverse sync, adding a PHOTOS link to larps that an album points to.
+ * Fills in `eventMetadataUrl` of public top-level albums that a Larp.fi larp links to as its
+ * photos. Larp.fi runs the reverse sync, adding a PHOTOS link to larps that an album points to.
  */
 
 import { z } from "zod";
@@ -23,7 +23,7 @@ const LarpPageSchema = z.object({
 const pageSize = 100;
 
 export interface LarpitSyncOptions {
-  /** The Larpit.fi larp listing endpoint, e.g. `https://larpit.fi/api/larp`. */
+  /** The Larp.fi larp listing endpoint, e.g. `https://larp.fi/api/larp`. */
   apiUrl: string;
   /** This site's public URL; only PHOTOS links to its host are considered. */
   siteUrl: string;

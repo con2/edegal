@@ -3,7 +3,7 @@ const translations = {
     unknownYear: "Unknown year",
   },
   LarpitBody: {
-    thisLarpInLarpit: "This larp in Larpit.fi",
+    thisLarpInLarpit: "This larp in Larp.fi",
     homepage: "Home page of the larp",
     photos: "Photos",
     socialMedia: "Social media",
@@ -192,7 +192,7 @@ const translations = {
         "Subalbums with a smaller number come first; equal numbers are ordered by date.",
       eventMetadataUrl: "Event metadata URL",
       eventMetadataUrlHelp:
-        "The event's https address in Kompassi or Larpit.fi, such as https://larpit.fi/larp/… or the larp's short address https://larpit.fi/…; other sites are not accepted. Only set this for the main album of the event.",
+        "The event's https address in Kompassi or Larp.fi, such as https://larp.fi/larp/… or the larp's short address https://larp.fi/…; other sites are not accepted. Only set this for the main album of the event.",
       body: "Description",
       terms: "Conditions of use",
       termsInherit: "Same as the parent album",
@@ -256,7 +256,7 @@ const translations = {
       invalidSlug:
         "The slug may only contain lowercase letters a–z, numbers and hyphens.",
       invalidEventMetadataUrl:
-        "The event metadata URL must be an https address of the event in Kompassi or Larpit.fi, or left empty.",
+        "The event metadata URL must be an https address of the event in Kompassi or Larp.fi, or left empty.",
       invalidRedirectUrl:
         "The redirect must be an http(s) address or a gallery path such as /desucon-2026.",
       flickrUnreachable:

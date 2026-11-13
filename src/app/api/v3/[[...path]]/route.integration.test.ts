@@ -19,7 +19,7 @@ function params(path: string[]) {
   return { params: Promise.resolve({ path }) };
 }
 
-const larpUrl = "https://larpit.fi/larp/019c1910-828b-7147-86c5-bf110d208138";
+const larpUrl = "https://larp.fi/larp/019c1910-828b-7147-86c5-bf110d208138";
 
 let eventPath: string;
 let subalbumPath: string;

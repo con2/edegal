@@ -49,7 +49,9 @@ const eventMetadataUrl = z
   .refine(
     (value) =>
       value === "" ||
-      /^https:\/\/([a-z0-9-]+\.)*(kompassi\.eu|larpit\.fi)(\/|$)/.test(value),
+      /^https:\/\/([a-z0-9-]+\.)*(kompassi\.eu|larp\.fi|larpit\.fi)(\/|$)/.test(
+        value,
+      ),
     "eventMetadataUrl",
   )
   .default("");

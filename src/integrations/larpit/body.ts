@@ -1,5 +1,5 @@
 /**
- * Synthesizes an album body from a Larpit.fi (https://larpit.fi) event page when the album's own
+ * Synthesizes an album body from a Larp.fi (https://larp.fi) event page when the album's own
  * `body` is empty and its `eventMetadataUrl` points there. The database is never written; the
  * fetched data lives only in the in-process cache below.
  */
@@ -134,7 +134,7 @@ export function larpBody(
 }
 
 /**
- * `vm` unchanged when it already has a body, its `eventMetadataUrl` is not a Larpit.fi larp page,
+ * `vm` unchanged when it already has a body, its `eventMetadataUrl` is not a Larp.fi larp page,
  * or fetching that page failed; otherwise `vm` with a body synthesized from it.
  */
 export async function withEventMetadataBody(

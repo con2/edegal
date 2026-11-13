@@ -96,7 +96,7 @@ export const adminGroup = env("ADMIN_GROUP", "admins");
 export const timezone = "Europe/Helsinki";
 
 /**
- * Larpit.fi larp listing endpoint the media worker polls to fill in `eventMetadataUrl` of albums
+ * Larp.fi larp listing endpoint the media worker polls to fill in `eventMetadataUrl` of albums
  * that larps link to as their photos. Empty turns the sync off, as on sites other than Larppikuvat.fi.
  */
 export const larpitSyncApiUrl = env("LARPIT_SYNC_API_URL", "");

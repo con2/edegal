@@ -1,14 +1,21 @@
-/** Client for the public JSON API of Larpit.fi (https://larpit.fi/api-docs). */
+/** Client for the public JSON API of Larp.fi (https://larp.fi/api-docs). */
 
 import { z } from "zod";
 
 const larpIdPathRegex =
   /^\/larp\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i;
 const larpAliasPathRegex = /^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/i;
+const larpHostnames = new Set([
+  "larp.fi",
+  "www.larp.fi",
+  "larpit.fi",
+  "www.larpit.fi",
+]);
 
 /**
- * The larp id of `https://larpit.fi/larp/<uuid>` or the alias of `https://larpit.fi/<alias>`
- * (optionally `www.`, a trailing slash, a query), lowercased. The Larpit.fi API takes either.
+ * The larp id of `https://larp.fi/larp/<uuid>` or the alias of `https://larp.fi/<alias>`
+ * (optionally `www.`, a trailing slash, a query), lowercased. The Larp.fi API takes either.
+ * The former domain larpit.fi is accepted too, as albums may still link to it.
  */
 export function larpKeyFromUrl(url: string): string | null {
   let parsed: URL;
@@ -18,8 +25,7 @@ export function larpKeyFromUrl(url: string): string | null {
     return null;
   }
   if (parsed.protocol !== "https:") return null;
-  if (parsed.hostname !== "larpit.fi" && parsed.hostname !== "www.larpit.fi")
-    return null;
+  if (!larpHostnames.has(parsed.hostname)) return null;
   const match =
     parsed.pathname.match(larpIdPathRegex) ??
     parsed.pathname.match(larpAliasPathRegex);
@@ -27,13 +33,13 @@ export function larpKeyFromUrl(url: string): string | null {
 }
 
 export function larpPageUrl(larpId: string): string {
-  return `https://larpit.fi/larp/${larpId}`;
+  return `https://larp.fi/larp/${larpId}`;
 }
 
-/** A Larpit.fi larp page URL, as accepted by `larpKeyFromUrl`, to its API URL. */
+/** A Larp.fi larp page URL, as accepted by `larpKeyFromUrl`, to its API URL. */
 export function larpitApiUrl(eventMetadataUrl: string): string | null {
   const larpKey = larpKeyFromUrl(eventMetadataUrl);
-  return larpKey ? `https://larpit.fi/api/larp/${larpKey}` : null;
+  return larpKey ? `https://larp.fi/api/larp/${larpKey}` : null;
 }
 
 export const linkTypes = [

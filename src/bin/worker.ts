@@ -26,7 +26,7 @@ const idleSleepMs = 2000;
 const strandedCheckIntervalMs = 5 * 60 * 1000;
 const cleanupIntervalMs = 60 * 60 * 1000;
 const larpitSyncIntervalMs = 60 * 60 * 1000;
-// Incremental Larpit.fi syncs overlap by this much so clock skew between the hosts loses no larps.
+// Incremental Larp.fi syncs overlap by this much so clock skew between the hosts loses no larps.
 const larpitSyncOverlapMs = 10 * 60 * 1000;
 const writeCheckIntervalMs = 60 * 1000;
 const writeCheckTimeoutMs = 60 * 1000;

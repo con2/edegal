@@ -6,7 +6,7 @@ import type { Larp } from "./api";
 import { larpBody } from "./body";
 
 const t: Translations["LarpitBody"] = {
-  thisLarpInLarpit: "This larp in Larpit.fi",
+  thisLarpInLarpit: "This larp in Larp.fi",
   homepage: "Home page of the larp",
   photos: "Photos",
   socialMedia: "Social media",
@@ -22,7 +22,7 @@ const noDateOrLocation = {
   municipality: null,
 };
 
-const eventUrl = "https://larpit.fi/larp/019c1910-828b-7147-86c5-bf110d208138";
+const eventUrl = "https://larp.fi/larp/019c1910-828b-7147-86c5-bf110d208138";
 
 describe("larpBody", () => {
   const larp: Larp = {
@@ -58,7 +58,7 @@ describe("larpBody", () => {
         "*Paragraph two\\.*",
         "**Bring** warm clothes.",
         [
-          `[This larp in Larpit.fi](${eventUrl})`,
+          `[This larp in Larp.fi](${eventUrl})`,
           "[Home page of the larp](https://korpkvadet.example/)",
           "[Extra gallery](https://otherphotos.example/korpkvadet)",
           "[Social media](https://discord.example/x)",
@@ -90,7 +90,7 @@ describe("larpBody", () => {
       links: [],
     };
     expect(larpBody(bare, eventUrl, t, "fi")).toBe(
-      ["# Bare", `[This larp in Larpit.fi](${eventUrl})`].join("\n\n"),
+      ["# Bare", `[This larp in Larp.fi](${eventUrl})`].join("\n\n"),
     );
   });
 
@@ -100,7 +100,7 @@ describe("larpBody", () => {
       fluffText: null,
       description: null,
       ...noDateOrLocation,
-      // Simulates a link type Larpit.fi added after this schema was written.
+      // Simulates a link type Larp.fi added after this schema was written.
       links: [{ href: "https://example.com/", type: "OTHER", title: null }],
     };
     expect(larpBody(larpWithUnknownType, eventUrl, t, "fi")).toContain(

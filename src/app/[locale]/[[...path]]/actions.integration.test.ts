@@ -133,9 +133,9 @@ describe("createAlbum with fields the schema rejects", () => {
     );
   });
 
-  it("rejects an event metadata URL outside Kompassi and Larpit.fi", async () => {
+  it("rejects an event metadata URL outside Kompassi and Larp.fi", async () => {
     const form = albumForm("Fourth", "[]");
-    form.set("eventMetadataUrl", "http://larpit.fi/larp/1");
+    form.set("eventMetadataUrl", "http://larp.fi/larp/1");
     await expect(createAlbum("fi", eventId, form)).rejects.toThrow(
       "redirect:/event?error=invalidEventMetadataUrl&new=1",
     );

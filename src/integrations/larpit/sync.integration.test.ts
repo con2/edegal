@@ -5,7 +5,7 @@ import { db } from "@/prisma/db";
 
 import { syncFromLarpit } from "./sync";
 
-const apiUrl = "https://larpit.fi/api/larp";
+const apiUrl = "https://larp.fi/api/larp";
 const siteUrl = "https://larppikuvat.fi";
 
 const larpA = "019c1910-828b-7147-86c5-bf110d208138";
@@ -47,12 +47,13 @@ beforeAll(async () => {
     });
   await top("empty");
   await top("hidden", { visibility: "hidden" });
-  await top("linked", { eventMetadataUrl: `https://larpit.fi/larp/${larpC}` });
+  await top("linked", { eventMetadataUrl: `https://larp.fi/larp/${larpC}` });
   await top("conflicting", {
     eventMetadataUrl:
-      "https://larpit.fi/larp/019c0000-0000-7000-8000-000000000000",
+      "https://larp.fi/larp/019c0000-0000-7000-8000-000000000000",
   });
   await top("shared");
+  // Albums linked before the move to larp.fi still point at the former domain.
   await top("linked-by-alias", {
     eventMetadataUrl: "https://larpit.fi/larp-f-p2",
   });
@@ -124,7 +125,7 @@ describe("syncFromLarpit", () => {
     ]);
     expect(result).toEqual({ updated: 1, mismatched: 2 });
     expect(await eventMetadataUrl("/empty")).toBe(
-      `https://larpit.fi/larp/${larpA}`,
+      `https://larp.fi/larp/${larpA}`,
     );
     // Hidden albums and albums below the top level are never written.
     expect(await eventMetadataUrl("/hidden")).toBe("");
@@ -135,7 +136,7 @@ describe("syncFromLarpit", () => {
       "https://larpit.fi/larp-f-p2",
     );
     expect(await eventMetadataUrl("/conflicting")).toBe(
-      "https://larpit.fi/larp/019c0000-0000-7000-8000-000000000000",
+      "https://larp.fi/larp/019c0000-0000-7000-8000-000000000000",
     );
     expect(logger.warn).toHaveBeenCalledTimes(2);
     expect(logger.warn.mock.calls.flat().join("\n")).toMatch(/\/conflicting/);

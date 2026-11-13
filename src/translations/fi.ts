@@ -5,7 +5,7 @@ const translations: Translations = {
     unknownYear: "Tuntematon vuosi",
   },
   LarpitBody: {
-    thisLarpInLarpit: "Tämä larppi Larpit.fi:ssä",
+    thisLarpInLarpit: "Tämä larppi Larp.fi:ssä",
     homepage: "Larpin kotisivu",
     photos: "Kuvat",
     socialMedia: "Sosiaalinen media",
@@ -191,7 +191,7 @@ const translations: Translations = {
         "Pienemmän numeron alialbumit ensin; samat numerot järjestetään päivän mukaan.",
       eventMetadataUrl: "Tapahtuman metadata-URL",
       eventMetadataUrlHelp:
-        "Tapahtuman https-osoite Kompassissa tai Larpit.fi:ssä, esim. https://larpit.fi/larp/… tai larpin lyhyt osoite https://larpit.fi/…; muut sivustot eivät kelpaa. Aseta vain tapahtuman pääalbumille.",
+        "Tapahtuman https-osoite Kompassissa tai Larp.fi:ssä, esim. https://larp.fi/larp/… tai larpin lyhyt osoite https://larp.fi/…; muut sivustot eivät kelpaa. Aseta vain tapahtuman pääalbumille.",
       body: "Kuvaus",
       terms: "Käyttöehdot",
       termsInherit: "Samat kuin yläalbumissa",
@@ -255,7 +255,7 @@ const translations: Translations = {
       invalidSlug:
         "Osoitetunnuksessa saa olla vain pieniä kirjaimia a–z, numeroita ja viivoja.",
       invalidEventMetadataUrl:
-        "Tapahtuman metadata-URL:n täytyy olla tapahtuman https-osoite Kompassissa tai Larpit.fi:ssä, tai tyhjä.",
+        "Tapahtuman metadata-URL:n täytyy olla tapahtuman https-osoite Kompassissa tai Larp.fi:ssä, tai tyhjä.",
       invalidRedirectUrl:
         "Uudelleenohjauksen täytyy olla http(s)-osoite tai gallerian polku, kuten /desucon-2026.",
       flickrUnreachable:

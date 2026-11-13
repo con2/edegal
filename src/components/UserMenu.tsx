@@ -13,7 +13,7 @@ interface UserMenuProps {
   messages: { Auth: Translations["Auth"]; AppBar: Translations["AppBar"] };
 }
 
-/** Same shape as larpit.fi: the user's name opens a dropdown with their pages and sign out. */
+/** Same shape as larp.fi: the user's name opens a dropdown with their pages and sign out. */
 export function UserMenu({ viewer, messages }: UserMenuProps) {
   if (viewer.kind !== "user") {
     return (

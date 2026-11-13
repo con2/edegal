@@ -12,7 +12,7 @@ import type { Reader } from "@/prisma/reader";
 /**
  * Minimal shim for the legacy Django `/api/v3/<path>` endpoint, kept for its known external
  * consumers: desucon.fi's `FakeAlbum`, which reads only `subalbums[].{path,title,thumbnail.src}`,
- * and Larpit.fi, which reads the root album's `subalbums[].{path,eventMetadataUrl}` to link larps
+ * and Larp.fi, which reads the root album's `subalbums[].{path,eventMetadataUrl}` to link larps
  * to their photos. Not an attempt to reproduce every field of the old API - extend it if another
  * real consumer turns up needing more. `eventDate` is YYYY-MM-DD, or null for an album whose date is
  * unknown. `preview` is included alongside `thumbnail` (legacy never exposed a

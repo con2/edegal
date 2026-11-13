@@ -2,48 +2,57 @@ import { describe, expect, it } from "vitest";
 
 import { fetchLarp, larpitApiUrl } from "./api";
 
-const eventUrl = "https://larpit.fi/larp/019c1910-828b-7147-86c5-bf110d208138";
+const eventUrl = "https://larp.fi/larp/019c1910-828b-7147-86c5-bf110d208138";
 
 describe("larpitApiUrl", () => {
   it("maps a larp page to its api url, www. and trailing slash and query tolerated", () => {
     expect(larpitApiUrl(eventUrl)).toBe(
-      "https://larpit.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138",
+      "https://larp.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138",
     );
     expect(
       larpitApiUrl(
-        `https://www.larpit.fi/larp/019c1910-828b-7147-86c5-bf110d208138/`,
+        `https://www.larp.fi/larp/019c1910-828b-7147-86c5-bf110d208138/`,
       ),
-    ).toBe("https://larpit.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138");
+    ).toBe("https://larp.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138");
     expect(larpitApiUrl(`${eventUrl}?utm_source=newsletter`)).toBe(
-      "https://larpit.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138",
+      "https://larp.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138",
     );
   });
 
   it("maps a larp's short address to its api url", () => {
-    expect(larpitApiUrl("https://larpit.fi/welcome-to-grayhaven-p2")).toBe(
-      "https://larpit.fi/api/larp/welcome-to-grayhaven-p2",
+    expect(larpitApiUrl("https://larp.fi/welcome-to-grayhaven-p2")).toBe(
+      "https://larp.fi/api/larp/welcome-to-grayhaven-p2",
     );
-    expect(larpitApiUrl("https://www.larpit.fi/Korpkvadet/?x=1")).toBe(
-      "https://larpit.fi/api/larp/korpkvadet",
+    expect(larpitApiUrl("https://www.larp.fi/Korpkvadet/?x=1")).toBe(
+      "https://larp.fi/api/larp/korpkvadet",
     );
   });
 
-  it("rejects anything that is not a larpit.fi larp page", () => {
+  it("maps pages on the former larpit.fi domain to the larp.fi api", () => {
+    expect(
+      larpitApiUrl(
+        "https://larpit.fi/larp/019c1910-828b-7147-86c5-bf110d208138",
+      ),
+    ).toBe("https://larp.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138");
+    expect(larpitApiUrl("https://www.larpit.fi/korpkvadet")).toBe(
+      "https://larp.fi/api/larp/korpkvadet",
+    );
+  });
+
+  it("rejects anything that is not a larp.fi larp page", () => {
     expect(larpitApiUrl("")).toBeNull();
     expect(larpitApiUrl("not a url")).toBeNull();
     expect(larpitApiUrl("https://kompassi.eu/events/tracon2026")).toBeNull();
     expect(
-      larpitApiUrl(
-        "http://larpit.fi/larp/019c1910-828b-7147-86c5-bf110d208138",
-      ),
+      larpitApiUrl("http://larp.fi/larp/019c1910-828b-7147-86c5-bf110d208138"),
     ).toBeNull();
-    expect(larpitApiUrl("https://larpit.fi/larp/not-a-uuid")).toBeNull();
-    expect(larpitApiUrl("https://larpit.fi/")).toBeNull();
-    expect(larpitApiUrl("https://larpit.fi/some/path")).toBeNull();
-    expect(larpitApiUrl("https://larpit.fi/not_an_alias")).toBeNull();
+    expect(larpitApiUrl("https://larp.fi/larp/not-a-uuid")).toBeNull();
+    expect(larpitApiUrl("https://larp.fi/")).toBeNull();
+    expect(larpitApiUrl("https://larp.fi/some/path")).toBeNull();
+    expect(larpitApiUrl("https://larp.fi/not_an_alias")).toBeNull();
     expect(
       larpitApiUrl(
-        "https://larpit.fi/larps/019c1910-828b-7147-86c5-bf110d208138",
+        "https://larp.fi/larps/019c1910-828b-7147-86c5-bf110d208138",
       ),
     ).toBeNull();
   });
@@ -58,7 +67,7 @@ function jsonResponse(body: unknown, ok = true): Response {
 
 describe("fetchLarp", () => {
   const apiUrl =
-    "https://larpit.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138";
+    "https://larp.fi/api/larp/019c1910-828b-7147-86c5-bf110d208138";
 
   it("returns the parsed larp on a valid response", async () => {
     const body = {

@@ -41,7 +41,7 @@ mail:
   sender: edegal@localhost
   from: Edegal <edegal@localhost>
 
-# Larpit.fi larp listing the media worker polls hourly to fill in albums' event metadata URLs from
+# Larp.fi larp listing the media worker polls hourly to fill in albums' event metadata URLs from
 # larps' photo links. Empty turns the sync off; only Larppikuvat.fi sets it.
 larpitSync:
   apiUrl: ""
